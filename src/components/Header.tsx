@@ -20,7 +20,10 @@ import {
   Menu,
   ShieldCheck,
   Crown,
-  MoreHorizontal
+  MoreHorizontal,
+  LogOut,
+  User as UserIcon,
+  Home
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -47,6 +50,9 @@ interface HeaderProps {
   onSearchChange: (query: string) => void;
   onExport: () => void;
   onImport: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onLogout: () => void;
+  onNavigateToLanding: () => void;
+  onOpenAuthModal: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -72,9 +78,13 @@ export const Header: React.FC<HeaderProps> = ({
   searchQuery,
   onSearchChange,
   onExport,
-  onImport
+  onImport,
+  onLogout,
+  onNavigateToLanding,
+  onOpenAuthModal
 }) => {
   const [showToolsMenu, setShowToolsMenu] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const [isEditingRoom, setIsEditingRoom] = useState(false);
 
   const views: { id: WorkspaceView; label: string; icon: React.FC<{ className?: string }> }[] = [
@@ -85,30 +95,30 @@ export const Header: React.FC<HeaderProps> = ({
   ];
 
   return (
-    <header className="sticky top-0 z-30 flex h-13 items-center justify-between border-b border-appflowy-border bg-appflowy-surface/90 px-3.5 backdrop-blur-md dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface/90">
-      <div className="flex items-center gap-2.5 min-w-0">
+    <header className="flex sticky top-0 z-30 justify-between items-center px-4 h-14 border-b backdrop-blur-md border-appflowy-border bg-appflowy-surface/95 sm:px-5 dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface/95">
+      <div className="flex gap-3 items-center min-w-0">
         <button
           onClick={onToggleSidebar}
-          className="flex h-7 w-7 items-center justify-center rounded-md text-appflowy-muted hover:bg-neutral-100 hover:text-appflowy-text dark:text-appflowy-darkMuted dark:hover:bg-neutral-800"
+          className="flex justify-center items-center w-8 h-8 rounded-lg cursor-pointer text-appflowy-muted hover:bg-neutral-100 hover:text-appflowy-text dark:text-appflowy-darkMuted dark:hover:bg-neutral-800"
           title={isSidebarOpen ? 'Collapse Sidebar' : 'Expand Sidebar'}
         >
-          <Menu className="h-4 w-4" />
+          <Menu className="w-4 h-4" />
         </button>
 
-        <div className="flex items-center gap-2 min-w-0">
+        <div className="flex gap-2 items-center min-w-0">
           <div className="flex items-center gap-1.5 truncate">
-            <span className="text-[11px] text-appflowy-muted dark:text-appflowy-darkMuted hidden lg:inline truncate">
+            <span className="hidden text-xs truncate text-appflowy-muted dark:text-appflowy-darkMuted lg:inline">
               {workspaceName}
             </span>
-            <span className="text-appflowy-muted dark:text-appflowy-darkMuted hidden lg:inline">/</span>
-            <h1 className="text-xs font-semibold tracking-tight text-appflowy-text dark:text-appflowy-darkText truncate">
+            <span className="hidden text-appflowy-muted dark:text-appflowy-darkMuted lg:inline">/</span>
+            <h1 className="text-xs font-semibold tracking-tight truncate text-appflowy-text dark:text-appflowy-darkText">
               {currentMode === 'board' ? board?.title || 'Board' : activePage?.title || 'Page'}
             </h1>
           </div>
 
           <button
             onClick={onOpenMembersModal}
-            className="hidden sm:inline-flex items-center gap-1 rounded bg-purple-50 px-1.5 py-0.5 text-[10px] font-medium uppercase text-purple-700 hover:bg-purple-100 dark:bg-purple-950/40 dark:text-purple-300"
+            className="hidden sm:inline-flex items-center gap-1 rounded bg-purple-50 px-2 py-0.5 text-[10px] font-medium uppercase text-purple-700 hover:bg-purple-100 dark:bg-purple-950/40 dark:text-purple-300 cursor-pointer"
             title="Workspace Role (Click to view members)"
           >
             {currentUserRole === 'owner' ? <Crown className="h-2.5 w-2.5" /> : <ShieldCheck className="h-2.5 w-2.5" />}
@@ -117,7 +127,7 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {currentMode === 'board' && (
-          <div className="flex items-center rounded-lg border border-appflowy-border bg-appflowy-bg/80 p-0.5 ml-1 dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg/80">
+          <div className="flex items-center rounded-lg border border-appflowy-border bg-appflowy-bg/80 p-0.5 ml-2 dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg/80">
             {views.map((v) => {
               const Icon = v.icon;
               const isActive = activeView === v.id;
@@ -125,7 +135,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <button
                   key={v.id}
                   onClick={() => onViewChange(v.id)}
-                  className={`flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium transition-colors ${
+                  className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer ${
                     isActive
                       ? 'bg-appflowy-surface text-purple-600 shadow-2xs dark:bg-appflowy-darkSurface dark:text-purple-400'
                       : 'text-appflowy-muted hover:text-appflowy-text dark:text-appflowy-darkMuted dark:hover:text-appflowy-darkText'
@@ -141,21 +151,21 @@ export const Header: React.FC<HeaderProps> = ({
         )}
       </div>
 
-      <div className="flex items-center gap-2">
-        <div className="relative hidden xl:block">
+      <div className="flex items-center gap-2.5 sm:gap-3 ms-2">
+        <div className="hidden relative xl:block">
           <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-appflowy-muted dark:text-appflowy-darkMuted" />
           <input
             type="text"
             placeholder="Search items..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="h-7 w-36 rounded-md border border-appflowy-border bg-appflowy-bg pl-8 pr-2.5 text-xs transition-all focus:w-48 focus:outline-none focus:ring-1 focus:ring-purple-500 dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg dark:focus:ring-purple-400"
+            className="h-8 w-40 rounded-lg border border-appflowy-border bg-appflowy-bg pl-8 pr-2.5 text-xs transition-all focus:w-52 focus:outline-none focus:ring-1 focus:ring-purple-500 dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg dark:focus:ring-purple-400"
           />
         </div>
 
         <button
           onClick={onOpenSyncSettings}
-          className="flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium transition-colors hover:opacity-85"
+          className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-medium transition-colors hover:opacity-85 cursor-pointer"
           style={{
             backgroundColor:
               syncStatus === 'connected'
@@ -176,10 +186,10 @@ export const Header: React.FC<HeaderProps> = ({
           }}
           title="Sync Status (Click to configure)"
         >
-          {syncStatus === 'connected' && <CheckCircle2 className="h-3 w-3" />}
-          {syncStatus === 'connecting' && <Loader2 className="h-3 w-3 animate-spin" />}
-          {syncStatus === 'local' && <Radio className="h-3 w-3 animate-pulse" />}
-          {syncStatus === 'error' && <AlertTriangle className="h-3 w-3" />}
+          {syncStatus === 'connected' && <CheckCircle2 className="w-3 h-3" />}
+          {syncStatus === 'connecting' && <Loader2 className="w-3 h-3 animate-spin" />}
+          {syncStatus === 'local' && <Radio className="w-3 h-3 animate-pulse" />}
+          {syncStatus === 'error' && <AlertTriangle className="w-3 h-3" />}
           <span className="hidden sm:inline">
             {syncStatus === 'connected'
               ? 'Cloud'
@@ -204,29 +214,33 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           ))}
           <div className="flex items-center gap-0.5 pl-2 text-xs text-appflowy-muted dark:text-appflowy-darkMuted">
-            <Users className="h-3 w-3" />
+            <Users className="w-3 h-3" />
             <span className="text-[11px]">{onlineUsers.length}</span>
           </div>
         </div>
 
-        <div className="h-4 w-px bg-appflowy-border dark:bg-appflowy-darkBorder" />
+        <div className="w-px h-4 bg-appflowy-border dark:bg-appflowy-darkBorder" />
 
+        {/* Tools Menu (Database, Sync, Export/Import) */}
         <div className="relative">
           <button
-            onClick={() => setShowToolsMenu(!showToolsMenu)}
-            className="flex h-7 w-7 items-center justify-center rounded-md text-appflowy-muted transition-colors hover:bg-neutral-100 hover:text-appflowy-text dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 dark:hover:text-appflowy-darkText"
+            onClick={() => {
+              setShowToolsMenu(!showToolsMenu);
+              setShowUserMenu(false);
+            }}
+            className="flex justify-center items-center w-8 h-8 rounded-lg transition-colors cursor-pointer text-appflowy-muted hover:bg-neutral-100 hover:text-appflowy-text dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 dark:hover:text-appflowy-darkText"
             title="More Options & Data Tools"
           >
-            <MoreHorizontal className="h-4 w-4" />
+            <MoreHorizontal className="w-4 h-4" />
           </button>
 
           {showToolsMenu && (
-            <div className="absolute right-0 top-8 z-40 w-52 rounded-xl border border-appflowy-border bg-appflowy-surface p-1.5 shadow-xl dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface">
+            <div className="absolute right-0 top-10 z-40 w-52 rounded-xl border border-appflowy-border bg-appflowy-surface p-1.5 shadow-xl dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface">
               <div className="px-2 py-1.5 border-b border-appflowy-border dark:border-appflowy-darkBorder mb-1">
                 <span className="text-[10px] uppercase font-semibold text-appflowy-muted dark:text-appflowy-darkMuted">
                   Sync Room
                 </span>
-                <div className="mt-1 flex items-center gap-1">
+                <div className="flex gap-1 items-center mt-1">
                   {isEditingRoom ? (
                     <input
                       type="text"
@@ -242,7 +256,7 @@ export const Header: React.FC<HeaderProps> = ({
                   ) : (
                     <span
                       onClick={() => setIsEditingRoom(true)}
-                      className="cursor-pointer font-mono text-xs text-purple-600 hover:underline dark:text-purple-400"
+                      className="font-mono text-xs text-purple-600 cursor-pointer hover:underline dark:text-purple-400"
                       title="Click to edit room"
                     >
                       #{currentRoom}
@@ -256,7 +270,7 @@ export const Header: React.FC<HeaderProps> = ({
                   setShowToolsMenu(false);
                   onOpenDbBridge();
                 }}
-                className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-appflowy-text hover:bg-neutral-100 dark:text-appflowy-darkText dark:hover:bg-neutral-800"
+                className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-appflowy-text hover:bg-neutral-100 dark:text-appflowy-darkText dark:hover:bg-neutral-800 cursor-pointer"
               >
                 <Database className="h-3.5 w-3.5 text-indigo-500" />
                 <span>Database Bridge (SQL)</span>
@@ -267,7 +281,7 @@ export const Header: React.FC<HeaderProps> = ({
                   setShowToolsMenu(false);
                   onOpenSyncSettings();
                 }}
-                className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-appflowy-text hover:bg-neutral-100 dark:text-appflowy-darkText dark:hover:bg-neutral-800"
+                className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-appflowy-text hover:bg-neutral-100 dark:text-appflowy-darkText dark:hover:bg-neutral-800 cursor-pointer"
               >
                 <Cloud className="h-3.5 w-3.5 text-purple-500" />
                 <span>Realtime Cloud Sync</span>
@@ -280,7 +294,7 @@ export const Header: React.FC<HeaderProps> = ({
                   setShowToolsMenu(false);
                   onExport();
                 }}
-                className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-appflowy-text hover:bg-neutral-100 dark:text-appflowy-darkText dark:hover:bg-neutral-800"
+                className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-appflowy-text hover:bg-neutral-100 dark:text-appflowy-darkText dark:hover:bg-neutral-800 cursor-pointer"
               >
                 <Download className="h-3.5 w-3.5 text-neutral-500" />
                 <span>Export Board (JSON)</span>
@@ -306,10 +320,78 @@ export const Header: React.FC<HeaderProps> = ({
         <button
           onClick={onToggleTheme}
           title="Toggle light/dark mode"
-          className="flex h-7 w-7 items-center justify-center rounded-md text-appflowy-muted transition-colors hover:bg-neutral-100 hover:text-appflowy-text dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 dark:hover:text-appflowy-darkText"
+          className="flex justify-center items-center w-8 h-8 rounded-lg transition-colors cursor-pointer text-appflowy-muted hover:bg-neutral-100 hover:text-appflowy-text dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 dark:hover:text-appflowy-darkText"
         >
-          {isDark ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+          {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
         </button>
+
+        {/* User Profile Avatar & Logout Popover */}
+        <div className="relative">
+          <button
+            onClick={() => {
+              setShowUserMenu(!showUserMenu);
+              setShowToolsMenu(false);
+            }}
+            style={{ backgroundColor: currentUser.color }}
+            className="flex justify-center items-center w-8 h-8 text-xs font-bold text-white rounded-full ring-2 transition-transform cursor-pointer shadow-xs ring-purple-400/40 hover:scale-105"
+            title={`${currentUser.name} (Akun & Opsi Keluar)`}
+          >
+            {currentUser.avatar}
+          </button>
+
+          {showUserMenu && (
+            <div className="absolute right-0 top-10 z-40 p-2 w-56 rounded-xl border shadow-xl border-appflowy-border bg-appflowy-surface dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface">
+              <div className="px-2.5 py-2 border-b border-appflowy-border dark:border-appflowy-darkBorder mb-1">
+                <p className="text-xs font-semibold truncate text-appflowy-text dark:text-appflowy-darkText">
+                  {currentUser.name}
+                </p>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span className="rounded bg-purple-50 px-1.5 py-0.2 text-[9px] font-semibold uppercase text-purple-700 dark:bg-purple-950/40 dark:text-purple-300">
+                    {currentUserRole}
+                  </span>
+                  <span className="text-[10px] text-appflowy-muted dark:text-appflowy-darkMuted">
+                    Online
+                  </span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  setShowUserMenu(false);
+                  onOpenAuthModal();
+                }}
+                className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-appflowy-text hover:bg-neutral-100 dark:text-appflowy-darkText dark:hover:bg-neutral-800 cursor-pointer"
+              >
+                <UserIcon className="h-3.5 w-3.5 text-neutral-500" />
+                <span>Ganti Akun / Profil</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowUserMenu(false);
+                  onNavigateToLanding();
+                }}
+                className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-appflowy-text hover:bg-neutral-100 dark:text-appflowy-darkText dark:hover:bg-neutral-800 cursor-pointer"
+              >
+                <Home className="h-3.5 w-3.5 text-neutral-500" />
+                <span>Halaman Beranda</span>
+              </button>
+
+              <div className="my-1 h-px bg-appflowy-border dark:bg-appflowy-darkBorder" />
+
+              <button
+                onClick={() => {
+                  setShowUserMenu(false);
+                  onLogout();
+                }}
+                className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/30 cursor-pointer"
+              >
+                <LogOut className="h-3.5 w-3.5" />
+                <span>Keluar (Logout)</span>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );

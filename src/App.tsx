@@ -16,6 +16,7 @@ import {
 import { INITIAL_BOARD } from './lib/constants';
 import {
   getStoredAuthUser,
+  saveStoredAuthUser,
   getStoredWorkspaces,
   saveStoredWorkspaces,
   getActiveWorkspaceId,
@@ -36,8 +37,11 @@ import { CloudSyncModal } from './components/CloudSyncModal';
 import { DatabaseBridgeModal } from './components/DatabaseBridgeModal';
 import { AuthModal } from './components/AuthModal';
 import { WorkspaceMembersModal } from './components/WorkspaceMembersModal';
+import { LandingPage } from './components/LandingPage';
+import { AuthPage } from './components/AuthPage';
 
 export const App: React.FC = () => {
+  const [appRoute, setAppRoute] = useState<'app' | 'landing' | 'auth'>('app');
   const [currentUser, setCurrentUser] = useState<AuthUser>(() => getStoredAuthUser());
   const [workspaces, setWorkspaces] = useState<Workspace[]>(() => getStoredWorkspaces(currentUser));
   const [activeWorkspaceId, setActiveWorkspaceIdState] = useState<string>(() =>
@@ -641,6 +645,44 @@ export const App: React.FC = () => {
 
   const selectedCard = selectedCardId ? activeBoard.cards[selectedCardId] : null;
 
+  const handleLogout = () => {
+    const guestUser: AuthUser = {
+      id: `usr-guest-${Math.random().toString(36).substring(2, 7)}`,
+      name: 'Guest Collab',
+      avatar: 'G',
+      color: '#10B981',
+      isCloudAuth: false
+    };
+    saveStoredAuthUser(guestUser);
+    setCurrentUser(guestUser);
+    setAppRoute('landing');
+  };
+
+  if (appRoute === 'landing') {
+    return (
+      <LandingPage
+        currentUser={currentUser}
+        onEnterApp={() => setAppRoute('app')}
+        onOpenAuth={() => setAppRoute('auth')}
+        isDark={isDark}
+        onToggleTheme={toggleTheme}
+      />
+    );
+  }
+
+  if (appRoute === 'auth') {
+    return (
+      <AuthPage
+        currentUser={currentUser}
+        onUserChange={(user) => {
+          setCurrentUser(user);
+        }}
+        onNavigateHome={() => setAppRoute('landing')}
+        onEnterApp={() => setAppRoute('app')}
+      />
+    );
+  }
+
   return (
     <div className="flex h-screen overflow-hidden bg-appflowy-bg font-sans text-appflowy-text dark:bg-appflowy-darkBg dark:text-appflowy-darkText">
       <Sidebar
@@ -688,6 +730,9 @@ export const App: React.FC = () => {
           onSearchChange={setSearchQuery}
           onExport={handleExport}
           onImport={handleImport}
+          onLogout={handleLogout}
+          onNavigateToLanding={() => setAppRoute('landing')}
+          onOpenAuthModal={() => setIsAuthModalOpen(true)}
         />
 
         <main className="flex-1 overflow-hidden">
