@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Board, Card } from '../types/board';
 import { KanbanColumn } from './KanbanColumn';
 import { Plus } from 'lucide-react';
+import { Button, Input } from './ui';
 
 interface KanbanBoardProps {
   board: Board;
@@ -68,52 +69,48 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         {isAddingColumn ? (
           <form
             onSubmit={handleCreateColumn}
-            className="rounded-xl border border-appflowy-border bg-appflowy-surface p-3 shadow-2xs dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface"
+            className="rounded-2xl border border-appflowy-border bg-appflowy-surface p-3.5 shadow-2xs dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface space-y-2.5"
           >
-            <input
-              type="text"
+            <Input
               autoFocus
-              placeholder="Column title..."
+              placeholder="Judul kolom baru..."
               value={columnTitle}
               onChange={(e) => setColumnTitle(e.target.value)}
-              className="h-8 w-full rounded border border-appflowy-border bg-appflowy-bg px-2.5 text-xs text-appflowy-text focus:outline-none focus:ring-1 focus:ring-purple-500 dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg dark:text-appflowy-darkText"
             />
-            <div className="mt-2.5 flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 pt-1">
               {PRESET_COLORS.map((c) => (
                 <button
                   type="button"
                   key={c}
                   onClick={() => setSelectedColor(c)}
                   style={{ backgroundColor: c }}
-                  className={`h-4 w-4 rounded-full transition-transform ${
+                  className={`h-4 w-4 rounded-full transition-transform cursor-pointer ${
                     selectedColor === c ? 'scale-125 ring-2 ring-purple-400 ring-offset-1' : 'opacity-70 hover:opacity-100'
                   }`}
                 />
               ))}
             </div>
-            <div className="mt-3 flex items-center justify-end gap-1.5">
-              <button
+            <div className="flex items-center justify-end gap-1.5 pt-1">
+              <Button
                 type="button"
+                variant="ghost"
+                size="xs"
                 onClick={() => setIsAddingColumn(false)}
-                className="rounded px-2.5 py-1 text-xs text-appflowy-muted hover:bg-neutral-100 dark:hover:bg-neutral-800"
               >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="rounded bg-purple-600 px-3 py-1 text-xs font-medium text-white hover:bg-purple-700"
-              >
-                Add Column
-              </button>
+                Batal
+              </Button>
+              <Button type="submit" variant="primary" size="xs">
+                Tambah Kolom
+              </Button>
             </div>
           </form>
         ) : (
           <button
             onClick={() => setIsAddingColumn(true)}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-neutral-300 py-3 text-xs font-medium text-appflowy-muted transition-colors hover:border-purple-400 hover:text-purple-600 dark:border-neutral-700 dark:hover:border-purple-500 dark:hover:text-purple-400"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-neutral-300 py-3 text-xs font-medium text-appflowy-muted transition-colors hover:border-purple-400 hover:text-purple-600 dark:border-neutral-700 dark:hover:border-purple-500 dark:hover:text-purple-400 cursor-pointer"
           >
             <Plus className="h-4 w-4" />
-            <span>Add Column</span>
+            <span>Tambah Kolom</span>
           </button>
         )}
       </div>

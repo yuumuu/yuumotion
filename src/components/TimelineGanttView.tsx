@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Board, Card } from '../types/board';
-import { Clock, CheckSquare } from 'lucide-react';
+import { Clock } from 'lucide-react';
 import { TAG_COLORS } from '../lib/constants';
 
 interface TimelineGanttViewProps {
@@ -62,15 +62,15 @@ export const TimelineGanttView: React.FC<TimelineGanttViewProps> = ({
             Timeline & Gantt Roadmap
           </h2>
         </div>
-        <div className="text-xs text-appflowy-muted dark:text-appflowy-darkMuted">
-          Showing 3-week planning horizon
+        <div className="text-xs text-appflowy-muted dark:text-appflowy-darkMuted font-mono">
+          Periode 3 Pekan
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col overflow-hidden rounded-xl border border-appflowy-border bg-appflowy-surface dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface">
+      <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-appflowy-border bg-appflowy-surface dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface shadow-2xs">
         <div className="flex border-b border-appflowy-border bg-neutral-50/80 text-xs font-semibold text-appflowy-muted dark:border-appflowy-darkBorder dark:bg-neutral-900/60 dark:text-appflowy-darkMuted">
           <div className="w-72 flex-shrink-0 border-r border-appflowy-border px-4 py-2.5 dark:border-appflowy-darkBorder">
-            Task & Deliverables
+            Tugas & Deliverables
           </div>
           <div className="flex flex-1 overflow-x-hidden">
             {timelineDays.map((d) => {
@@ -87,7 +87,7 @@ export const TimelineGanttView: React.FC<TimelineGanttViewProps> = ({
                       : ''
                   }`}
                 >
-                  <div>{d.toLocaleDateString('en-US', { weekday: 'narrow' })}</div>
+                  <div>{d.toLocaleDateString('id-ID', { weekday: 'narrow' })}</div>
                   <div className="font-mono">{d.getDate()}</div>
                 </div>
               );
@@ -98,77 +98,59 @@ export const TimelineGanttView: React.FC<TimelineGanttViewProps> = ({
         <div className="flex-1 overflow-y-auto">
           {board.columns.map((column) => {
             const columnCards = filteredCards.filter((c) => c.columnId === column.id);
-            if (columnCards.length === 0) return null;
 
             return (
-              <div key={column.id} className="border-b border-appflowy-border/60 dark:border-appflowy-darkBorder/60">
-                <div className="flex items-center gap-2 bg-neutral-50/50 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-appflowy-muted dark:bg-neutral-900/40 dark:text-appflowy-darkMuted">
+              <div key={column.id} className="border-b border-appflowy-border/50 last:border-b-0">
+                <div className="sticky top-0 z-10 flex items-center gap-2 bg-neutral-100/70 px-4 py-1.5 text-[11px] font-semibold text-appflowy-muted backdrop-blur-xs dark:bg-neutral-900/70 dark:text-appflowy-darkMuted">
                   <span className="h-2 w-2 rounded-full" style={{ backgroundColor: column.color }} />
                   <span>{column.title}</span>
-                  <span className="text-[10px] text-neutral-400">({columnCards.length})</span>
+                  <span className="font-mono text-[10px]">({columnCards.length})</span>
                 </div>
 
-                <div className="divide-y divide-appflowy-border/40 dark:divide-appflowy-darkBorder/40">
+                <div className="divide-y divide-appflowy-border/30">
                   {columnCards.map((card) => {
-                    const pos = calculateCardPosition(card);
-                    const completedCount = card.checklist.filter((i) => i.completed).length;
-                    const progressPercent =
-                      card.checklist.length > 0 ? (completedCount / card.checklist.length) * 100 : 0;
+                    const { leftPercent, widthPercent, isVisible } = calculateCardPosition(card);
                     const tag = card.tags[0];
-                    const tagStyle = tag ? TAG_COLORS[tag.color] || TAG_COLORS.neutral : TAG_COLORS.neutral;
+                    const style = tag ? TAG_COLORS[tag.color] || TAG_COLORS.purple : TAG_COLORS.purple;
 
                     return (
                       <div
                         key={card.id}
-                        className="group flex items-center hover:bg-neutral-50/60 dark:hover:bg-neutral-800/30"
+                        className="flex h-10 items-center transition-colors hover:bg-neutral-50/50 dark:hover:bg-neutral-900/30"
                       >
-                        <div
-                          onClick={() => onCardClick(card)}
-                          className="w-72 flex-shrink-0 cursor-pointer border-r border-appflowy-border px-4 py-2 dark:border-appflowy-darkBorder"
-                        >
-                          <div className="truncate text-xs font-medium text-appflowy-text group-hover:text-purple-600 dark:text-appflowy-darkText dark:group-hover:text-purple-400">
+                        <div className="w-72 flex-shrink-0 truncate border-r border-appflowy-border/50 px-4 text-xs font-medium text-appflowy-text dark:text-appflowy-darkText">
+                          <button
+                            onClick={() => onCardClick(card)}
+                            className="truncate hover:text-purple-600 hover:underline cursor-pointer"
+                          >
                             {card.title}
-                          </div>
-                          <div className="mt-0.5 flex items-center gap-2 text-[10px] text-appflowy-muted dark:text-appflowy-darkMuted">
-                            {tag && (
-                              <span className={`inline-flex items-center gap-1 rounded px-1 text-[9px] ${tagStyle.bg} ${tagStyle.text}`}>
-                                {tag.name}
-                              </span>
-                            )}
-                            {card.dueDate && <span>Due {card.dueDate}</span>}
-                          </div>
+                          </button>
                         </div>
 
-                        <div className="relative flex h-12 flex-1 items-center px-1">
-                          {pos.isVisible && (
+                        <div className="relative flex-1 h-full flex items-center px-1">
+                          {isVisible ? (
                             <div
                               onClick={() => onCardClick(card)}
                               style={{
-                                left: `${pos.leftPercent}%`,
-                                width: `${pos.widthPercent}%`
+                                left: `${leftPercent}%`,
+                                width: `${widthPercent}%`
                               }}
-                              className="absolute cursor-pointer rounded-lg bg-gradient-to-r from-purple-500 to-indigo-600 p-1.5 text-white shadow-xs transition-transform hover:scale-[1.01]"
+                              className={`absolute h-6 rounded-lg px-2 flex items-center justify-between text-[10px] font-semibold text-white shadow-2xs transition-all hover:brightness-105 cursor-pointer ${style.dot.replace('bg-', 'bg-')}`}
                             >
-                              <div className="truncate text-[10px] font-medium leading-none">
-                                {card.title}
-                              </div>
-                              {card.checklist.length > 0 && (
-                                <div className="mt-1 flex items-center gap-1 text-[9px] opacity-90">
-                                  <CheckSquare className="h-2.5 w-2.5" />
-                                  <div className="h-1 flex-1 overflow-hidden rounded-full bg-black/20">
-                                    <div
-                                      style={{ width: `${progressPercent}%` }}
-                                      className="h-full bg-white"
-                                    />
-                                  </div>
-                                </div>
-                              )}
+                              <span className="truncate">{card.title}</span>
                             </div>
+                          ) : (
+                            <span className="text-[10px] text-neutral-400 italic px-2">Diluar rentang waktu</span>
                           )}
                         </div>
                       </div>
                     );
                   })}
+                  {columnCards.length === 0 && (
+                    <div className="py-2 px-4 text-xs text-appflowy-muted italic">
+                      Tidak ada kartu di kolom ini
+                    </div>
+                  )}
                 </div>
               </div>
             );

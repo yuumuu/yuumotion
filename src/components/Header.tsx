@@ -26,6 +26,7 @@ import {
   Home,
   Keyboard
 } from 'lucide-react';
+import { Tabs, Badge, Separator } from './ui';
 
 interface HeaderProps {
   board?: Board;
@@ -90,19 +91,19 @@ export const Header: React.FC<HeaderProps> = ({
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isEditingRoom, setIsEditingRoom] = useState(false);
 
-  const views: { id: WorkspaceView; label: string; icon: React.FC<{ className?: string }> }[] = [
-    { id: 'board', label: 'Board', icon: Kanban },
-    { id: 'calendar', label: 'Calendar', icon: Calendar },
-    { id: 'timeline', label: 'Timeline', icon: Clock },
-    { id: 'table', label: 'Table', icon: TableIcon }
+  const viewItems = [
+    { id: 'board', label: 'Board', icon: <Kanban className="h-3.5 w-3.5" /> },
+    { id: 'calendar', label: 'Kalender', icon: <Calendar className="h-3.5 w-3.5" /> },
+    { id: 'timeline', label: 'Timeline', icon: <Clock className="h-3.5 w-3.5" /> },
+    { id: 'table', label: 'Tabel', icon: <TableIcon className="h-3.5 w-3.5" /> }
   ];
 
   return (
-    <header className="flex sticky top-0 z-30 justify-between items-center px-4 h-14 border-b backdrop-blur-md border-appflowy-border bg-appflowy-surface/95 sm:px-5 dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface/95">
+    <header className="flex sticky top-0 z-30 justify-between items-center px-4 h-14 border-b backdrop-blur-md border-appflowy-border/80 bg-appflowy-surface/95 sm:px-5 dark:border-appflowy-darkBorder/80 dark:bg-appflowy-darkSurface/95">
       <div className="flex gap-3 items-center min-w-0">
         <button
           onClick={onToggleSidebar}
-          className="flex justify-center items-center w-8 h-8 rounded-lg cursor-pointer text-appflowy-muted hover:bg-neutral-100 hover:text-appflowy-text dark:text-appflowy-darkMuted dark:hover:bg-neutral-800"
+          className="flex justify-center items-center w-8 h-8 rounded-lg cursor-pointer text-appflowy-muted hover:bg-neutral-100 hover:text-appflowy-text dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 transition-colors"
           title={isSidebarOpen ? 'Collapse Sidebar' : 'Expand Sidebar'}
         >
           <Menu className="w-4 h-4" />
@@ -115,41 +116,36 @@ export const Header: React.FC<HeaderProps> = ({
             </span>
             <span className="hidden text-appflowy-muted dark:text-appflowy-darkMuted lg:inline">/</span>
             <h1 className="text-xs font-semibold tracking-tight truncate text-appflowy-text dark:text-appflowy-darkText">
-              {currentMode === 'board' ? board?.title || 'Board' : activePage?.title || 'Page'}
+              {currentMode === 'board' ? board?.title || 'Board' : activePage?.title || 'Dokumen'}
             </h1>
           </div>
 
-          <button
+          <Badge
+            variant={currentUserRole === 'owner' ? 'purple' : 'neutral'}
+            dot
             onClick={onOpenMembersModal}
-            className="hidden sm:inline-flex items-center gap-1 rounded bg-purple-50 px-2 py-0.5 text-[10px] font-medium uppercase text-purple-700 hover:bg-purple-100 dark:bg-purple-950/40 dark:text-purple-300 cursor-pointer"
-            title="Workspace Role (Click to view members)"
+            className="hidden sm:inline-flex uppercase text-[10px]"
           >
-            {currentUserRole === 'owner' ? <Crown className="h-2.5 w-2.5" /> : <ShieldCheck className="h-2.5 w-2.5" />}
-            <span>{currentUserRole}</span>
-          </button>
+            {currentUserRole === 'owner' ? (
+              <span className="inline-flex items-center gap-1">
+                <Crown className="h-2.5 w-2.5" /> {currentUserRole}
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1">
+                <ShieldCheck className="h-2.5 w-2.5" /> {currentUserRole}
+              </span>
+            )}
+          </Badge>
         </div>
 
         {currentMode === 'board' && (
-          <div className="flex items-center rounded-lg border border-appflowy-border bg-appflowy-bg/80 p-0.5 ml-2 dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg/80">
-            {views.map((v) => {
-              const Icon = v.icon;
-              const isActive = activeView === v.id;
-              return (
-                <button
-                  key={v.id}
-                  onClick={() => onViewChange(v.id)}
-                  className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer ${
-                    isActive
-                      ? 'bg-appflowy-surface text-purple-600 shadow-2xs dark:bg-appflowy-darkSurface dark:text-purple-400'
-                      : 'text-appflowy-muted hover:text-appflowy-text dark:text-appflowy-darkMuted dark:hover:text-appflowy-darkText'
-                  }`}
-                  title={`${v.label} View`}
-                >
-                  <Icon className="h-3.5 w-3.5" />
-                  <span className="hidden md:inline">{v.label}</span>
-                </button>
-              );
-            })}
+          <div className="ml-2 hidden sm:block">
+            <Tabs
+              items={viewItems}
+              activeId={activeView}
+              onChange={(id) => onViewChange(id as WorkspaceView)}
+              size="xs"
+            />
           </div>
         )}
       </div>
@@ -160,11 +156,11 @@ export const Header: React.FC<HeaderProps> = ({
           <input
             id="search-input-field"
             type="text"
-            placeholder="Search items... (/)"
+            placeholder="Cari item... (/)"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             className="h-8 w-40 rounded-lg border border-appflowy-border bg-appflowy-bg pl-8 pr-2.5 text-xs transition-all focus:w-52 focus:outline-none focus:ring-1 focus:ring-purple-500 dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg dark:focus:ring-purple-400"
-            title="Search cards and items (Press / to focus)"
+            title="Cari kartu atau dokumen (Tekan / untuk fokus)"
           />
         </div>
 
@@ -189,12 +185,12 @@ export const Header: React.FC<HeaderProps> = ({
                 ? '#dc2626'
                 : '#7c3aed'
           }}
-          title="Sync Status (Click to configure)"
+          title="Status Sinkronisasi (Klik untuk konfigurasi)"
         >
-          {syncStatus === 'connected' && <CheckCircle2 className="w-3 h-3" />}
-          {syncStatus === 'connecting' && <Loader2 className="w-3 h-3 animate-spin" />}
-          {syncStatus === 'local' && <Radio className="w-3 h-3 animate-pulse" />}
-          {syncStatus === 'error' && <AlertTriangle className="w-3 h-3" />}
+          {syncStatus === 'connected' && <CheckCircle2 className="h-3 w-3" />}
+          {syncStatus === 'connecting' && <Loader2 className="h-3 w-3 animate-spin" />}
+          {syncStatus === 'local' && <Radio className="h-3 w-3 animate-pulse" />}
+          {syncStatus === 'error' && <AlertTriangle className="h-3 w-3" />}
           <span className="hidden sm:inline">
             {syncStatus === 'connected'
               ? 'Cloud'
@@ -206,25 +202,25 @@ export const Header: React.FC<HeaderProps> = ({
           </span>
         </button>
 
-        <div className="flex items-center -space-x-1.5" title="Active users in this room">
+        <div className="flex items-center -space-x-1.5" title="Pengguna aktif di room ini">
           {onlineUsers.slice(0, 3).map((user) => (
             <div
               key={user.id}
               style={{ backgroundColor: user.color }}
               className="relative flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-semibold text-white ring-2 ring-white dark:ring-neutral-900"
-              title={`${user.name} ${user.id === currentUser.id ? '(You)' : ''}`}
+              title={`${user.name} ${user.id === currentUser.id ? '(Anda)' : ''}`}
             >
               {user.avatar}
               <span className="absolute bottom-0 right-0 h-1.5 w-1.5 rounded-full bg-emerald-500 ring-1 ring-white" />
             </div>
           ))}
           <div className="flex items-center gap-0.5 pl-2 text-xs text-appflowy-muted dark:text-appflowy-darkMuted">
-            <Users className="w-3 h-3" />
+            <Users className="h-3 w-3" />
             <span className="text-[11px]">{onlineUsers.length}</span>
           </div>
         </div>
 
-        <div className="w-px h-4 bg-appflowy-border dark:bg-appflowy-darkBorder" />
+        <Separator orientation="vertical" />
 
         {/* Tools Menu (Database, Sync, Export/Import) */}
         <div className="relative">
@@ -233,10 +229,10 @@ export const Header: React.FC<HeaderProps> = ({
               setShowToolsMenu(!showToolsMenu);
               setShowUserMenu(false);
             }}
-            className="flex justify-center items-center w-8 h-8 rounded-lg transition-colors cursor-pointer text-appflowy-muted hover:bg-neutral-100 hover:text-appflowy-text dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 dark:hover:text-appflowy-darkText"
-            title="More Options & Data Tools"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-appflowy-muted transition-colors hover:bg-neutral-100 hover:text-appflowy-text dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 dark:hover:text-appflowy-darkText cursor-pointer"
+            title="Alat & Opsi Ekspor Data"
           >
-            <MoreHorizontal className="w-4 h-4" />
+            <MoreHorizontal className="h-4 w-4" />
           </button>
 
           {showToolsMenu && (
@@ -245,7 +241,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <span className="text-[10px] uppercase font-semibold text-appflowy-muted dark:text-appflowy-darkMuted">
                   Sync Room
                 </span>
-                <div className="flex gap-1 items-center mt-1">
+                <div className="mt-1 flex items-center gap-1">
                   {isEditingRoom ? (
                     <input
                       type="text"
@@ -261,8 +257,8 @@ export const Header: React.FC<HeaderProps> = ({
                   ) : (
                     <span
                       onClick={() => setIsEditingRoom(true)}
-                      className="font-mono text-xs text-purple-600 cursor-pointer hover:underline dark:text-purple-400"
-                      title="Click to edit room"
+                      className="cursor-pointer font-mono text-xs text-purple-600 hover:underline dark:text-purple-400"
+                      title="Klik untuk ubah room"
                     >
                       #{currentRoom}
                     </span>
@@ -302,12 +298,12 @@ export const Header: React.FC<HeaderProps> = ({
                 className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-appflowy-text hover:bg-neutral-100 dark:text-appflowy-darkText dark:hover:bg-neutral-800 cursor-pointer"
               >
                 <Download className="h-3.5 w-3.5 text-neutral-500" />
-                <span>Export Board (JSON)</span>
+                <span>Ekspor Board (JSON)</span>
               </button>
 
               <label className="flex w-full cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-appflowy-text hover:bg-neutral-100 dark:text-appflowy-darkText dark:hover:bg-neutral-800">
                 <Upload className="h-3.5 w-3.5 text-neutral-500" />
-                <span>Import Board (JSON)</span>
+                <span>Impor Board (JSON)</span>
                 <input
                   type="file"
                   accept=".json"
@@ -359,9 +355,9 @@ export const Header: React.FC<HeaderProps> = ({
                   {currentUser.name}
                 </p>
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="rounded bg-purple-50 px-1.5 py-0.2 text-[9px] font-semibold uppercase text-purple-700 dark:bg-purple-950/40 dark:text-purple-300">
+                  <Badge variant="purple" className="text-[9px] uppercase font-semibold">
                     {currentUserRole}
-                  </span>
+                  </Badge>
                   <span className="text-[10px] text-appflowy-muted dark:text-appflowy-darkMuted">
                     Online
                   </span>
@@ -390,7 +386,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <span>Halaman Beranda</span>
               </button>
 
-              <div className="my-1 h-px bg-appflowy-border dark:bg-appflowy-darkBorder" />
+              <Separator className="my-1" />
 
               <button
                 onClick={() => {

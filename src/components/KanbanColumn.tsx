@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Card, Column } from '../types/board';
 import { KanbanCard } from './KanbanCard';
 import { Plus, MoreHorizontal, Trash2 } from 'lucide-react';
+import { Button } from './ui';
 
 interface KanbanColumnProps {
   column: Column;
@@ -77,22 +78,22 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
         <div className="relative">
           <button
             onClick={() => setShowMenu(!showMenu)}
-            className="flex h-6 w-6 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-200/60 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800"
+            className="flex h-6 w-6 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-200/60 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 cursor-pointer"
           >
             <MoreHorizontal className="h-3.5 w-3.5" />
           </button>
 
           {showMenu && (
-            <div className="absolute right-0 top-7 z-20 w-36 rounded-md border border-appflowy-border bg-appflowy-surface p-1 shadow-lg dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface">
+            <div className="absolute right-0 top-7 z-20 w-36 rounded-xl border border-appflowy-border bg-appflowy-surface p-1 shadow-lg dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface">
               <button
                 onClick={() => {
                   setShowMenu(false);
                   onDeleteColumn(column.id);
                 }}
-                className="flex w-full items-center gap-1.5 rounded px-2 py-1.5 text-xs text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                className="flex w-full items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 cursor-pointer"
               >
                 <Trash2 className="h-3.5 w-3.5" />
-                Delete Column
+                <span>Hapus Kolom</span>
               </button>
             </div>
           )}
@@ -120,7 +121,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
             <textarea
               autoFocus
               rows={2}
-              placeholder="What needs to be done?"
+              placeholder="Tuliskan tugas yang perlu dikerjakan..."
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               onKeyDown={(e) => {
@@ -129,31 +130,29 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
                   handleCreate(e);
                 }
               }}
-              className="w-full resize-none bg-transparent text-xs text-appflowy-text focus:outline-none dark:text-appflowy-darkText"
+              className="w-full resize-none bg-transparent text-xs text-appflowy-text focus:outline-none dark:text-appflowy-darkText placeholder-neutral-400"
             />
             <div className="mt-2 flex items-center justify-end gap-1.5">
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="xs"
                 onClick={() => setIsAdding(false)}
-                className="rounded px-2 py-0.5 text-xs text-appflowy-muted hover:bg-neutral-100 dark:hover:bg-neutral-700"
               >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="rounded bg-purple-600 px-2.5 py-0.5 text-xs font-medium text-white hover:bg-purple-700"
-              >
-                Add Card
-              </button>
+                Batal
+              </Button>
+              <Button type="submit" variant="primary" size="xs">
+                Tambah Kartu
+              </Button>
             </div>
           </form>
         ) : (
           <button
             onClick={() => setIsAdding(true)}
-            className="flex w-full items-center gap-1.5 rounded-xl px-2 py-1.5 text-xs font-medium text-appflowy-muted transition-colors hover:bg-neutral-200/50 hover:text-appflowy-text dark:text-appflowy-darkMuted dark:hover:bg-neutral-800/60 dark:hover:text-appflowy-darkText"
+            className="flex w-full items-center gap-1.5 rounded-xl px-2 py-1.5 text-xs font-medium text-appflowy-muted transition-colors hover:bg-neutral-200/50 hover:text-appflowy-text dark:text-appflowy-darkMuted dark:hover:bg-neutral-800/60 dark:hover:text-appflowy-darkText cursor-pointer"
           >
             <Plus className="h-3.5 w-3.5" />
-            <span>New Card</span>
+            <span>Kartu Baru</span>
           </button>
         )}
       </div>

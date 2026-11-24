@@ -40,6 +40,7 @@ import { WorkspaceMembersModal } from './components/WorkspaceMembersModal';
 import { LandingPage } from './components/LandingPage';
 import { AuthPage } from './components/AuthPage';
 import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
+import { ToastContainer } from './components/ui';
 
 export const App: React.FC = () => {
   const [appRoute, setAppRoute] = useState<'app' | 'landing' | 'auth'>('app');
@@ -917,6 +918,8 @@ export const App: React.FC = () => {
         isOpen={isShortcutsModalOpen}
         onClose={() => setIsShortcutsModalOpen(false)}
       />
+
+      <ToastContainer />
     </div>
   );
 };

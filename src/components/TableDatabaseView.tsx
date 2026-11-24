@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { Board, Card, PriorityLevel } from '../types/board';
-import { Plus, Table as TableIcon, Paperclip, CheckSquare } from 'lucide-react';
-import { TAG_COLORS } from '../lib/constants';
-import { CustomSelect } from './ui/CustomSelect';
+import { Board, Card } from '../types/board';
+import { Plus, Table as TableIcon } from 'lucide-react';
+import { CustomSelect, Button, Input, Badge } from './ui';
 
 interface TableDatabaseViewProps {
   board: Board;
@@ -45,24 +44,22 @@ export const TableDatabaseView: React.FC<TableDatabaseViewProps> = ({
           <h2 className="text-base font-semibold text-appflowy-text dark:text-appflowy-darkText">
             Database Spreadsheet
           </h2>
-          <span className="rounded-full bg-neutral-200/80 px-2 py-0.5 text-xs font-medium text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">
-            {filteredCards.length} records
-          </span>
+          <Badge variant="neutral">{filteredCards.length} data kartu</Badge>
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto rounded-xl border border-appflowy-border bg-appflowy-surface shadow-2xs dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface">
+      <div className="flex-1 overflow-auto rounded-2xl border border-appflowy-border bg-appflowy-surface shadow-2xs dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface">
         <table className="w-full border-collapse text-left text-xs">
           <thead>
             <tr className="sticky top-0 z-10 border-b border-appflowy-border bg-neutral-50/90 font-medium text-appflowy-muted backdrop-blur-xs dark:border-appflowy-darkBorder dark:bg-neutral-900/90 dark:text-appflowy-darkMuted">
-              <th className="px-4 py-3 min-w-64">Card Name</th>
-              <th className="px-4 py-3 w-40">Status</th>
-              <th className="px-4 py-3 w-32">Priority</th>
-              <th className="px-4 py-3 w-48">Tags</th>
-              <th className="px-4 py-3 w-32">Start Date</th>
-              <th className="px-4 py-3 w-32">Due Date</th>
-              <th className="px-4 py-3 w-28">Tasks</th>
-              <th className="px-4 py-3 w-24">Files</th>
+              <th className="px-4 py-3 min-w-64">Nama Tugas / Kartu</th>
+              <th className="px-4 py-3 w-40">Status Kolom</th>
+              <th className="px-4 py-3 w-32">Prioritas</th>
+              <th className="px-4 py-3 w-48">Tags & Label</th>
+              <th className="px-4 py-3 w-32">Mulai</th>
+              <th className="px-4 py-3 w-32">Deadline</th>
+              <th className="px-4 py-3 w-28">Checklist</th>
+              <th className="px-4 py-3 w-24">Lampiran</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-appflowy-border/60 dark:divide-appflowy-darkBorder/60">
@@ -77,7 +74,7 @@ export const TableDatabaseView: React.FC<TableDatabaseViewProps> = ({
                   <td className="px-4 py-2.5">
                     <button
                       onClick={() => onCardClick(card)}
-                      className="font-medium text-appflowy-text hover:text-purple-600 hover:underline dark:text-appflowy-darkText dark:hover:text-purple-400 text-left truncate max-w-sm block"
+                      className="font-medium text-appflowy-text hover:text-purple-600 hover:underline dark:text-appflowy-darkText dark:hover:text-purple-400 text-left truncate max-w-sm block cursor-pointer"
                     >
                       {card.title}
                     </button>
@@ -103,110 +100,64 @@ export const TableDatabaseView: React.FC<TableDatabaseViewProps> = ({
                   </td>
 
                   <td className="px-4 py-2.5">
-                    <CustomSelect
-                      value={card.priority}
-                      options={[
-                        { value: 'low', label: 'Low', colorDot: '#9CA3AF' },
-                        { value: 'medium', label: 'Medium', colorDot: '#3B82F6' },
-                        { value: 'high', label: 'High', colorDot: '#F59E0B' },
-                        { value: 'urgent', label: 'Urgent', colorDot: '#EF4444' }
-                      ]}
-                      onChange={(p) => {
-                        onUpdateCard({
-                          ...card,
-                          priority: p as PriorityLevel,
-                          updatedAt: Date.now()
-                        });
-                      }}
-                      size="sm"
-                    />
+                    <span className="capitalize text-appflowy-muted dark:text-appflowy-darkMuted">
+                      {card.priority}
+                    </span>
                   </td>
 
                   <td className="px-4 py-2.5">
                     <div className="flex flex-wrap gap-1">
-                      {card.tags.map((tag) => {
-                        const style = TAG_COLORS[tag.color] || TAG_COLORS.neutral;
-                        return (
-                          <span
-                            key={tag.id}
-                            className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium ${style.bg} ${style.text}`}
-                          >
-                            <span className={`h-1.5 w-1.5 rounded-full ${style.dot}`} />
-                            {tag.name}
-                          </span>
-                        );
-                      })}
-                      {card.tags.length === 0 && (
-                        <span className="text-neutral-400 text-[11px]">-</span>
-                      )}
+                      {card.tags.map((tag) => (
+                        <span
+                          key={tag.id}
+                          className="rounded bg-neutral-100 px-1.5 py-0.5 text-[10px] font-medium text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300"
+                        >
+                          {tag.name}
+                        </span>
+                      ))}
                     </div>
                   </td>
 
-                  <td className="px-4 py-2.5 font-mono text-[11px] text-appflowy-muted dark:text-appflowy-darkMuted">
+                  <td className="px-4 py-2.5 font-mono text-[11px] text-appflowy-muted">
                     {card.startDate || '-'}
                   </td>
 
-                  <td className="px-4 py-2.5 font-mono text-[11px] text-appflowy-muted dark:text-appflowy-darkMuted">
+                  <td className="px-4 py-2.5 font-mono text-[11px] text-appflowy-muted">
                     {card.dueDate || '-'}
                   </td>
 
-                  <td className="px-4 py-2.5">
-                    {card.checklist.length > 0 ? (
-                      <span className="inline-flex items-center gap-1 text-[11px] text-appflowy-muted dark:text-appflowy-darkMuted">
-                        <CheckSquare className="h-3 w-3" />
-                        {completedChecklist}/{card.checklist.length}
-                      </span>
-                    ) : (
-                      <span className="text-neutral-400 text-[11px]">-</span>
-                    )}
+                  <td className="px-4 py-2.5 text-appflowy-muted font-mono text-[11px]">
+                    {completedChecklist}/{card.checklist.length}
                   </td>
 
-                  <td className="px-4 py-2.5">
-                    {(card.attachments || []).length > 0 ? (
-                      <span className="inline-flex items-center gap-1 text-[11px] text-appflowy-muted dark:text-appflowy-darkMuted">
-                        <Paperclip className="h-3 w-3" />
-                        {card.attachments.length}
-                      </span>
-                    ) : (
-                      <span className="text-neutral-400 text-[11px]">-</span>
-                    )}
+                  <td className="px-4 py-2.5 text-appflowy-muted text-[11px]">
+                    {card.attachments?.length || 0}
                   </td>
                 </tr>
               );
             })}
           </tbody>
         </table>
+      </div>
 
-        <form
-          onSubmit={handleCreate}
-          className="flex items-center gap-2 border-t border-appflowy-border bg-neutral-50/50 p-3 dark:border-appflowy-darkBorder dark:bg-neutral-900/30"
-        >
-          <Plus className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-          <input
-            type="text"
-            placeholder="Add new card row..."
-            value={newTitle}
-            onChange={(e) => setNewTitle(e.target.value)}
-            className="flex-1 rounded border border-appflowy-border bg-appflowy-bg px-2.5 py-1 text-xs text-appflowy-text focus:outline-none focus:ring-1 focus:ring-purple-500 dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg dark:text-appflowy-darkText"
-          />
+      <form onSubmit={handleCreate} className="mt-3 flex items-center gap-2">
+        <div className="w-40 flex-shrink-0">
           <CustomSelect
             value={selectedColumn}
-            options={board.columns.map((col) => ({
-              value: col.id,
-              label: col.title,
-              colorDot: col.color
-            }))}
             onChange={(val) => setSelectedColumn(val)}
-            size="sm"
+            options={board.columns.map((col) => ({ value: col.id, label: col.title }))}
           />
-          <button
-            type="submit"
-            className="rounded bg-purple-600 px-3 py-1 text-xs font-medium text-white hover:bg-purple-700"
-          >
-            Add Record
-          </button>
-        </form>
-      </div>
+        </div>
+        <Input
+          placeholder="Tambah baris baru cepat..."
+          value={newTitle}
+          onChange={(e) => setNewTitle(e.target.value)}
+          className="max-w-md"
+        />
+        <Button type="submit" variant="primary" size="sm" leftIcon={<Plus className="h-3.5 w-3.5" />}>
+          Tambah Baris
+        </Button>
+      </form>
     </div>
   );
 };
