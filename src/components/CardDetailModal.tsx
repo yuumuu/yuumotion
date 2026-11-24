@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Card, Column, PriorityLevel, CardTag } from '../types/board';
 import { INITIAL_TAGS, TAG_COLORS } from '../lib/constants';
+import { BlockEditor } from './BlockEditor';
 import {
   X,
   Trash2,
@@ -52,12 +53,6 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
   const handleTitleBlur = () => {
     if (title.trim() && title !== card.title) {
       syncChanges({ title: title.trim() });
-    }
-  };
-
-  const handleDescriptionBlur = () => {
-    if (description !== card.description) {
-      syncChanges({ description });
     }
   };
 
@@ -266,15 +261,14 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
           <div>
             <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-appflowy-muted dark:text-appflowy-darkMuted">
               <FileText className="h-3.5 w-3.5" />
-              <span>Notes & Document</span>
+              <span>Notes & Document (AppFlowy Block Canvas)</span>
             </div>
-            <textarea
-              rows={6}
+            <BlockEditor
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              onBlur={handleDescriptionBlur}
-              placeholder="Write detailed notes, markdown content, or specifications..."
-              className="w-full rounded-xl border border-appflowy-border bg-appflowy-bg p-3 text-xs leading-relaxed text-appflowy-text focus:outline-none focus:ring-1 focus:ring-purple-500 dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg dark:text-appflowy-darkText"
+              onChange={(nextDescription) => {
+                setDescription(nextDescription);
+                syncChanges({ description: nextDescription });
+              }}
             />
           </div>
         </div>

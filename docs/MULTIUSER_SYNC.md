@@ -1,37 +1,38 @@
 # Multi-User Concurrency & Synchronization
 
-Yuumotion supports real-time collaboration so multiple team members can view and update boards simultaneously, similar to Trello.
+Yuumotion supports real-time collaboration so multiple team members can view and update boards simultaneously, similar to Trello and AppFlowy.
 
-## 1. Synchronization Architecture
+## 1. Dual-Tier Synchronization Architecture
 
-To run on Wasmer Edge without maintaining custom stateful servers, Yuumotion uses a hybrid collaboration model:
+To run on Wasmer Edge without maintaining custom stateful servers, Yuumotion employs an active hybrid synchronization model:
 
-1. **Room-Based Channel**:
-   - Each board belongs to a `boardId` room.
-   - Connected clients subscribe to the room channel.
+1. **Intra-Device Synchronization (BroadcastChannel)**:
+   - Always enabled out-of-the-box.
+   - Provides instant 0ms latency sync across concurrent browser tabs on the same device without network consumption.
 
-2. **Backend Provider Options**:
-   - **Supabase Realtime (Recommended & Free)**: Free tier includes 200 concurrent connections, Postgres change streams, and Broadcast channels.
-   - **P2P / WebRTC (Serverless zero-cost)**: Direct peer-to-peer data channels using public STUN signaling.
-   - **Local BroadcastChannel**: Seamless sync across multiple browser tabs on the same client device for instant validation.
+2. **Cross-Device & Cross-Network Synchronization (Supabase Realtime Broadcast)**:
+   - Leverages Supabase Realtime's stateless WebSocket broadcast channels (Free Tier includes 200 concurrent connections).
+   - Zero database required: events are propagated directly between connected clients via room-based channels (`yuumotion_room_<roomId>`).
+   - Configurable at runtime via the Cloud Sync modal in the header or build-time environment variables (`VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`).
 
-## 2. Event Types
+## 2. Event Types & Delta Payloads
 
-Clients broadcast lightweight delta events over the channel:
+Clients broadcast lightweight delta events over the active channel:
 
 ```typescript
-type BoardEvent =
-  | { type: 'CARD_MOVED'; boardId: string; cardId: string; sourceColumnId: string; targetColumnId: string; newIndex: number; updatedAt: number }
-  | { type: 'CARD_CREATED'; boardId: string; columnId: string; card: Card; updatedAt: number }
-  | { type: 'CARD_UPDATED'; boardId: string; cardId: string; updates: Partial<Card>; updatedAt: number }
-  | { type: 'CARD_DELETED'; boardId: string; cardId: string; updatedAt: number }
-  | { type: 'COLUMN_CREATED'; boardId: string; column: Column; updatedAt: number }
-  | { type: 'COLUMN_UPDATED'; boardId: string; columnId: string; updates: Partial<Column>; updatedAt: number }
-  | { type: 'USER_PRESENCE'; boardId: string; user: { id: string; name: string; avatar: string; color: string } }
+type BoardSyncEvent =
+  | { type: 'CARD_UPSERT'; card: Card; senderId: string }
+  | { type: 'CARD_DELETE'; cardId: string; senderId: string; updatedAt: number }
+  | { type: 'CARD_MOVE'; cardId: string; targetColumnId: string; targetOrder: number; senderId: string; updatedAt: number }
+  | { type: 'COLUMN_UPSERT'; column: Column; senderId: string }
+  | { type: 'COLUMN_DELETE'; columnId: string; senderId: string; updatedAt: number }
+  | { type: 'BOARD_RESET'; board: Board; senderId: string }
+  | { type: 'PRESENCE_PING'; user: UserPresence; senderId: string };
 ```
 
 ## 3. Conflict Resolution
 
-- **Optimistic UI**: Local user interactions update the UI instantly without waiting for network acknowledgment.
+- **Optimistic UI Updates**: Local user actions reflect immediately on the screen.
 - **Last-Write-Wins (LWW) with Timestamp Verification**:
   Every mutation carries a high-precision `updatedAt` timestamp. When concurrent updates arrive for the same card or column, the latest timestamp takes precedence.
+- **Presence Heartbeats**: Active users send periodic presence pings every 4 seconds, pruning inactive peers after 10 seconds of silence.

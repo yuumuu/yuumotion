@@ -49,6 +49,14 @@ export interface UserPresence {
   lastActive: number;
 }
 
+export type SyncConnectionStatus = 'local' | 'connecting' | 'connected' | 'error';
+
+export interface CloudSyncConfig {
+  supabaseUrl: string;
+  supabaseAnonKey: string;
+  enabled: boolean;
+}
+
 export type BoardSyncEvent =
   | { type: 'CARD_UPSERT'; card: Card; senderId: string }
   | { type: 'CARD_DELETE'; cardId: string; senderId: string; updatedAt: number }

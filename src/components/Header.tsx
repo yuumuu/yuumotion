@@ -1,5 +1,5 @@
 import React from 'react';
-import { Board, UserPresence } from '../types/board';
+import { Board, SyncConnectionStatus, UserPresence } from '../types/board';
 import {
   Kanban,
   Moon,
@@ -8,7 +8,11 @@ import {
   Upload,
   Users,
   Search,
-  Radio
+  Radio,
+  Cloud,
+  CheckCircle2,
+  AlertTriangle,
+  Loader2
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -17,6 +21,8 @@ interface HeaderProps {
   onRoomChange: (newRoom: string) => void;
   onlineUsers: UserPresence[];
   currentUser: UserPresence;
+  syncStatus: SyncConnectionStatus;
+  onOpenSyncSettings: () => void;
   isDark: boolean;
   onToggleTheme: () => void;
   searchQuery: string;
@@ -31,6 +37,8 @@ export const Header: React.FC<HeaderProps> = ({
   onRoomChange,
   onlineUsers,
   currentUser,
+  syncStatus,
+  onOpenSyncSettings,
   isDark,
   onToggleTheme,
   searchQuery,
@@ -50,10 +58,43 @@ export const Header: React.FC<HeaderProps> = ({
               <h1 className="text-base font-semibold tracking-tight text-appflowy-text dark:text-appflowy-darkText">
                 {board.title}
               </h1>
-              <span className="flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400">
-                <Radio className="h-3 w-3 animate-pulse" />
-                Live Sync
-              </span>
+              <button
+                onClick={onOpenSyncSettings}
+                className="flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium transition-colors hover:opacity-80"
+                style={{
+                  backgroundColor:
+                    syncStatus === 'connected'
+                      ? 'rgba(16, 185, 129, 0.12)'
+                      : syncStatus === 'connecting'
+                      ? 'rgba(245, 158, 11, 0.12)'
+                      : syncStatus === 'error'
+                      ? 'rgba(239, 68, 68, 0.12)'
+                      : 'rgba(147, 51, 234, 0.12)',
+                  color:
+                    syncStatus === 'connected'
+                      ? '#059669'
+                      : syncStatus === 'connecting'
+                      ? '#d97706'
+                      : syncStatus === 'error'
+                      ? '#dc2626'
+                      : '#7c3aed'
+                }}
+                title="Click to configure Cloud Realtime sync settings"
+              >
+                {syncStatus === 'connected' && <CheckCircle2 className="h-3 w-3" />}
+                {syncStatus === 'connecting' && <Loader2 className="h-3 w-3 animate-spin" />}
+                {syncStatus === 'local' && <Radio className="h-3 w-3 animate-pulse" />}
+                {syncStatus === 'error' && <AlertTriangle className="h-3 w-3" />}
+                <span>
+                  {syncStatus === 'connected'
+                    ? 'Cloud Sync'
+                    : syncStatus === 'connecting'
+                    ? 'Connecting'
+                    : syncStatus === 'error'
+                    ? 'Sync Error'
+                    : 'Local Sync'}
+                </span>
+              </button>
             </div>
             <div className="flex items-center gap-1 text-xs text-appflowy-muted dark:text-appflowy-darkMuted">
               <span>Room:</span>
@@ -98,7 +139,7 @@ export const Header: React.FC<HeaderProps> = ({
               +{onlineUsers.length - 4}
             </div>
           )}
-          <div className="pl-2.5 text-xs text-appflowy-muted dark:text-appflowy-darkMuted flex items-center gap-1">
+          <div className="flex items-center gap-1 pl-2.5 text-xs text-appflowy-muted dark:text-appflowy-darkMuted">
             <Users className="h-3.5 w-3.5" />
             <span>{onlineUsers.length}</span>
           </div>
@@ -107,6 +148,13 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="h-4 w-px bg-appflowy-border dark:bg-appflowy-darkBorder" />
 
         <div className="flex items-center gap-1">
+          <button
+            onClick={onOpenSyncSettings}
+            title="Configure Cloud Sync (Supabase Realtime)"
+            className="flex h-8 w-8 items-center justify-center rounded-md text-appflowy-muted transition-colors hover:bg-appflowy-hover hover:text-purple-600 dark:text-appflowy-darkMuted dark:hover:bg-appflowy-darkHover dark:hover:text-purple-400"
+          >
+            <Cloud className="h-4 w-4" />
+          </button>
           <button
             onClick={onExport}
             title="Export board data (JSON)"

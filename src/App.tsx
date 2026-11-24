@@ -1,16 +1,20 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Board, Card, Column, UserPresence } from './types/board';
+import { Board, Card, CloudSyncConfig, Column, SyncConnectionStatus, UserPresence } from './types/board';
 import { INITIAL_BOARD, generateLocalUser } from './lib/constants';
-import { createSyncManager } from './lib/sync';
+import { createSyncManager, getStoredCloudConfig } from './lib/sync';
 import { Header } from './components/Header';
 import { KanbanBoard } from './components/KanbanBoard';
 import { CardDetailModal } from './components/CardDetailModal';
+import { CloudSyncModal } from './components/CloudSyncModal';
 
 export const App: React.FC = () => {
   const [roomId, setRoomId] = useState('general');
   const [isDark, setIsDark] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<SyncConnectionStatus>('local');
+  const [cloudConfig, setCloudConfig] = useState<CloudSyncConfig>(() => getStoredCloudConfig());
 
   const currentUser = useMemo(() => generateLocalUser(), []);
   const [presenceMap, setPresenceMap] = useState<Record<string, UserPresence>>({});
@@ -32,6 +36,10 @@ export const App: React.FC = () => {
   useEffect(() => {
     const manager = createSyncManager(roomId, currentUser);
     syncManagerRef.current = manager;
+
+    const unsubStatus = manager.onStatusChange((status) => {
+      setSyncStatus(status);
+    });
 
     const unsubscribe = manager.subscribe((event) => {
       if (event.senderId === currentUser.id) return;
@@ -125,6 +133,7 @@ export const App: React.FC = () => {
     });
 
     return () => {
+      unsubStatus();
       unsubscribe();
       manager.destroy();
     };
@@ -161,6 +170,11 @@ export const App: React.FC = () => {
       }
       return next;
     });
+  };
+
+  const handleUpdateCloudConfig = (nextConfig: CloudSyncConfig) => {
+    setCloudConfig(nextConfig);
+    syncManagerRef.current?.updateCloudConfig(nextConfig);
   };
 
   const handleAddCard = (columnId: string, title: string) => {
@@ -336,6 +350,8 @@ export const App: React.FC = () => {
         onRoomChange={setRoomId}
         onlineUsers={activeUsersList}
         currentUser={currentUser}
+        syncStatus={syncStatus}
+        onOpenSyncSettings={() => setIsSyncModalOpen(true)}
         isDark={isDark}
         onToggleTheme={toggleTheme}
         searchQuery={searchQuery}
@@ -363,6 +379,15 @@ export const App: React.FC = () => {
           onClose={() => setSelectedCardId(null)}
           onUpdate={handleUpdateCard}
           onDelete={handleDeleteCard}
+        />
+      )}
+
+      {isSyncModalOpen && (
+        <CloudSyncModal
+          config={cloudConfig}
+          status={syncStatus}
+          onSave={handleUpdateCloudConfig}
+          onClose={() => setIsSyncModalOpen(false)}
         />
       )}
     </div>
