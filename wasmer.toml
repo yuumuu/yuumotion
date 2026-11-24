@@ -1,0 +1,11 @@
+[package]
+name = "yuumotion/workspace"
+version = "0.1.0"
+description = "AppFlowy-inspired collaborative Kanban workspace on Wasmer Edge"
+license = "MIT"
+
+[dependencies]
+"wasmer/static-web-server" = "^1"
+
+[fs]
+public = "dist"
