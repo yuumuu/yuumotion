@@ -58,10 +58,10 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      className={`flex h-full w-72 flex-shrink-0 flex-col rounded-2xl border transition-all duration-200 ${
+      className={`flex h-full w-72 flex-shrink-0 flex-col rounded-xl border transition-all duration-200 ${
         isDragOver
-          ? 'border-purple-400 bg-purple-50/50 shadow-md ring-2 ring-purple-400/20 dark:border-purple-600 dark:bg-purple-950/20'
-          : 'border-transparent bg-neutral-100/60 dark:bg-neutral-900/35'
+          ? 'border-purple-500/80 bg-purple-50/50 shadow-md ring-2 ring-purple-500/20 dark:border-purple-500 dark:bg-purple-950/20'
+          : 'border-zinc-200/80 bg-zinc-100/60 dark:border-[#27272A] dark:bg-[#121215]'
       }`}
     >
       <div className="flex items-center justify-between px-3 py-2.5">
@@ -70,7 +70,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
           <h3 className="text-xs font-semibold uppercase tracking-wider text-appflowy-muted dark:text-appflowy-darkMuted">
             {column.title}
           </h3>
-          <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-neutral-200/70 px-1.5 text-[10px] font-semibold text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">
+          <span className="flex h-4 min-w-4 items-center justify-center rounded-md border border-zinc-200 bg-zinc-200/70 px-1.5 font-mono text-[10px] font-semibold text-zinc-700 dark:border-zinc-800 dark:bg-[#18181B] dark:text-zinc-400">
             {cards.length}
           </span>
         </div>

@@ -80,7 +80,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <>
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex flex-col border-r border-appflowy-border/80 bg-appflowy-surface/95 backdrop-blur-md transition-all duration-200 dark:border-appflowy-darkBorder/80 dark:bg-appflowy-darkSurface/95 md:static ${
+        className={`fixed inset-y-0 left-0 z-40 flex flex-col border-r border-appflowy-border bg-zinc-50/95 backdrop-blur-md transition-all duration-200 dark:border-appflowy-darkBorder dark:bg-[#0E0E11]/95 md:static ${
           isOpen ? 'w-64 translate-x-0' : '-translate-x-full md:w-0 md:translate-x-0 overflow-hidden border-none'
         }`}
       >

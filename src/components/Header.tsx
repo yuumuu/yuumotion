@@ -99,7 +99,7 @@ export const Header: React.FC<HeaderProps> = ({
   ];
 
   return (
-    <header className="flex sticky top-0 z-30 justify-between items-center px-4 h-14 border-b backdrop-blur-md border-appflowy-border/80 bg-appflowy-surface/95 sm:px-5 dark:border-appflowy-darkBorder/80 dark:bg-appflowy-darkSurface/95">
+    <header className="flex sticky top-0 z-30 justify-between items-center px-4 h-14 border-b backdrop-blur-md border-appflowy-border bg-white/90 sm:px-5 dark:border-appflowy-darkBorder dark:bg-[#121215]/90">
       <div className="flex gap-3 items-center min-w-0">
         <button
           onClick={onToggleSidebar}

@@ -29,15 +29,15 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variants: Record<string, string> = {
       primary:
-        'bg-purple-600 text-white shadow-2xs hover:bg-purple-700 active:bg-purple-800 dark:bg-purple-600 dark:hover:bg-purple-500',
+        'bg-purple-600 text-white shadow-[0_1px_2px_rgba(0,0,0,0.1),0_0_12px_rgba(139,92,246,0.35)] hover:bg-purple-700 active:bg-purple-800 dark:bg-purple-600 dark:hover:bg-purple-500',
       secondary:
-        'bg-neutral-100 text-appflowy-text hover:bg-neutral-200/80 active:bg-neutral-200 dark:bg-neutral-800 dark:text-appflowy-darkText dark:hover:bg-neutral-700',
+        'border border-zinc-200 bg-zinc-100 text-appflowy-text hover:bg-zinc-200/80 active:bg-zinc-200 dark:border-zinc-800 dark:bg-zinc-800 dark:text-appflowy-darkText dark:hover:bg-zinc-700',
       outline:
-        'border border-appflowy-border bg-transparent text-appflowy-text hover:bg-neutral-100/70 dark:border-appflowy-darkBorder dark:text-appflowy-darkText dark:hover:bg-neutral-800/60',
+        'border border-appflowy-border bg-transparent text-appflowy-text hover:bg-zinc-100/70 dark:border-appflowy-darkBorder dark:text-appflowy-darkText dark:hover:bg-zinc-800/60',
       ghost:
-        'bg-transparent text-appflowy-muted hover:bg-neutral-100 hover:text-appflowy-text dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 dark:hover:text-appflowy-darkText',
+        'bg-transparent text-appflowy-muted hover:bg-zinc-100 hover:text-appflowy-text dark:text-appflowy-darkMuted dark:hover:bg-zinc-800 dark:hover:text-appflowy-darkText',
       danger:
-        'bg-rose-50 text-rose-600 hover:bg-rose-100 active:bg-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:hover:bg-rose-950/70'
+        'border border-rose-500/20 bg-rose-500/10 text-rose-600 hover:bg-rose-500/20 active:bg-rose-500/25 dark:text-rose-400'
     };
 
     const sizes: Record<string, string> = {

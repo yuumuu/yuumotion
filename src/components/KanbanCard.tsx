@@ -39,10 +39,10 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({ card, onClick, onDragSta
           onClick();
         }
       }}
-      className={`group relative cursor-pointer select-none overflow-hidden rounded-xl border border-appflowy-border/90 bg-appflowy-surface transition-all duration-150 focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:outline-none ${
+      className={`group relative cursor-pointer select-none overflow-hidden rounded-xl border border-appflowy-border bg-appflowy-surface transition-all duration-150 focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:outline-none ${
         isDragging
-          ? 'rotate-[1.5deg] scale-[1.02] shadow-xl border-purple-500 ring-2 ring-purple-400/30 opacity-90 z-30 dark:border-purple-400'
-          : 'shadow-2xs hover:border-neutral-300 hover:shadow-xs active:scale-[0.99] dark:border-appflowy-darkBorder/90 dark:bg-appflowy-darkSurface dark:hover:border-neutral-700'
+          ? 'rotate-[1.5deg] scale-[1.02] shadow-[0_12px_30px_rgba(0,0,0,0.35)] border-purple-500 ring-2 ring-purple-400/30 opacity-90 z-30 dark:border-purple-400'
+          : 'shadow-2xs hover:border-zinc-300 hover:shadow-[0_2px_12px_rgba(0,0,0,0.06)] active:scale-[0.99] dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface dark:hover:border-zinc-700 dark:hover:shadow-[0_2px_14px_rgba(0,0,0,0.45)]'
       }`}
     >
       {card.coverImage && (

@@ -6,18 +6,27 @@ export default {
     extend: {
       colors: {
         appflowy: {
-          bg: '#FBFBFC',
+          bg: '#FAFAFA',
           surface: '#FFFFFF',
-          border: '#E8E9EC',
-          hover: '#F2F3F5',
-          text: '#22252A',
-          muted: '#6C727E',
-          darkBg: '#18191B',
-          darkSurface: '#202226',
-          darkBorder: '#2E3137',
-          darkHover: '#2A2D33',
-          darkText: '#ECEEF2',
-          darkMuted: '#949BA6'
+          border: '#E4E4E7',
+          hover: '#F4F4F5',
+          text: '#09090B',
+          muted: '#71717A',
+          darkBg: '#09090B',
+          darkSurface: '#18181B',
+          darkBorder: '#27272A',
+          darkHover: '#222226',
+          darkText: '#F4F4F5',
+          darkMuted: '#A1A1AA'
+        },
+        linear: {
+          panel: '#121215',
+          lightPanel: '#F4F4F5',
+          neonViolet: '#8B5CF6',
+          neonRose: '#F43F5E',
+          neonAmber: '#F59E0B',
+          neonBlue: '#3B82F6',
+          neonEmerald: '#10B981'
         }
       }
     }
