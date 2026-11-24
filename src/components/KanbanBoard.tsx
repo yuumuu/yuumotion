@@ -51,7 +51,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   };
 
   return (
-    <div className="flex h-full flex-1 gap-4 overflow-x-auto p-6">
+    <div className="flex h-full flex-1 gap-3.5 overflow-x-auto p-4 sm:p-5">
       {sortedColumns.map((col) => (
         <KanbanColumn
           key={col.id}
@@ -68,7 +68,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         {isAddingColumn ? (
           <form
             onSubmit={handleCreateColumn}
-            className="rounded-xl border border-appflowy-border bg-appflowy-surface p-3 shadow-sm dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface"
+            className="rounded-xl border border-appflowy-border bg-appflowy-surface p-3 shadow-2xs dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface"
           >
             <input
               type="text"

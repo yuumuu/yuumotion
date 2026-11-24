@@ -31,12 +31,12 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({ card, onClick, onDragSta
       onClick={onClick}
       className={`group relative cursor-pointer select-none overflow-hidden rounded-xl border border-appflowy-border bg-appflowy-surface transition-all duration-150 ${
         isDragging
-          ? 'rotate-1.5 scale-[1.02] shadow-xl border-purple-400 opacity-80 dark:border-purple-600'
-          : 'shadow-2xs hover:border-neutral-300 hover:shadow-md dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface dark:hover:border-neutral-600'
+          ? 'rotate-1 scale-[1.01] shadow-xl border-purple-400 opacity-80 dark:border-purple-600'
+          : 'shadow-2xs hover:border-neutral-300 hover:shadow-xs dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface dark:hover:border-neutral-700'
       }`}
     >
       {card.coverImage && (
-        <div className="h-28 w-full overflow-hidden bg-neutral-100 dark:bg-neutral-900">
+        <div className="h-24 w-full overflow-hidden bg-neutral-100 dark:bg-neutral-900">
           <img
             src={card.coverImage}
             alt={card.title}
@@ -45,17 +45,17 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({ card, onClick, onDragSta
         </div>
       )}
 
-      <div className="p-3">
+      <div className="p-2.5">
         {card.tags.length > 0 && (
-          <div className="mb-2 flex flex-wrap gap-1.5">
+          <div className="mb-1.5 flex flex-wrap gap-1">
             {card.tags.map((tag) => {
               const style = TAG_COLORS[tag.color] || TAG_COLORS.neutral;
               return (
                 <span
                   key={tag.id}
-                  className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium ${style.bg} ${style.text}`}
+                  className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[9px] font-medium leading-none ${style.bg} ${style.text}`}
                 >
-                  <span className={`h-1.5 w-1.5 rounded-full ${style.dot}`} />
+                  <span className={`h-1 w-1 rounded-full ${style.dot}`} />
                   {tag.name}
                 </span>
               );
@@ -63,15 +63,15 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({ card, onClick, onDragSta
           </div>
         )}
 
-        <h4 className="text-xs font-semibold leading-snug text-appflowy-text dark:text-appflowy-darkText">
+        <h4 className="text-xs font-medium leading-snug text-appflowy-text line-clamp-2 dark:text-appflowy-darkText">
           {card.title}
         </h4>
 
         {(card.dueDate || card.checklist.length > 0 || card.priority !== 'low' || (card.attachments && card.attachments.length > 0)) && (
-          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-appflowy-muted dark:text-appflowy-darkMuted">
+          <div className="mt-2.5 flex flex-wrap items-center gap-1.5 text-xs text-appflowy-muted dark:text-appflowy-darkMuted">
             {card.priority !== 'low' && (
               <span
-                className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium ${PRIORITY_BADGES[card.priority].className}`}
+                className={`inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[9px] font-medium leading-none ${PRIORITY_BADGES[card.priority].className}`}
               >
                 <AlertCircle className="h-2.5 w-2.5" />
                 {PRIORITY_BADGES[card.priority].label}
@@ -80,9 +80,10 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({ card, onClick, onDragSta
 
             {card.checklist.length > 0 && (
               <span
-                className={`inline-flex items-center gap-1 text-[11px] ${
+                className={`inline-flex items-center gap-1 text-[10px] ${
                   completedChecklist === card.checklist.length ? 'text-emerald-600 dark:text-emerald-400 font-medium' : ''
                 }`}
+                title="Completed checklist"
               >
                 <CheckSquare className="h-3 w-3" />
                 {completedChecklist}/{card.checklist.length}
@@ -90,15 +91,15 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({ card, onClick, onDragSta
             )}
 
             {(card.attachments || []).length > 0 && (
-              <span className="inline-flex items-center gap-1 text-[11px]" title={`${card.attachments.length} attachments`}>
-                <Paperclip className="h-3 w-3" />
+              <span className="inline-flex items-center gap-0.5 text-[10px]" title={`${card.attachments.length} attachments`}>
+                <Paperclip className="h-2.5 w-2.5" />
                 {card.attachments.length}
               </span>
             )}
 
             {card.dueDate && (
-              <span className="inline-flex items-center gap-1 text-[11px]">
-                <Calendar className="h-3 w-3" />
+              <span className="inline-flex items-center gap-1 text-[10px]">
+                <Calendar className="h-2.5 w-2.5" />
                 {card.dueDate}
               </span>
             )}

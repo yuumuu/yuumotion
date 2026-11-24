@@ -48,8 +48,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   return (
-    <div className="flex h-full flex-1 flex-col overflow-hidden bg-appflowy-bg p-6 dark:bg-appflowy-darkBg">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+    <div className="flex h-full flex-1 flex-col overflow-hidden bg-appflowy-bg p-4 sm:p-5 dark:bg-appflowy-darkBg">
+      <div className="mb-3.5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <h2 className="text-lg font-semibold text-appflowy-text dark:text-appflowy-darkText">
             {monthNames[month]} {year}

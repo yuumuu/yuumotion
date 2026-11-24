@@ -251,7 +251,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-5">
           <div>
             <input
               type="text"
@@ -259,13 +259,13 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
               onChange={(e) => setTitle(e.target.value)}
               onBlur={handleTitleBlur}
               placeholder="Card Title"
-              className="w-full bg-transparent text-xl font-bold tracking-tight text-appflowy-text placeholder-neutral-400 focus:outline-none dark:text-appflowy-darkText"
+              className="w-full bg-transparent text-lg font-bold tracking-tight text-appflowy-text placeholder-neutral-400 focus:outline-none dark:text-appflowy-darkText"
             />
           </div>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 rounded-xl bg-neutral-50/80 p-3.5 dark:bg-neutral-900/40">
+          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3 rounded-xl bg-neutral-50/70 p-3 dark:bg-neutral-900/30">
             <div className="flex items-center gap-2">
-              <span className="flex w-16 items-center gap-1.5 text-xs text-appflowy-muted dark:text-appflowy-darkMuted">
+              <span className="flex w-14 items-center gap-1 text-xs text-appflowy-muted dark:text-appflowy-darkMuted">
                 <AlertCircle className="h-3.5 w-3.5" />
                 Priority
               </span>
@@ -287,7 +287,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="flex w-14 items-center gap-1.5 text-xs text-appflowy-muted dark:text-appflowy-darkMuted">
+              <span className="flex w-12 items-center gap-1 text-xs text-appflowy-muted dark:text-appflowy-darkMuted">
                 <Clock className="h-3.5 w-3.5" />
                 Start
               </span>
@@ -303,7 +303,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="flex w-14 items-center gap-1.5 text-xs text-appflowy-muted dark:text-appflowy-darkMuted">
+              <span className="flex w-12 items-center gap-1 text-xs text-appflowy-muted dark:text-appflowy-darkMuted">
                 <Clock className="h-3.5 w-3.5" />
                 Due
               </span>

@@ -54,8 +54,8 @@ export const TimelineGanttView: React.FC<TimelineGanttViewProps> = ({
   };
 
   return (
-    <div className="flex h-full flex-1 flex-col overflow-hidden bg-appflowy-bg p-6 dark:bg-appflowy-darkBg">
-      <div className="mb-4 flex items-center justify-between">
+    <div className="flex h-full flex-1 flex-col overflow-hidden bg-appflowy-bg p-4 sm:p-5 dark:bg-appflowy-darkBg">
+      <div className="mb-3.5 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Clock className="h-4 w-4 text-purple-600 dark:text-purple-400" />
           <h2 className="text-base font-semibold text-appflowy-text dark:text-appflowy-darkText">
