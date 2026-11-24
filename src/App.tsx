@@ -1,20 +1,28 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Board, Card, CloudSyncConfig, Column, SyncConnectionStatus, UserPresence } from './types/board';
+import { Board, Card, CloudSyncConfig, Column, DatabaseBridgeConfig, SyncConnectionStatus, UserPresence, WorkspaceView } from './types/board';
 import { INITIAL_BOARD, generateLocalUser } from './lib/constants';
 import { createSyncManager, getStoredCloudConfig } from './lib/sync';
+import { getStoredDbConfig, saveStoredDbConfig } from './lib/dbBridge';
 import { Header } from './components/Header';
 import { KanbanBoard } from './components/KanbanBoard';
+import { CalendarView } from './components/CalendarView';
+import { TimelineGanttView } from './components/TimelineGanttView';
+import { TableDatabaseView } from './components/TableDatabaseView';
 import { CardDetailModal } from './components/CardDetailModal';
 import { CloudSyncModal } from './components/CloudSyncModal';
+import { DatabaseBridgeModal } from './components/DatabaseBridgeModal';
 
 export const App: React.FC = () => {
   const [roomId, setRoomId] = useState('general');
+  const [activeView, setActiveView] = useState<WorkspaceView>('board');
   const [isDark, setIsDark] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
+  const [isDbModalOpen, setIsDbModalOpen] = useState(false);
   const [syncStatus, setSyncStatus] = useState<SyncConnectionStatus>('local');
   const [cloudConfig, setCloudConfig] = useState<CloudSyncConfig>(() => getStoredCloudConfig());
+  const [dbConfig, setDbConfig] = useState<DatabaseBridgeConfig>(() => getStoredDbConfig());
 
   const currentUser = useMemo(() => generateLocalUser(), []);
   const [presenceMap, setPresenceMap] = useState<Record<string, UserPresence>>({});
@@ -177,6 +185,11 @@ export const App: React.FC = () => {
     syncManagerRef.current?.updateCloudConfig(nextConfig);
   };
 
+  const handleUpdateDbConfig = (nextConfig: DatabaseBridgeConfig) => {
+    setDbConfig(nextConfig);
+    saveStoredDbConfig(nextConfig);
+  };
+
   const handleAddCard = (columnId: string, title: string) => {
     const newCard: Card = {
       id: `card-${Date.now()}`,
@@ -186,6 +199,35 @@ export const App: React.FC = () => {
       tags: [],
       priority: 'low',
       checklist: [],
+      attachments: [],
+      order: Object.values(board.cards).filter((c) => c.columnId === columnId).length,
+      updatedAt: Date.now()
+    };
+
+    setBoard((prev) => ({
+      ...prev,
+      updatedAt: Date.now(),
+      cards: { ...prev.cards, [newCard.id]: newCard }
+    }));
+
+    syncManagerRef.current?.broadcast({
+      type: 'CARD_UPSERT',
+      card: newCard,
+      senderId: currentUser.id
+    });
+  };
+
+  const handleAddCardOnDate = (columnId: string, title: string, dueDate: string) => {
+    const newCard: Card = {
+      id: `card-${Date.now()}`,
+      columnId,
+      title,
+      description: '',
+      tags: [],
+      priority: 'medium',
+      dueDate,
+      checklist: [],
+      attachments: [],
       order: Object.values(board.cards).filter((c) => c.columnId === columnId).length,
       updatedAt: Date.now()
     };
@@ -351,7 +393,10 @@ export const App: React.FC = () => {
         onlineUsers={activeUsersList}
         currentUser={currentUser}
         syncStatus={syncStatus}
+        activeView={activeView}
+        onViewChange={setActiveView}
         onOpenSyncSettings={() => setIsSyncModalOpen(true)}
+        onOpenDbBridge={() => setIsDbModalOpen(true)}
         isDark={isDark}
         onToggleTheme={toggleTheme}
         searchQuery={searchQuery}
@@ -361,15 +406,44 @@ export const App: React.FC = () => {
       />
 
       <main className="flex-1 overflow-hidden">
-        <KanbanBoard
-          board={board}
-          searchQuery={searchQuery}
-          onCardClick={(card) => setSelectedCardId(card.id)}
-          onAddCard={handleAddCard}
-          onAddColumn={handleAddColumn}
-          onDeleteColumn={handleDeleteColumn}
-          onDropCard={handleDropCard}
-        />
+        {activeView === 'board' && (
+          <KanbanBoard
+            board={board}
+            searchQuery={searchQuery}
+            onCardClick={(card) => setSelectedCardId(card.id)}
+            onAddCard={handleAddCard}
+            onAddColumn={handleAddColumn}
+            onDeleteColumn={handleDeleteColumn}
+            onDropCard={handleDropCard}
+          />
+        )}
+
+        {activeView === 'calendar' && (
+          <CalendarView
+            board={board}
+            searchQuery={searchQuery}
+            onCardClick={(card) => setSelectedCardId(card.id)}
+            onAddCardOnDate={handleAddCardOnDate}
+          />
+        )}
+
+        {activeView === 'timeline' && (
+          <TimelineGanttView
+            board={board}
+            searchQuery={searchQuery}
+            onCardClick={(card) => setSelectedCardId(card.id)}
+          />
+        )}
+
+        {activeView === 'table' && (
+          <TableDatabaseView
+            board={board}
+            searchQuery={searchQuery}
+            onCardClick={(card) => setSelectedCardId(card.id)}
+            onUpdateCard={handleUpdateCard}
+            onAddCard={handleAddCard}
+          />
+        )}
       </main>
 
       {selectedCard && (
@@ -388,6 +462,15 @@ export const App: React.FC = () => {
           status={syncStatus}
           onSave={handleUpdateCloudConfig}
           onClose={() => setIsSyncModalOpen(false)}
+        />
+      )}
+
+      {isDbModalOpen && (
+        <DatabaseBridgeModal
+          board={board}
+          config={dbConfig}
+          onSaveConfig={handleUpdateDbConfig}
+          onClose={() => setIsDbModalOpen(false)}
         />
       )}
     </div>

@@ -31,15 +31,18 @@ export const INITIAL_BOARD: Board = {
     'card-1': {
       id: 'card-1',
       columnId: 'col-todo',
-      title: 'AppFlowy-style design system implementation',
-      description: '# Specification\nAdopt subtle border lines, rounded cards, and calm pastel tag labels across all viewport sizes.',
+      title: 'Notion-grade rich WYSIWYG documentation engine',
+      description: 'Implement TipTap extensible editor with interactive slash commands, callouts, and inline media attachments.',
       tags: [INITIAL_TAGS[0], INITIAL_TAGS[1]],
       priority: 'high',
+      startDate: '2026-11-20',
       dueDate: '2026-11-28',
+      coverImage: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80',
+      attachments: [],
       checklist: [
-        { id: 'c1', text: 'Define surface colors for light & dark mode', completed: true },
-        { id: 'c2', text: 'Build responsive Kanban columns', completed: true },
-        { id: 'c3', text: 'Card document preview modal', completed: false }
+        { id: 'c1', text: 'TipTap React modular integration', completed: true },
+        { id: 'c2', text: 'Slash command menu popup', completed: true },
+        { id: 'c3', text: 'Task list checklist extension', completed: true }
       ],
       order: 0,
       updatedAt: Date.now()
@@ -47,14 +50,17 @@ export const INITIAL_BOARD: Board = {
     'card-2': {
       id: 'card-2',
       columnId: 'col-progress',
-      title: 'Real-time multi-user concurrency synchronization',
-      description: 'Implement optimistic state replication over local broadcast channels and external edge pub/sub brokers.',
+      title: 'Multi-view engine: Calendar, Timeline/Gantt & Table Database',
+      description: 'Reverse-engineer Notion database views with shared filtering, date synchronization, and inline status updates.',
       tags: [INITIAL_TAGS[1], INITIAL_TAGS[2]],
       priority: 'urgent',
-      dueDate: '2026-11-26',
+      startDate: '2026-11-22',
+      dueDate: '2026-11-29',
+      attachments: [],
       checklist: [
-        { id: 'c4', text: 'Broadcast delta events', completed: true },
-        { id: 'c5', text: 'Handle last-write-wins timestamp validation', completed: true }
+        { id: 'c4', text: 'Monthly calendar grid view', completed: true },
+        { id: 'c5', text: 'Horizontal Gantt chart timeline', completed: true },
+        { id: 'c6', text: 'Editable spreadsheet database view', completed: true }
       ],
       order: 0,
       updatedAt: Date.now()
@@ -62,13 +68,16 @@ export const INITIAL_BOARD: Board = {
     'card-3': {
       id: 'card-3',
       columnId: 'col-done',
-      title: 'Wasmer Edge configuration with static web server',
-      description: 'Package client artifacts into dist/ and wire wasmer.toml for frictionless edge deployment.',
+      title: 'Wasmer Edge & local MySQL hybrid database architecture',
+      description: 'Package client artifacts into dist/ and wire relational schemas for frictionless edge and local deployment.',
       tags: [INITIAL_TAGS[2]],
       priority: 'medium',
+      startDate: '2026-11-18',
       dueDate: '2026-11-24',
+      attachments: [],
       checklist: [
-        { id: 'c6', text: 'Verify wasmer/static-web-server binding', completed: true }
+        { id: 'c7', text: 'Verify wasmer/static-web-server binding', completed: true },
+        { id: 'c8', text: 'Draft MySQL & SQLite schema migrations', completed: true }
       ],
       order: 0,
       updatedAt: Date.now()

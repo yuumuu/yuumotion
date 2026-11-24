@@ -1,5 +1,7 @@
 export type PriorityLevel = 'low' | 'medium' | 'high' | 'urgent';
 
+export type WorkspaceView = 'board' | 'calendar' | 'timeline' | 'table';
+
 export interface CardTag {
   id: string;
   name: string;
@@ -12,15 +14,28 @@ export interface ChecklistItem {
   completed: boolean;
 }
 
+export interface CardAttachment {
+  id: string;
+  name: string;
+  size: number;
+  mimeType: string;
+  url: string;
+  createdAt: number;
+}
+
 export interface Card {
   id: string;
   columnId: string;
   title: string;
   description: string;
+  contentJson?: Record<string, unknown>;
   tags: CardTag[];
   priority: PriorityLevel;
+  startDate?: string;
   dueDate?: string;
+  coverImage?: string;
   checklist: ChecklistItem[];
+  attachments: CardAttachment[];
   order: number;
   updatedAt: number;
 }
@@ -55,6 +70,14 @@ export interface CloudSyncConfig {
   supabaseUrl: string;
   supabaseAnonKey: string;
   enabled: boolean;
+}
+
+export interface DatabaseBridgeConfig {
+  endpoint: string;
+  target: 'mysql' | 'sqlite' | 'wasmer-edge';
+  enabled: boolean;
+  autoSync: boolean;
+  lastSyncedAt?: number;
 }
 
 export type BoardSyncEvent =

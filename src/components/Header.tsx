@@ -1,7 +1,10 @@
 import React from 'react';
-import { Board, SyncConnectionStatus, UserPresence } from '../types/board';
+import { Board, SyncConnectionStatus, UserPresence, WorkspaceView } from '../types/board';
 import {
   Kanban,
+  Calendar,
+  Clock,
+  Table as TableIcon,
   Moon,
   Sun,
   Download,
@@ -12,7 +15,8 @@ import {
   Cloud,
   CheckCircle2,
   AlertTriangle,
-  Loader2
+  Loader2,
+  Database
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -22,7 +26,10 @@ interface HeaderProps {
   onlineUsers: UserPresence[];
   currentUser: UserPresence;
   syncStatus: SyncConnectionStatus;
+  activeView: WorkspaceView;
+  onViewChange: (view: WorkspaceView) => void;
   onOpenSyncSettings: () => void;
+  onOpenDbBridge: () => void;
   isDark: boolean;
   onToggleTheme: () => void;
   searchQuery: string;
@@ -38,7 +45,10 @@ export const Header: React.FC<HeaderProps> = ({
   onlineUsers,
   currentUser,
   syncStatus,
+  activeView,
+  onViewChange,
   onOpenSyncSettings,
+  onOpenDbBridge,
   isDark,
   onToggleTheme,
   searchQuery,
@@ -46,21 +56,28 @@ export const Header: React.FC<HeaderProps> = ({
   onExport,
   onImport
 }) => {
+  const views: { id: WorkspaceView; label: string; icon: React.FC<{ className?: string }> }[] = [
+    { id: 'board', label: 'Board', icon: Kanban },
+    { id: 'calendar', label: 'Calendar', icon: Calendar },
+    { id: 'timeline', label: 'Timeline', icon: Clock },
+    { id: 'table', label: 'Table', icon: TableIcon }
+  ];
+
   return (
-    <header className="sticky top-0 z-30 flex flex-wrap items-center justify-between border-b border-appflowy-border bg-appflowy-surface/90 px-6 py-3 backdrop-blur-md dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface/90">
-      <div className="flex items-center gap-4">
+    <header className="sticky top-0 z-30 flex flex-wrap items-center justify-between border-b border-appflowy-border bg-appflowy-surface/90 px-6 py-2.5 backdrop-blur-md dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface/90">
+      <div className="flex flex-wrap items-center gap-4">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-tr from-purple-600 to-indigo-500 text-white shadow-xs">
-            <Kanban className="h-5 w-5" />
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-tr from-purple-600 to-indigo-500 text-white shadow-xs">
+            <Kanban className="h-4 w-4" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-base font-semibold tracking-tight text-appflowy-text dark:text-appflowy-darkText">
+              <h1 className="text-sm font-semibold tracking-tight text-appflowy-text dark:text-appflowy-darkText">
                 {board.title}
               </h1>
               <button
                 onClick={onOpenSyncSettings}
-                className="flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium transition-colors hover:opacity-80"
+                className="flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium transition-colors hover:opacity-80"
                 style={{
                   backgroundColor:
                     syncStatus === 'connected'
@@ -96,52 +113,73 @@ export const Header: React.FC<HeaderProps> = ({
                 </span>
               </button>
             </div>
-            <div className="flex items-center gap-1 text-xs text-appflowy-muted dark:text-appflowy-darkMuted">
+            <div className="flex items-center gap-1 text-[11px] text-appflowy-muted dark:text-appflowy-darkMuted">
               <span>Room:</span>
               <input
                 type="text"
                 value={currentRoom}
                 onChange={(e) => onRoomChange(e.target.value)}
-                className="h-5 rounded bg-transparent px-1 font-mono text-xs font-medium text-purple-600 underline hover:bg-neutral-100 dark:text-purple-400 dark:hover:bg-neutral-800"
+                className="h-4 rounded bg-transparent px-1 font-mono text-[11px] font-medium text-purple-600 underline hover:bg-neutral-100 dark:text-purple-400 dark:hover:bg-neutral-800"
                 title="Change room name to collaborate in private boards"
               />
             </div>
           </div>
         </div>
+
+        <div className="flex items-center rounded-lg border border-appflowy-border bg-appflowy-bg p-0.5 dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg">
+          {views.map((v) => {
+            const Icon = v.icon;
+            const isActive = activeView === v.id;
+            return (
+              <button
+                key={v.id}
+                onClick={() => onViewChange(v.id)}
+                className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                  isActive
+                    ? 'bg-appflowy-surface text-purple-600 shadow-2xs dark:bg-appflowy-darkSurface dark:text-purple-400'
+                    : 'text-appflowy-muted hover:text-appflowy-text dark:text-appflowy-darkMuted dark:hover:text-appflowy-darkText'
+                }`}
+              >
+                <Icon className="h-3.5 w-3.5" />
+                <span>{v.label}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2.5">
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-appflowy-muted dark:text-appflowy-darkMuted" />
           <input
             type="text"
-            placeholder="Search cards..."
+            placeholder="Search items..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="h-8 w-44 rounded-md border border-appflowy-border bg-appflowy-bg pl-8 pr-3 text-xs transition-all focus:w-60 focus:outline-none focus:ring-1 focus:ring-purple-500 dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg dark:focus:ring-purple-400"
+            className="h-7 w-36 rounded-md border border-appflowy-border bg-appflowy-bg pl-8 pr-2.5 text-xs transition-all focus:w-48 focus:outline-none focus:ring-1 focus:ring-purple-500 dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg dark:focus:ring-purple-400"
           />
         </div>
 
-        <div className="flex items-center -space-x-1.5 pl-2" title="Collaborators currently active in this room">
+        <div className="flex items-center -space-x-1.5 pl-1" title="Collaborators currently active in this room">
           {onlineUsers.slice(0, 4).map((user) => (
             <div
               key={user.id}
               style={{ backgroundColor: user.color }}
-              className="relative flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold text-white ring-2 ring-white dark:ring-neutral-900"
+              className="relative flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-semibold text-white ring-2 ring-white dark:ring-neutral-900"
               title={`${user.name} ${user.id === currentUser.id ? '(You)' : ''}`}
             >
               {user.avatar}
-              <span className="absolute bottom-0 right-0 h-2 w-2 rounded-full bg-emerald-500 ring-1 ring-white" />
+              <span className="absolute bottom-0 right-0 h-1.5 w-1.5 rounded-full bg-emerald-500 ring-1 ring-white" />
             </div>
           ))}
           {onlineUsers.length > 4 && (
-            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-200 text-[10px] font-medium text-neutral-700 ring-2 ring-white dark:bg-neutral-800 dark:text-neutral-300 dark:ring-neutral-900">
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-neutral-200 text-[9px] font-medium text-neutral-700 ring-2 ring-white dark:bg-neutral-800 dark:text-neutral-300 dark:ring-neutral-900">
               +{onlineUsers.length - 4}
             </div>
           )}
-          <div className="flex items-center gap-1 pl-2.5 text-xs text-appflowy-muted dark:text-appflowy-darkMuted">
-            <Users className="h-3.5 w-3.5" />
-            <span>{onlineUsers.length}</span>
+          <div className="flex items-center gap-1 pl-2 text-xs text-appflowy-muted dark:text-appflowy-darkMuted">
+            <Users className="h-3 w-3" />
+            <span className="text-[11px]">{onlineUsers.length}</span>
           </div>
         </div>
 
@@ -149,22 +187,29 @@ export const Header: React.FC<HeaderProps> = ({
 
         <div className="flex items-center gap-1">
           <button
+            onClick={onOpenDbBridge}
+            title="Database Bridge (MySQL & SQLite SQL Dump)"
+            className="flex h-7 w-7 items-center justify-center rounded-md text-appflowy-muted transition-colors hover:bg-appflowy-hover hover:text-indigo-600 dark:text-appflowy-darkMuted dark:hover:bg-appflowy-darkHover dark:hover:text-indigo-400"
+          >
+            <Database className="h-4 w-4" />
+          </button>
+          <button
             onClick={onOpenSyncSettings}
             title="Configure Cloud Sync (Supabase Realtime)"
-            className="flex h-8 w-8 items-center justify-center rounded-md text-appflowy-muted transition-colors hover:bg-appflowy-hover hover:text-purple-600 dark:text-appflowy-darkMuted dark:hover:bg-appflowy-darkHover dark:hover:text-purple-400"
+            className="flex h-7 w-7 items-center justify-center rounded-md text-appflowy-muted transition-colors hover:bg-appflowy-hover hover:text-purple-600 dark:text-appflowy-darkMuted dark:hover:bg-appflowy-darkHover dark:hover:text-purple-400"
           >
             <Cloud className="h-4 w-4" />
           </button>
           <button
             onClick={onExport}
             title="Export board data (JSON)"
-            className="flex h-8 w-8 items-center justify-center rounded-md text-appflowy-muted transition-colors hover:bg-appflowy-hover hover:text-appflowy-text dark:text-appflowy-darkMuted dark:hover:bg-appflowy-darkHover dark:hover:text-appflowy-darkText"
+            className="flex h-7 w-7 items-center justify-center rounded-md text-appflowy-muted transition-colors hover:bg-appflowy-hover hover:text-appflowy-text dark:text-appflowy-darkMuted dark:hover:bg-appflowy-darkHover dark:hover:text-appflowy-darkText"
           >
             <Download className="h-4 w-4" />
           </button>
           <label
             title="Import board data (JSON)"
-            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md text-appflowy-muted transition-colors hover:bg-appflowy-hover hover:text-appflowy-text dark:text-appflowy-darkMuted dark:hover:bg-appflowy-darkHover dark:hover:text-appflowy-darkText"
+            className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-appflowy-muted transition-colors hover:bg-appflowy-hover hover:text-appflowy-text dark:text-appflowy-darkMuted dark:hover:bg-appflowy-darkHover dark:hover:text-appflowy-darkText"
           >
             <Upload className="h-4 w-4" />
             <input type="file" accept=".json" onChange={onImport} className="hidden" />
@@ -172,7 +217,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={onToggleTheme}
             title="Toggle light/dark mode"
-            className="flex h-8 w-8 items-center justify-center rounded-md text-appflowy-muted transition-colors hover:bg-appflowy-hover hover:text-appflowy-text dark:text-appflowy-darkMuted dark:hover:bg-appflowy-darkHover dark:hover:text-appflowy-darkText"
+            className="flex h-7 w-7 items-center justify-center rounded-md text-appflowy-muted transition-colors hover:bg-appflowy-hover hover:text-appflowy-text dark:text-appflowy-darkMuted dark:hover:bg-appflowy-darkHover dark:hover:text-appflowy-darkText"
           >
             {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
