@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { NotionPage, UserRole } from '../types/board';
 import { canEditContent } from '../lib/auth';
 import { TipTapEditor } from './TipTapEditor';
-import { ImageIcon, Trash2, Lock, Clock } from 'lucide-react';
+import { ImageIcon, Trash2, Lock, Clock, Sparkles } from 'lucide-react';
 
 interface StandalonePageDocProps {
   page: NotionPage;
@@ -11,6 +11,33 @@ interface StandalonePageDocProps {
 }
 
 const PRESET_ICONS = ['📝', '⚡', '🚀', '🎯', '💡', '📌', '📊', '📚', '🛠️', '✨', '🔥', '🌐'];
+
+const DOC_TEMPLATES = [
+  {
+    name: 'Meeting Notes',
+    icon: '🎙️',
+    title: 'Notulensi Rapat Tim',
+    html: '<h2>Agenda Rapat</h2><p>Pembahasan progres sprint, sinkronisasi edge wasmer, dan blocker.</p><h3>Peserta</h3><p>Yuu, Engineering Lead, Product Manager</p><h3>Poin Keputusan</h3><ul><li>Arsitektur offline-first diprioritaskan.</li><li>Sinkronisasi multi-user via realtime broadcast.</li></ul><h3>Action Items</h3><ul data-type="taskList"><li data-type="taskItem" data-checked="false"><label><input type="checkbox"></label><div><p>Update schema database MySQL & SQLite</p></div></li><li data-type="taskItem" data-checked="false"><label><input type="checkbox"></label><div><p>Testing deploy Wasmer static server</p></div></li></ul>'
+  },
+  {
+    name: 'Product Specs (PRD)',
+    icon: '📋',
+    title: 'Product Requirement Document',
+    html: '<h2>1. Latar Belakang & Problem Statement</h2><p>Pengguna membutuhkan aplikasi manajemen kartu dan dokumen yang cepat tanpa vendor lock-in berbayar.</p><h2>2. Sasaran Pengguna</h2><p>Tim pengembang, kreator, dan manajer proyek independen.</p><h2>3. Spesifikasi Fitur Utama</h2><ul data-type="taskList"><li data-type="taskItem" data-checked="true"><label><input type="checkbox" checked="checked"></label><div><p>Multi-view kanban, calendar, gantt, dan database table</p></div></li><li data-type="taskItem" data-checked="false"><label><input type="checkbox"></label><div><p>Notion-style slash commands (/)</p></div></li></ul><blockquote><p>Target rilis: Wasmer Edge Production CDN.</p></blockquote>'
+  },
+  {
+    name: 'Sprint Planning',
+    icon: '🚀',
+    title: 'Sprint Planning Roadmap',
+    html: '<h2>Sprint Goal</h2><p>Menyelesaikan fitur aksesibilitas keyboard dan automasi kartu kanban.</p><h3>Daftar Tugas Sprint</h3><ul data-type="taskList"><li data-type="taskItem" data-checked="false"><label><input type="checkbox"></label><div><p>Implementasi auto-move done saat checklist 100%</p></div></li><li data-type="taskItem" data-checked="false"><label><input type="checkbox"></label><div><p>Audit WCAG contrast dan keyboard focus indicators</p></div></li></ul>'
+  },
+  {
+    name: 'Habit & Weekly Tracker',
+    icon: '🎯',
+    title: 'Weekly Focus & Tracker',
+    html: '<h2>Fokus Mingguan</h2><p>Fokus pada penyempurnaan UI/UX dan kebersihan kode antislop.</p><h3>Target Harian</h3><ul data-type="taskList"><li data-type="taskItem" data-checked="false"><label><input type="checkbox"></label><div><p>Review performa drag and drop board</p></div></li><li data-type="taskItem" data-checked="false"><label><input type="checkbox"></label><div><p>Dokumentasikan panduan shortcut keyboard</p></div></li></ul>'
+  }
+];
 
 export const StandalonePageDoc: React.FC<StandalonePageDocProps> = ({
   page,
@@ -153,6 +180,31 @@ export const StandalonePageDoc: React.FC<StandalonePageDocProps> = ({
             <span>Updated {new Date(page.updatedAt).toLocaleDateString()}</span>
           </div>
         </div>
+
+        {canEdit && (
+          <div className="mb-4 flex flex-wrap items-center gap-1.5">
+            <span className="flex items-center gap-1 text-[11px] font-medium text-appflowy-muted dark:text-appflowy-darkMuted mr-1">
+              <Sparkles className="h-3 w-3 text-purple-500" />
+              Template:
+            </span>
+            {DOC_TEMPLATES.map((tmpl) => (
+              <button
+                key={tmpl.name}
+                type="button"
+                onClick={() => {
+                  setTitle(tmpl.title);
+                  setIcon(tmpl.icon);
+                  syncChanges({ title: tmpl.title, icon: tmpl.icon, contentHtml: tmpl.html });
+                }}
+                className="flex items-center gap-1 rounded-lg border border-appflowy-border bg-appflowy-surface px-2.5 py-1 text-xs text-appflowy-text hover:border-purple-400 hover:text-purple-600 dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface dark:text-appflowy-darkText dark:hover:border-purple-500 cursor-pointer"
+                title={`Terapkan template ${tmpl.name}`}
+              >
+                <span>{tmpl.icon}</span>
+                <span>{tmpl.name}</span>
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="min-h-[400px]">
           <TipTapEditor

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Card, Column, PriorityLevel, CardTag, CardAttachment } from '../types/board';
+import { Card, Column, PriorityLevel, CardTag, CardAttachment, CardActivity } from '../types/board';
 import { INITIAL_TAGS, TAG_COLORS } from '../lib/constants';
 import { TipTapEditor } from './TipTapEditor';
 import { CustomSelect } from './ui/CustomSelect';
@@ -15,7 +15,9 @@ import {
   Paperclip,
   ImageIcon,
   Download,
-  Clock
+  Clock,
+  History,
+  Zap
 } from 'lucide-react';
 
 interface CardDetailModalProps {
@@ -47,6 +49,18 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
   const [isAddingTag, setIsAddingTag] = useState(false);
   const [newChecklistText, setNewChecklistText] = useState('');
   const [attachments, setAttachments] = useState<CardAttachment[]>(card.attachments || []);
+  const [autoMoveDone, setAutoMoveDone] = useState<boolean>(card.autoMoveDone ?? true);
+  const [activities, setActivities] = useState<CardActivity[]>(() => {
+    if (card.activities && card.activities.length > 0) return card.activities;
+    return [
+      {
+        id: `act-${Date.now()}`,
+        userName: 'Sistem',
+        action: 'Kartu dibuat',
+        timestamp: card.updatedAt || Date.now()
+      }
+    ];
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
@@ -72,22 +86,69 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
       coverImage: coverImage || undefined,
       tags,
       attachments,
+      activities,
+      autoMoveDone,
       ...partial,
       updatedAt: Date.now()
     });
   };
 
+  const logActivity = (action: string) => {
+    const act: CardActivity = {
+      id: `act-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
+      userName: 'Anda',
+      action,
+      timestamp: Date.now()
+    };
+    const nextActs = [act, ...activities];
+    setActivities(nextActs);
+    return nextActs;
+  };
+
   const handleTitleBlur = () => {
     if (title.trim() && title !== card.title) {
-      syncChanges({ title: title.trim() });
+      const nextActs = logActivity(`Mengubah judul kartu menjadi "${title.trim()}"`);
+      syncChanges({ title: title.trim(), activities: nextActs });
     }
   };
 
   const toggleChecklistItem = (itemId: string) => {
+    const targetItem = card.checklist.find((i) => i.id === itemId);
     const nextChecklist = card.checklist.map((item) =>
       item.id === itemId ? { ...item, completed: !item.completed } : item
     );
-    syncChanges({ checklist: nextChecklist });
+
+    const isAllComplete = nextChecklist.length > 0 && nextChecklist.every((i) => i.completed);
+    let nextColId = columnId;
+    let nextActivities = [
+      {
+        id: `act-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
+        userName: 'Anda',
+        action: `${targetItem?.completed ? 'Membatalkan' : 'Menyelesaikan'} checklist "${targetItem?.text}"`,
+        timestamp: Date.now()
+      },
+      ...activities
+    ];
+
+    if (isAllComplete && autoMoveDone) {
+      const doneCol = columns.find((c) => c.title.toLowerCase().includes('done')) || columns[columns.length - 1];
+      if (doneCol && doneCol.id !== columnId) {
+        nextColId = doneCol.id;
+        setColumnId(doneCol.id);
+        nextActivities = [
+          {
+            id: `act-${Date.now()}-auto`,
+            userName: 'Aturan Otomasi',
+            action: `Checklist 100% lengkap. Kartu otomatis dipindahkan ke kolom "${doneCol.title}"`,
+            timestamp: Date.now()
+          },
+          ...nextActivities
+        ];
+      }
+    }
+
+    setActivities(nextActivities);
+    syncChanges({ checklist: nextChecklist, columnId: nextColId, activities: nextActivities });
   };
 
   const addChecklistItem = (e: React.FormEvent) => {
@@ -98,7 +159,8 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
       text: newChecklistText.trim(),
       completed: false
     };
-    syncChanges({ checklist: [...card.checklist, newItem] });
+    const nextActs = logActivity(`Menambahkan checklist "${newItem.text}"`);
+    syncChanges({ checklist: [...card.checklist, newItem], activities: nextActs });
     setNewChecklistText('');
   };
 
@@ -527,6 +589,71 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
                 syncChanges({ description: html, contentJson: json });
               }}
             />
+          </div>
+
+          {/* Aturan Otomasi Kartu (Auto-Rules) */}
+          <div className="rounded-xl border border-appflowy-border bg-neutral-50/60 p-3 text-xs dark:border-appflowy-darkBorder dark:bg-neutral-900/30">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="flex h-6 w-6 items-center justify-center rounded-md bg-purple-100 text-purple-600 dark:bg-purple-950/60 dark:text-purple-300">
+                  <Zap className="h-3.5 w-3.5" />
+                </div>
+                <div>
+                  <p className="font-semibold text-appflowy-text dark:text-appflowy-darkText">
+                    Otomasi Selesai (Auto-Move to Done)
+                  </p>
+                  <p className="text-[11px] text-appflowy-muted dark:text-appflowy-darkMuted">
+                    Otomatis pindahkan kartu ke kolom selesai saat 100% checklist terpenuhi
+                  </p>
+                </div>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={autoMoveDone}
+                  onChange={(e) => {
+                    setAutoMoveDone(e.target.checked);
+                    syncChanges({ autoMoveDone: e.target.checked });
+                  }}
+                  className="sr-only peer"
+                />
+                <div className="w-8 h-4 bg-neutral-300 peer-focus:outline-none rounded-full peer dark:bg-neutral-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"></div>
+              </label>
+            </div>
+          </div>
+
+          {/* Riwayat Aktivitas & Audit Trail */}
+          <div>
+            <div className="mb-2 flex items-center justify-between">
+              <span className="flex items-center gap-1.5 text-xs font-medium text-appflowy-muted dark:text-appflowy-darkMuted">
+                <History className="h-3.5 w-3.5" />
+                Riwayat Aktivitas Kartu
+              </span>
+              <span className="text-[11px] text-appflowy-muted dark:text-appflowy-darkMuted">
+                {activities.length} aktivitas
+              </span>
+            </div>
+
+            <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+              {activities.map((act) => (
+                <div
+                  key={act.id}
+                  className="flex items-start justify-between gap-2 rounded-lg border border-appflowy-border/60 bg-appflowy-bg/60 p-2 text-[11px] dark:border-appflowy-darkBorder/60 dark:bg-appflowy-darkBg/60"
+                >
+                  <div className="flex items-start gap-1.5">
+                    <span className="font-semibold text-purple-600 dark:text-purple-400">
+                      {act.userName}:
+                    </span>
+                    <span className="text-appflowy-text dark:text-appflowy-darkText">
+                      {act.action}
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-appflowy-muted dark:text-appflowy-darkMuted whitespace-nowrap">
+                    {new Date(act.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

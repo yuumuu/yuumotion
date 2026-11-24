@@ -25,6 +25,13 @@ export interface CardAttachment {
   createdAt: number;
 }
 
+export interface CardActivity {
+  id: string;
+  userName: string;
+  action: string;
+  timestamp: number;
+}
+
 export interface Card {
   id: string;
   columnId: string;
@@ -38,6 +45,8 @@ export interface Card {
   coverImage?: string;
   checklist: ChecklistItem[];
   attachments: CardAttachment[];
+  activities?: CardActivity[];
+  autoMoveDone?: boolean;
   order: number;
   updatedAt: number;
 }

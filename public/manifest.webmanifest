@@ -1,0 +1,17 @@
+{
+  "name": "Yuumotion - Collaborative Kanban & Notion Workspace",
+  "short_name": "Yuumotion",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#7C3AED",
+  "description": "Hybrid Notion + Trello workspace with offline-first sync and Wasmer Edge deployment.",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
