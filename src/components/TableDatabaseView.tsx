@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Board, Card, PriorityLevel } from '../types/board';
 import { Plus, Table as TableIcon, Paperclip, CheckSquare } from 'lucide-react';
 import { TAG_COLORS } from '../lib/constants';
+import { CustomSelect } from './ui/CustomSelect';
 
 interface TableDatabaseViewProps {
   board: Board;
@@ -83,42 +84,42 @@ export const TableDatabaseView: React.FC<TableDatabaseViewProps> = ({
                   </td>
 
                   <td className="px-4 py-2.5">
-                    <select
+                    <CustomSelect
                       value={card.columnId}
-                      onChange={(e) => {
+                      options={board.columns.map((col) => ({
+                        value: col.id,
+                        label: col.title,
+                        colorDot: col.color
+                      }))}
+                      onChange={(val) => {
                         onUpdateCard({
                           ...card,
-                          columnId: e.target.value,
+                          columnId: val,
                           updatedAt: Date.now()
                         });
                       }}
-                      className="h-7 w-full rounded border border-appflowy-border bg-transparent px-2 text-xs font-medium text-appflowy-text dark:border-appflowy-darkBorder dark:text-appflowy-darkText"
-                    >
-                      {board.columns.map((col) => (
-                        <option key={col.id} value={col.id}>
-                          {col.title}
-                        </option>
-                      ))}
-                    </select>
+                      size="sm"
+                    />
                   </td>
 
                   <td className="px-4 py-2.5">
-                    <select
+                    <CustomSelect
                       value={card.priority}
-                      onChange={(e) => {
+                      options={[
+                        { value: 'low', label: 'Low', colorDot: '#9CA3AF' },
+                        { value: 'medium', label: 'Medium', colorDot: '#3B82F6' },
+                        { value: 'high', label: 'High', colorDot: '#F59E0B' },
+                        { value: 'urgent', label: 'Urgent', colorDot: '#EF4444' }
+                      ]}
+                      onChange={(p) => {
                         onUpdateCard({
                           ...card,
-                          priority: e.target.value as PriorityLevel,
+                          priority: p as PriorityLevel,
                           updatedAt: Date.now()
                         });
                       }}
-                      className="h-7 w-full rounded border border-appflowy-border bg-transparent px-2 text-xs text-appflowy-text dark:border-appflowy-darkBorder dark:text-appflowy-darkText"
-                    >
-                      <option value="low">Low</option>
-                      <option value="medium">Medium</option>
-                      <option value="high">High</option>
-                      <option value="urgent">Urgent</option>
-                    </select>
+                      size="sm"
+                    />
                   </td>
 
                   <td className="px-4 py-2.5">
@@ -188,17 +189,16 @@ export const TableDatabaseView: React.FC<TableDatabaseViewProps> = ({
             onChange={(e) => setNewTitle(e.target.value)}
             className="flex-1 rounded border border-appflowy-border bg-appflowy-bg px-2.5 py-1 text-xs text-appflowy-text focus:outline-none focus:ring-1 focus:ring-purple-500 dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg dark:text-appflowy-darkText"
           />
-          <select
+          <CustomSelect
             value={selectedColumn}
-            onChange={(e) => setSelectedColumn(e.target.value)}
-            className="rounded border border-appflowy-border bg-appflowy-bg px-2 py-1 text-xs text-appflowy-text dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg dark:text-appflowy-darkText"
-          >
-            {board.columns.map((col) => (
-              <option key={col.id} value={col.id}>
-                {col.title}
-              </option>
-            ))}
-          </select>
+            options={board.columns.map((col) => ({
+              value: col.id,
+              label: col.title,
+              colorDot: col.color
+            }))}
+            onChange={(val) => setSelectedColumn(val)}
+            size="sm"
+          />
           <button
             type="submit"
             className="rounded bg-purple-600 px-3 py-1 text-xs font-medium text-white hover:bg-purple-700"

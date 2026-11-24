@@ -2,10 +2,11 @@ import React, { useState, useRef } from 'react';
 import { Card, Column, PriorityLevel, CardTag, CardAttachment } from '../types/board';
 import { INITIAL_TAGS, TAG_COLORS } from '../lib/constants';
 import { TipTapEditor } from './TipTapEditor';
+import { CustomSelect } from './ui/CustomSelect';
+import { CustomDatePicker } from './ui/CustomDatePicker';
 import {
   X,
   Trash2,
-  Calendar,
   AlertCircle,
   Tag,
   CheckSquare,
@@ -198,20 +199,19 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
         <div className="flex items-center justify-between border-b border-appflowy-border px-6 py-3 dark:border-appflowy-darkBorder">
           <div className="flex items-center gap-2 text-xs text-appflowy-muted dark:text-appflowy-darkMuted">
             <span>In list</span>
-            <select
+            <CustomSelect
               value={columnId}
-              onChange={(e) => {
-                setColumnId(e.target.value);
-                syncChanges({ columnId: e.target.value });
+              options={columns.map((c) => ({
+                value: c.id,
+                label: c.title,
+                colorDot: c.color
+              }))}
+              onChange={(val) => {
+                setColumnId(val);
+                syncChanges({ columnId: val });
               }}
-              className="rounded border border-appflowy-border bg-appflowy-bg px-2 py-0.5 font-medium text-appflowy-text dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg dark:text-appflowy-darkText"
-            >
-              {columns.map((col) => (
-                <option key={col.id} value={col.id}>
-                  {col.title}
-                </option>
-              ))}
-            </select>
+              size="sm"
+            />
           </div>
 
           <div className="flex items-center gap-2">
@@ -265,55 +265,56 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 rounded-xl bg-neutral-50/80 p-3.5 dark:bg-neutral-900/40">
             <div className="flex items-center gap-2">
-              <span className="flex w-20 items-center gap-1.5 text-xs text-appflowy-muted dark:text-appflowy-darkMuted">
+              <span className="flex w-16 items-center gap-1.5 text-xs text-appflowy-muted dark:text-appflowy-darkMuted">
                 <AlertCircle className="h-3.5 w-3.5" />
                 Priority
               </span>
-              <select
+              <CustomSelect
                 value={priority}
-                onChange={(e) => {
-                  const p = e.target.value as PriorityLevel;
-                  setPriority(p);
-                  syncChanges({ priority: p });
+                options={[
+                  { value: 'low', label: 'Low', colorDot: '#9CA3AF' },
+                  { value: 'medium', label: 'Medium', colorDot: '#3B82F6' },
+                  { value: 'high', label: 'High', colorDot: '#F59E0B' },
+                  { value: 'urgent', label: 'Urgent', colorDot: '#EF4444' }
+                ]}
+                onChange={(p) => {
+                  setPriority(p as PriorityLevel);
+                  syncChanges({ priority: p as PriorityLevel });
                 }}
-                className="flex-1 rounded border border-appflowy-border bg-appflowy-surface px-2 py-1 text-xs text-appflowy-text dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface dark:text-appflowy-darkText"
-              >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-                <option value="urgent">Urgent</option>
-              </select>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="flex w-20 items-center gap-1.5 text-xs text-appflowy-muted dark:text-appflowy-darkMuted">
-                <Clock className="h-3.5 w-3.5" />
-                Start
-              </span>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => {
-                  setStartDate(e.target.value);
-                  syncChanges({ startDate: e.target.value });
-                }}
-                className="flex-1 rounded border border-appflowy-border bg-appflowy-surface px-2 py-0.5 text-xs text-appflowy-text dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface dark:text-appflowy-darkText"
+                className="flex-1"
+                size="sm"
               />
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="flex w-20 items-center gap-1.5 text-xs text-appflowy-muted dark:text-appflowy-darkMuted">
-                <Calendar className="h-3.5 w-3.5" />
-                Due Date
+              <span className="flex w-14 items-center gap-1.5 text-xs text-appflowy-muted dark:text-appflowy-darkMuted">
+                <Clock className="h-3.5 w-3.5" />
+                Start
               </span>
-              <input
-                type="date"
-                value={dueDate}
-                onChange={(e) => {
-                  setDueDate(e.target.value);
-                  syncChanges({ dueDate: e.target.value });
+              <CustomDatePicker
+                value={startDate}
+                onChange={(d) => {
+                  setStartDate(d);
+                  syncChanges({ startDate: d });
                 }}
-                className="flex-1 rounded border border-appflowy-border bg-appflowy-surface px-2 py-0.5 text-xs text-appflowy-text dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface dark:text-appflowy-darkText"
+                className="flex-1"
+                size="sm"
+              />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="flex w-14 items-center gap-1.5 text-xs text-appflowy-muted dark:text-appflowy-darkMuted">
+                <Clock className="h-3.5 w-3.5" />
+                Due
+              </span>
+              <CustomDatePicker
+                value={dueDate}
+                onChange={(d) => {
+                  setDueDate(d);
+                  syncChanges({ dueDate: d });
+                }}
+                className="flex-1"
+                size="sm"
               />
             </div>
           </div>
@@ -363,18 +364,19 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
                   onChange={(e) => setNewTagName(e.target.value)}
                   className="flex-1 rounded border border-appflowy-border bg-appflowy-bg px-2 py-1 text-xs text-appflowy-text dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg dark:text-appflowy-darkText"
                 />
-                <select
+                <CustomSelect
                   value={newTagColor}
-                  onChange={(e) => setNewTagColor(e.target.value)}
-                  className="rounded border border-appflowy-border bg-appflowy-bg px-2 py-1 text-xs text-appflowy-text dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg dark:text-appflowy-darkText"
-                >
-                  <option value="purple">Purple</option>
-                  <option value="blue">Blue</option>
-                  <option value="green">Green</option>
-                  <option value="amber">Amber</option>
-                  <option value="rose">Rose</option>
-                  <option value="neutral">Neutral</option>
-                </select>
+                  options={[
+                    { value: 'purple', label: 'Purple', colorDot: '#8B5CF6' },
+                    { value: 'blue', label: 'Blue', colorDot: '#3B82F6' },
+                    { value: 'green', label: 'Green', colorDot: '#10B981' },
+                    { value: 'amber', label: 'Amber', colorDot: '#F59E0B' },
+                    { value: 'rose', label: 'Rose', colorDot: '#EC4899' },
+                    { value: 'neutral', label: 'Neutral', colorDot: '#9CA3AF' }
+                  ]}
+                  onChange={(c) => setNewTagColor(c)}
+                  size="sm"
+                />
                 <button
                   type="submit"
                   className="rounded bg-purple-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-purple-700"

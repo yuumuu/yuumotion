@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Workspace, WorkspaceMember, UserRole, AuthUser } from '../types/board';
 import { canManageMembers, canDeleteWorkspace } from '../lib/auth';
+import { CustomSelect } from './ui/CustomSelect';
 import { X, Users, UserPlus, Shield, Trash2, Crown, AlertTriangle } from 'lucide-react';
 
 interface WorkspaceMembersModalProps {
@@ -158,15 +159,16 @@ export const WorkspaceMembersModal: React.FC<WorkspaceMembersModalProps> = ({
                   />
                 </div>
                 <div className="flex items-center justify-between">
-                  <select
+                  <CustomSelect
                     value={newMemberRole}
-                    onChange={(e) => setNewMemberRole(e.target.value as UserRole)}
-                    className="h-7 rounded border border-appflowy-border bg-appflowy-surface px-2 text-xs text-appflowy-text dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface dark:text-appflowy-darkText"
-                  >
-                    <option value="admin">Admin</option>
-                    <option value="member">Member</option>
-                    <option value="viewer">Viewer (Read Only)</option>
-                  </select>
+                    options={[
+                      { value: 'admin', label: 'Admin' },
+                      { value: 'member', label: 'Member' },
+                      { value: 'viewer', label: 'Viewer (Read Only)' }
+                    ]}
+                    onChange={(r) => setNewMemberRole(r as UserRole)}
+                    size="sm"
+                  />
                   <div className="flex items-center gap-1.5">
                     <button
                       type="button"
@@ -215,15 +217,16 @@ export const WorkspaceMembersModal: React.FC<WorkspaceMembersModalProps> = ({
 
                     <div className="flex items-center gap-2">
                       {isManager && !isMemberOwner && !isSelf ? (
-                        <select
+                        <CustomSelect
                           value={member.role}
-                          onChange={(e) => handleRoleChange(member.id, e.target.value as UserRole)}
-                          className="h-7 rounded border border-appflowy-border bg-appflowy-surface px-2 text-[11px] font-medium text-appflowy-text dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface dark:text-appflowy-darkText"
-                        >
-                          <option value="admin">Admin</option>
-                          <option value="member">Member</option>
-                          <option value="viewer">Viewer (Read Only)</option>
-                        </select>
+                          options={[
+                            { value: 'admin', label: 'Admin' },
+                            { value: 'member', label: 'Member' },
+                            { value: 'viewer', label: 'Viewer (Read Only)' }
+                          ]}
+                          onChange={(r) => handleRoleChange(member.id, r as UserRole)}
+                          size="sm"
+                        />
                       ) : (
                         <span className="rounded bg-neutral-100 px-2 py-0.5 text-[11px] font-medium uppercase text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
                           {member.role}

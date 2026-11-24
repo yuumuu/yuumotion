@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Board, DatabaseBridgeConfig } from '../types/board';
 import { generateBoardSqlDump, syncBoardToDatabase } from '../lib/dbBridge';
+import { CustomSelect } from './ui/CustomSelect';
 import { X, Database, Download, RefreshCw, CheckCircle2, AlertTriangle, FileCode } from 'lucide-react';
 
 interface DatabaseBridgeModalProps {
@@ -113,18 +114,20 @@ export const DatabaseBridgeModal: React.FC<DatabaseBridgeModalProps> = ({
           </div>
 
           <div>
-            <label className="block font-medium text-appflowy-muted dark:text-appflowy-darkMuted">
+            <label className="block font-medium text-appflowy-muted dark:text-appflowy-darkMuted mb-1">
               Database Dialect / Target
             </label>
-            <select
+            <CustomSelect
               value={target}
-              onChange={(e) => setTarget(e.target.value as 'mysql' | 'sqlite' | 'wasmer-edge')}
-              className="mt-1 h-8 w-full rounded border border-appflowy-border bg-appflowy-bg px-2.5 text-xs text-appflowy-text dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg dark:text-appflowy-darkText"
-            >
-              <option value="mysql">Local MySQL Database (schema.mysql.sql)</option>
-              <option value="sqlite">SQLite Database (schema.sqlite.sql)</option>
-              <option value="wasmer-edge">Wasmer Edge Relational D1</option>
-            </select>
+              options={[
+                { value: 'mysql', label: 'Local MySQL Database (schema.mysql.sql)' },
+                { value: 'sqlite', label: 'SQLite Database (schema.sqlite.sql)' },
+                { value: 'wasmer-edge', label: 'Wasmer Edge Relational D1' }
+              ]}
+              onChange={(t) => setTarget(t as 'mysql' | 'sqlite' | 'wasmer-edge')}
+              className="w-full"
+              size="md"
+            />
           </div>
 
           <div>
