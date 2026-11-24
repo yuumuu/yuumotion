@@ -40,7 +40,7 @@ import { WorkspaceMembersModal } from './components/WorkspaceMembersModal';
 import { LandingPage } from './components/LandingPage';
 import { AuthPage } from './components/AuthPage';
 import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
-import { ToastContainer } from './components/ui';
+import { ToastContainer, toast } from './components/ui';
 
 export const App: React.FC = () => {
   const [appRoute, setAppRoute] = useState<'app' | 'landing' | 'auth'>('app');
@@ -385,6 +385,7 @@ export const App: React.FC = () => {
 
     setWorkspaces((prev) => [...prev, newWs]);
     handleSelectWorkspace(newWs.id);
+    toast.success(`Workspace "${name}" berhasil dibuat.`);
   };
 
   const handleUpdateActiveWorkspace = (updated: Workspace) => {
@@ -426,6 +427,7 @@ export const App: React.FC = () => {
       page: newPage,
       senderId: currentUser.id
     });
+    toast.success('Halaman dokumen baru berhasil dibuat.');
   };
 
   const handleUpdatePage = (updated: NotionPage) => {
@@ -475,6 +477,7 @@ export const App: React.FC = () => {
       senderId: currentUser.id,
       updatedAt: Date.now()
     });
+    toast.info('Halaman dokumen telah dihapus.');
   };
 
   const handleAddBoard = (title: string) => {
@@ -495,6 +498,7 @@ export const App: React.FC = () => {
       )
     );
     setActiveTarget({ type: 'board', id: newBoard.id });
+    toast.success(`Board "${title}" berhasil dibuat.`);
   };
 
   const handleUpdateActiveBoard = (updater: (prevBoard: Board) => Board) => {
@@ -536,6 +540,7 @@ export const App: React.FC = () => {
       card: newCard,
       senderId: currentUser.id
     });
+    toast.success(`Kartu "${title}" berhasil ditambahkan.`);
   };
 
   const handleAddCardOnDate = (columnId: string, title: string, dueDate: string) => {
@@ -566,6 +571,7 @@ export const App: React.FC = () => {
       card: newCard,
       senderId: currentUser.id
     });
+    toast.success(`Kartu "${title}" berhasil ditambahkan.`);
   };
 
   const handleUpdateCard = (updated: Card) => {
@@ -599,6 +605,7 @@ export const App: React.FC = () => {
       senderId: currentUser.id,
       updatedAt: Date.now()
     });
+    toast.info('Kartu telah dihapus.');
   };
 
   const handleDropCard = (cardId: string, targetColumnId: string) => {
@@ -629,6 +636,7 @@ export const App: React.FC = () => {
       senderId: currentUser.id,
       updatedAt: updatedCard.updatedAt
     });
+    toast.info('Kartu dipindahkan.');
   };
 
   const handleAddColumn = (title: string, color: string) => {

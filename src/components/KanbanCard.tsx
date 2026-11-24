@@ -41,7 +41,7 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({ card, onClick, onDragSta
       }}
       className={`group relative cursor-pointer select-none overflow-hidden rounded-xl border border-appflowy-border/90 bg-appflowy-surface transition-all duration-150 focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:outline-none ${
         isDragging
-          ? 'rotate-1 scale-[1.01] shadow-xl border-purple-400 opacity-80 dark:border-purple-600'
+          ? 'rotate-[1.5deg] scale-[1.02] shadow-xl border-purple-500 ring-2 ring-purple-400/30 opacity-90 z-30 dark:border-purple-400'
           : 'shadow-2xs hover:border-neutral-300 hover:shadow-xs active:scale-[0.99] dark:border-appflowy-darkBorder/90 dark:bg-appflowy-darkSurface dark:hover:border-neutral-700'
       }`}
     >

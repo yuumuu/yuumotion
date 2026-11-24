@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "db98e1d2-edfe-4123-a3ee-9710a7a99833",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "D:\\Dev\\JavaScript\\yuumotion\\.archify\\architecture-yuumotion-20261124-225800\\candidate.json",
+  "output": "D:\\Dev\\JavaScript\\yuumotion\\.archify\\architecture-yuumotion-20261124-225800\\yuumotion-architecture.html",
+  "specification": {
+    "sha256": "530067f2cd1995b647d20379bbc3cdbf949d85d7f1ce9d2e2416d191f0be68ba",
+    "bytes": 3040
+  },
+  "artifact": {
+    "sha256": "e92b6fe9f3af390a08cf6fb008e760b82775e77093815ba7b0781cf740f42b3e",
+    "bytes": 761948
+  }
+}

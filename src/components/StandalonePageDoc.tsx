@@ -12,6 +12,15 @@ interface StandalonePageDocProps {
 
 const PRESET_ICONS = ['📝', '⚡', '🚀', '🎯', '💡', '📌', '📊', '📚', '🛠️', '✨', '🔥', '🌐'];
 
+const PRESET_COVERS = [
+  { name: 'Lavender Mist', style: 'linear-gradient(135deg, #E0E7FF 0%, #EDE9FE 50%, #F5F3FF 100%)' },
+  { name: 'Warm Sunrise', style: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 50%, #FED7AA 100%)' },
+  { name: 'Ocean Breeze', style: 'linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 50%, #E0E7FF 100%)' },
+  { name: 'Sage Garden', style: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 50%, #E0F2FE 100%)' },
+  { name: 'Rose Petal', style: 'linear-gradient(135deg, #FCE7F3 0%, #FBCFE8 50%, #FDF2F8 100%)' },
+  { name: 'Slate Calm', style: 'linear-gradient(135deg, #F1F5F9 0%, #E2E8F0 50%, #CBD5E1 100%)' }
+];
+
 const DOC_TEMPLATES = [
   {
     name: 'Meeting Notes',
@@ -48,6 +57,7 @@ export const StandalonePageDoc: React.FC<StandalonePageDocProps> = ({
   const [icon, setIcon] = useState(page.icon || '📄');
   const [coverImage, setCoverImage] = useState(page.coverImage || '');
   const [showIconPicker, setShowIconPicker] = useState(false);
+  const [showCoverPicker, setShowCoverPicker] = useState(false);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
   const canEdit = canEditContent(currentUserRole);
@@ -92,19 +102,32 @@ export const StandalonePageDoc: React.FC<StandalonePageDocProps> = ({
   return (
     <div className="flex h-full flex-1 flex-col overflow-y-auto bg-appflowy-bg dark:bg-appflowy-darkBg">
       {coverImage && (
-        <div className="relative h-48 w-full flex-shrink-0 bg-neutral-100 dark:bg-neutral-900">
-          <img src={coverImage} alt="Cover Banner" className="h-full w-full object-cover" />
+        <div className="relative h-48 w-full flex-shrink-0 bg-neutral-100 dark:bg-neutral-900 overflow-hidden">
+          {coverImage.startsWith('linear-gradient') || coverImage.startsWith('#') ? (
+            <div style={{ background: coverImage }} className="h-full w-full" />
+          ) : (
+            <img src={coverImage} alt="Cover Banner" className="h-full w-full object-cover" />
+          )}
           {canEdit && (
-            <button
-              onClick={() => {
-                setCoverImage('');
-                syncChanges({ coverImage: undefined });
-              }}
-              className="absolute right-4 top-4 flex h-7 items-center gap-1 rounded-lg bg-black/60 px-2.5 text-xs font-medium text-white backdrop-blur-xs hover:bg-black/80"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-              <span>Remove Cover</span>
-            </button>
+            <div className="absolute right-4 top-4 flex items-center gap-2">
+              <button
+                onClick={() => setShowCoverPicker(!showCoverPicker)}
+                className="flex h-7 items-center gap-1.5 rounded-lg bg-black/60 px-2.5 text-xs font-medium text-white backdrop-blur-xs hover:bg-black/80 cursor-pointer"
+              >
+                <ImageIcon className="h-3.5 w-3.5" />
+                <span>Ganti Cover</span>
+              </button>
+              <button
+                onClick={() => {
+                  setCoverImage('');
+                  syncChanges({ coverImage: undefined });
+                }}
+                className="flex h-7 items-center gap-1 rounded-lg bg-black/60 px-2.5 text-xs font-medium text-white backdrop-blur-xs hover:bg-black/80 cursor-pointer"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                <span>Hapus</span>
+              </button>
+            </div>
           )}
         </div>
       )}
@@ -145,16 +168,55 @@ export const StandalonePageDoc: React.FC<StandalonePageDocProps> = ({
             )}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="relative flex items-center gap-2">
             {!coverImage && canEdit && (
               <button
-                onClick={() => coverInputRef.current?.click()}
-                className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs text-appflowy-muted hover:bg-neutral-100 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800"
+                onClick={() => setShowCoverPicker(!showCoverPicker)}
+                className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs text-appflowy-muted hover:bg-neutral-100 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 cursor-pointer"
               >
                 <ImageIcon className="h-3.5 w-3.5" />
-                <span>Add Cover</span>
+                <span>Pilih Cover</span>
               </button>
             )}
+
+            {showCoverPicker && canEdit && (
+              <div className="absolute right-0 top-9 z-50 w-72 rounded-xl border border-appflowy-border bg-appflowy-surface p-3 shadow-xl dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface">
+                <div className="mb-2 text-xs font-semibold text-appflowy-text dark:text-appflowy-darkText">
+                  Galeri Cover Pastel
+                </div>
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                  {PRESET_COVERS.map((preset) => (
+                    <button
+                      key={preset.name}
+                      type="button"
+                      onClick={() => {
+                        setCoverImage(preset.style);
+                        syncChanges({ coverImage: preset.style });
+                        setShowCoverPicker(false);
+                      }}
+                      className="group relative h-12 w-full overflow-hidden rounded-lg border border-neutral-200 text-left transition-all hover:scale-102 hover:border-purple-400 dark:border-neutral-700 cursor-pointer"
+                      style={{ background: preset.style }}
+                    >
+                      <span className="absolute bottom-1 left-1.5 rounded bg-black/40 px-1 py-0.2 text-[9px] font-medium text-white backdrop-blur-xs">
+                        {preset.name}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    coverInputRef.current?.click();
+                    setShowCoverPicker(false);
+                  }}
+                  className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-appflowy-border py-1.5 text-xs text-appflowy-muted hover:bg-neutral-50 dark:border-appflowy-darkBorder dark:text-appflowy-darkMuted dark:hover:bg-neutral-800/50 cursor-pointer"
+                >
+                  <ImageIcon className="h-3.5 w-3.5" />
+                  <span>Unggah Gambar Kustom</span>
+                </button>
+              </div>
+            )}
+
             <input
               ref={coverInputRef}
               type="file"

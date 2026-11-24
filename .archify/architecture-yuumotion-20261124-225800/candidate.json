@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Yuumotion UI & State Architecture",
+    "output": ".archify/architecture-yuumotion-20261124-225800/yuumotion-architecture.html",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "User & PWA", "sublabel": "Browser / Standalone", "pos": [40, 260], "size": [120, 60] },
+    { "id": "shell", "type": "cloud", "label": "Shell & UI Kit", "sublabel": "Header, Sidebar, Modals", "pos": [260, 260], "size": [140, 60], "tag": "AppFlowy + Linear" },
+    { "id": "views", "type": "backend", "label": "Multi-Views Engine", "sublabel": "Kanban, Calendar, Gantt, Table", "pos": [490, 150], "size": [160, 60] },
+    { "id": "docs", "type": "backend", "label": "Notion Canvas", "sublabel": "TipTap Editor, Cover Gallery", "pos": [490, 370], "size": [160, 60] },
+    { "id": "store", "type": "database", "label": "Client Store", "sublabel": "State, LocalStorage, RBAC", "pos": [730, 260], "size": [140, 60] },
+    { "id": "sync", "type": "messagebus", "label": "Realtime Sync", "sublabel": "BroadcastChannel, Presence", "pos": [950, 150], "size": [150, 60] },
+    { "id": "cloud", "type": "cloud", "label": "Supabase Cloud", "sublabel": "PostgreSQL & Realtime", "pos": [1180, 150], "size": [140, 60], "tag": "Optional Cloud" },
+    { "id": "bridge", "type": "database", "label": "DB Bridge", "sublabel": "MySQL / SQLite / Wasmer Edge", "pos": [950, 370], "size": [150, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Browser Client Runtime", "wraps": ["shell", "views", "docs", "store", "sync"] },
+    { "kind": "security-group", "label": "External Storage & Sync Targets", "wraps": ["cloud", "bridge"] }
+  ],
+  "connections": [
+    { "id": "user-shell", "from": "user", "to": "shell", "label": "Interactions", "variant": "emphasis" },
+    { "id": "shell-views", "from": "shell", "to": "views", "label": "Board Mode" },
+    { "id": "shell-docs", "from": "shell", "to": "docs", "label": "Doc Mode" },
+    { "id": "views-store", "from": "views", "to": "store", "label": "Mutations" },
+    { "id": "docs-store", "from": "docs", "to": "store", "label": "Save Doc" },
+    { "id": "store-sync", "from": "store", "to": "sync", "label": "Broadcast" },
+    { "id": "sync-cloud", "from": "sync", "to": "cloud", "label": "WebSocket" },
+    { "id": "store-bridge", "from": "store", "to": "bridge", "label": "SQL Export" }
+  ],
+  "cards": [
+    { "dot": "violet", "title": "Design System", "items": ["AppFlowy calm aesthetic + Linear precision borders", "Accessible design tokens, keyboard shortcuts, and toast feedback"] },
+    { "dot": "cyan", "title": "Realtime & Offline-First", "items": ["Local BroadcastChannel for multi-tab synchronization", "Supabase WebSocket for cross-device realtime collaboration"] },
+    { "dot": "emerald", "title": "Persistence & Export", "items": ["Local storage state persistence with zero server lock-in", "Direct SQL schema generator for MySQL, SQLite, and Wasmer Edge"] }
+  ]
+}
