@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Card, Column, PriorityLevel, CardTag, CardAttachment } from '../types/board';
 import { INITIAL_TAGS, TAG_COLORS } from '../lib/constants';
 import { TipTapEditor } from './TipTapEditor';
@@ -49,6 +49,16 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
   const [attachments, setAttachments] = useState<CardAttachment[]>(card.attachments || []);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   const syncChanges = (partial: Partial<Card>) => {
     onUpdate({

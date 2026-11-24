@@ -23,7 +23,8 @@ import {
   MoreHorizontal,
   LogOut,
   User as UserIcon,
-  Home
+  Home,
+  Keyboard
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -53,6 +54,7 @@ interface HeaderProps {
   onLogout: () => void;
   onNavigateToLanding: () => void;
   onOpenAuthModal: () => void;
+  onOpenShortcutsModal: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -81,7 +83,8 @@ export const Header: React.FC<HeaderProps> = ({
   onImport,
   onLogout,
   onNavigateToLanding,
-  onOpenAuthModal
+  onOpenAuthModal,
+  onOpenShortcutsModal
 }) => {
   const [showToolsMenu, setShowToolsMenu] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -151,15 +154,17 @@ export const Header: React.FC<HeaderProps> = ({
         )}
       </div>
 
-      <div className="flex items-center gap-2.5 sm:gap-3 ms-2">
+      <div className="flex items-center gap-2.5 sm:gap-3 ms-2.5">
         <div className="hidden relative xl:block">
           <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-appflowy-muted dark:text-appflowy-darkMuted" />
           <input
+            id="search-input-field"
             type="text"
-            placeholder="Search items..."
+            placeholder="Search items... (/)"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             className="h-8 w-40 rounded-lg border border-appflowy-border bg-appflowy-bg pl-8 pr-2.5 text-xs transition-all focus:w-52 focus:outline-none focus:ring-1 focus:ring-purple-500 dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg dark:focus:ring-purple-400"
+            title="Search cards and items (Press / to focus)"
           />
         </div>
 
@@ -316,6 +321,14 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           )}
         </div>
+
+        <button
+          onClick={onOpenShortcutsModal}
+          title="Pintasan Keyboard (Tekan ?)"
+          className="flex justify-center items-center w-8 h-8 rounded-lg transition-colors cursor-pointer text-appflowy-muted hover:bg-neutral-100 hover:text-appflowy-text dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 dark:hover:text-appflowy-darkText"
+        >
+          <Keyboard className="w-4 h-4" />
+        </button>
 
         <button
           onClick={onToggleTheme}

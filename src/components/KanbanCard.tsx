@@ -23,13 +23,22 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({ card, onClick, onDragSta
   return (
     <div
       draggable
+      role="button"
+      tabIndex={0}
+      aria-label={`Kartu: ${card.title}. Prioritas: ${card.priority}.`}
       onDragStart={(e) => {
         setIsDragging(true);
         onDragStart(e);
       }}
       onDragEnd={() => setIsDragging(false)}
       onClick={onClick}
-      className={`group relative cursor-pointer select-none overflow-hidden rounded-xl border border-appflowy-border bg-appflowy-surface transition-all duration-150 ${
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      className={`group relative cursor-pointer select-none overflow-hidden rounded-xl border border-appflowy-border bg-appflowy-surface transition-all duration-150 focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:outline-none ${
         isDragging
           ? 'rotate-1 scale-[1.01] shadow-xl border-purple-400 opacity-80 dark:border-purple-600'
           : 'shadow-2xs hover:border-neutral-300 hover:shadow-xs dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface dark:hover:border-neutral-700'

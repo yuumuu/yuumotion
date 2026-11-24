@@ -39,9 +39,11 @@ import { AuthModal } from './components/AuthModal';
 import { WorkspaceMembersModal } from './components/WorkspaceMembersModal';
 import { LandingPage } from './components/LandingPage';
 import { AuthPage } from './components/AuthPage';
+import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
 
 export const App: React.FC = () => {
   const [appRoute, setAppRoute] = useState<'app' | 'landing' | 'auth'>('app');
+  const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<AuthUser>(() => getStoredAuthUser());
   const [workspaces, setWorkspaces] = useState<Workspace[]>(() => getStoredWorkspaces(currentUser));
   const [activeWorkspaceId, setActiveWorkspaceIdState] = useState<string>(() =>
@@ -104,6 +106,77 @@ export const App: React.FC = () => {
   useEffect(() => {
     saveStoredWorkspaces(workspaces);
   }, [workspaces]);
+
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      const activeEl = document.activeElement;
+      const isInputActive =
+        activeEl instanceof HTMLInputElement ||
+        activeEl instanceof HTMLTextAreaElement ||
+        activeEl?.getAttribute('contenteditable') === 'true';
+
+      if (e.key === 'Escape') {
+        if (isShortcutsModalOpen) {
+          setIsShortcutsModalOpen(false);
+          return;
+        }
+        if (selectedCardId) {
+          setSelectedCardId(null);
+          return;
+        }
+        if (isSyncModalOpen) {
+          setIsSyncModalOpen(false);
+          return;
+        }
+        if (isDbModalOpen) {
+          setIsDbModalOpen(false);
+          return;
+        }
+        if (isAuthModalOpen) {
+          setIsAuthModalOpen(false);
+          return;
+        }
+        if (isMembersModalOpen) {
+          setIsMembersModalOpen(false);
+          return;
+        }
+      }
+
+      if (isInputActive) return;
+
+      if (e.key === '/') {
+        e.preventDefault();
+        document.getElementById('search-input-field')?.focus();
+        return;
+      }
+
+      if (e.key === '?' || (e.key === '/' && e.shiftKey)) {
+        e.preventDefault();
+        setIsShortcutsModalOpen((prev) => !prev);
+        return;
+      }
+
+      if (e.key === 'b' || e.key === 'B') {
+        setActiveView('board');
+      } else if (e.key === 'c' || e.key === 'C') {
+        setActiveView('calendar');
+      } else if (e.key === 't' || e.key === 'T') {
+        setActiveView('timeline');
+      } else if (e.key === 's' || e.key === 'S') {
+        setActiveView('table');
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [
+    isShortcutsModalOpen,
+    selectedCardId,
+    isSyncModalOpen,
+    isDbModalOpen,
+    isAuthModalOpen,
+    isMembersModalOpen
+  ]);
 
   const currentUserPresence: UserPresence = useMemo(() => ({
     id: currentUser.id,
@@ -733,6 +806,7 @@ export const App: React.FC = () => {
           onLogout={handleLogout}
           onNavigateToLanding={() => setAppRoute('landing')}
           onOpenAuthModal={() => setIsAuthModalOpen(true)}
+          onOpenShortcutsModal={() => setIsShortcutsModalOpen(true)}
         />
 
         <main className="flex-1 overflow-hidden">
@@ -838,6 +912,11 @@ export const App: React.FC = () => {
           onClose={() => setIsMembersModalOpen(false)}
         />
       )}
+
+      <KeyboardShortcutsModal
+        isOpen={isShortcutsModalOpen}
+        onClose={() => setIsShortcutsModalOpen(false)}
+      />
     </div>
   );
 };
