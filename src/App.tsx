@@ -1,48 +1,116 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Board, Card, CloudSyncConfig, Column, DatabaseBridgeConfig, SyncConnectionStatus, UserPresence, WorkspaceView } from './types/board';
-import { INITIAL_BOARD, generateLocalUser } from './lib/constants';
+import {
+  AuthUser,
+  Board,
+  Card,
+  CloudSyncConfig,
+  Column,
+  DatabaseBridgeConfig,
+  NotionPage,
+  SyncConnectionStatus,
+  UserPresence,
+  UserRole,
+  Workspace,
+  WorkspaceView
+} from './types/board';
+import { INITIAL_BOARD } from './lib/constants';
+import {
+  getStoredAuthUser,
+  getStoredWorkspaces,
+  saveStoredWorkspaces,
+  getActiveWorkspaceId,
+  setActiveWorkspaceId,
+  canEditContent
+} from './lib/auth';
 import { createSyncManager, getStoredCloudConfig } from './lib/sync';
 import { getStoredDbConfig, saveStoredDbConfig } from './lib/dbBridge';
 import { Header } from './components/Header';
+import { Sidebar } from './components/Sidebar';
 import { KanbanBoard } from './components/KanbanBoard';
 import { CalendarView } from './components/CalendarView';
 import { TimelineGanttView } from './components/TimelineGanttView';
 import { TableDatabaseView } from './components/TableDatabaseView';
+import { StandalonePageDoc } from './components/StandalonePageDoc';
 import { CardDetailModal } from './components/CardDetailModal';
 import { CloudSyncModal } from './components/CloudSyncModal';
 import { DatabaseBridgeModal } from './components/DatabaseBridgeModal';
+import { AuthModal } from './components/AuthModal';
+import { WorkspaceMembersModal } from './components/WorkspaceMembersModal';
 
 export const App: React.FC = () => {
+  const [currentUser, setCurrentUser] = useState<AuthUser>(() => getStoredAuthUser());
+  const [workspaces, setWorkspaces] = useState<Workspace[]>(() => getStoredWorkspaces(currentUser));
+  const [activeWorkspaceId, setActiveWorkspaceIdState] = useState<string>(() =>
+    getActiveWorkspaceId(workspaces)
+  );
+
+  const activeWorkspace = useMemo(() => {
+    return workspaces.find((w) => w.id === activeWorkspaceId) || workspaces[0];
+  }, [workspaces, activeWorkspaceId]);
+
+  const currentUserRole: UserRole = useMemo(() => {
+    if (!activeWorkspace) return 'owner';
+    const member = activeWorkspace.members.find((m) => m.id === currentUser.id);
+    return member?.role || activeWorkspace.currentRole || 'member';
+  }, [activeWorkspace, currentUser]);
+
+  const canEdit = canEditContent(currentUserRole);
+
+  const [activeTarget, setActiveTarget] = useState<{ type: 'board' | 'page'; id: string }>(() => {
+    if (activeWorkspace?.boards && activeWorkspace.boards.length > 0) {
+      return { type: 'board', id: activeWorkspace.boards[0].id };
+    }
+    return { type: 'board', id: 'yuumotion-primary-board' };
+  });
+
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [roomId, setRoomId] = useState('general');
   const [activeView, setActiveView] = useState<WorkspaceView>('board');
   const [isDark, setIsDark] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
   const [isDbModalOpen, setIsDbModalOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
+
   const [syncStatus, setSyncStatus] = useState<SyncConnectionStatus>('local');
   const [cloudConfig, setCloudConfig] = useState<CloudSyncConfig>(() => getStoredCloudConfig());
   const [dbConfig, setDbConfig] = useState<DatabaseBridgeConfig>(() => getStoredDbConfig());
 
-  const currentUser = useMemo(() => generateLocalUser(), []);
   const [presenceMap, setPresenceMap] = useState<Record<string, UserPresence>>({});
-
-  const [board, setBoard] = useState<Board>(() => {
-    const saved = localStorage.getItem(`yuumotion_board_${roomId}`);
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        // Fallback to initial board if persisted state cannot be decoded
-      }
-    }
-    return INITIAL_BOARD;
-  });
-
   const syncManagerRef = useRef<ReturnType<typeof createSyncManager> | null>(null);
 
+  const activeBoard = useMemo(() => {
+    if (activeTarget.type === 'board') {
+      const b = activeWorkspace.boards.find((x) => x.id === activeTarget.id);
+      return b || activeWorkspace.boards[0] || INITIAL_BOARD;
+    }
+    return activeWorkspace.boards[0] || INITIAL_BOARD;
+  }, [activeWorkspace, activeTarget]);
+
+  const activePage = useMemo(() => {
+    if (activeTarget.type === 'page') {
+      return activeWorkspace.pages.find((p) => p.id === activeTarget.id) || activeWorkspace.pages[0];
+    }
+    return undefined;
+  }, [activeWorkspace, activeTarget]);
+
   useEffect(() => {
-    const manager = createSyncManager(roomId, currentUser);
+    saveStoredWorkspaces(workspaces);
+  }, [workspaces]);
+
+  const currentUserPresence: UserPresence = useMemo(() => ({
+    id: currentUser.id,
+    name: currentUser.name,
+    avatar: currentUser.avatar,
+    color: currentUser.color,
+    lastActive: Date.now()
+  }), [currentUser]);
+
+  useEffect(() => {
+    const manager = createSyncManager(roomId, currentUserPresence);
     syncManagerRef.current = manager;
 
     const unsubStatus = manager.onStatusChange((status) => {
@@ -60,84 +128,105 @@ export const App: React.FC = () => {
         return;
       }
 
-      setBoard((prev) => {
-        if (event.type === 'CARD_UPSERT') {
-          const existing = prev.cards[event.card.id];
-          if (existing && existing.updatedAt > event.card.updatedAt) {
-            return prev;
-          }
-          return {
-            ...prev,
-            updatedAt: Date.now(),
-            cards: {
-              ...prev.cards,
-              [event.card.id]: event.card
+      if (event.type === 'PAGE_UPSERT') {
+        setWorkspaces((prevWs) =>
+          prevWs.map((ws) =>
+            ws.id === activeWorkspaceId
+              ? {
+                  ...ws,
+                  pages: ws.pages.some((p) => p.id === event.page.id)
+                    ? ws.pages.map((p) => (p.id === event.page.id ? event.page : p))
+                    : [...ws.pages, event.page]
+                }
+              : ws
+          )
+        );
+        return;
+      }
+
+      if (event.type === 'PAGE_DELETE') {
+        setWorkspaces((prevWs) =>
+          prevWs.map((ws) =>
+            ws.id === activeWorkspaceId
+              ? {
+                  ...ws,
+                  pages: ws.pages.filter((p) => p.id !== event.pageId)
+                }
+              : ws
+          )
+        );
+        return;
+      }
+
+      setWorkspaces((prevWs) =>
+        prevWs.map((ws) => {
+          if (ws.id !== activeWorkspaceId) return ws;
+
+          const updatedBoards = ws.boards.map((b) => {
+            if (b.id !== activeBoard.id) return b;
+
+            if (event.type === 'CARD_UPSERT') {
+              const existing = b.cards[event.card.id];
+              if (existing && existing.updatedAt > event.card.updatedAt) return b;
+              return {
+                ...b,
+                updatedAt: Date.now(),
+                cards: { ...b.cards, [event.card.id]: event.card }
+              };
             }
-          };
-        }
 
-        if (event.type === 'CARD_DELETE') {
-          const nextCards = { ...prev.cards };
-          delete nextCards[event.cardId];
-          return {
-            ...prev,
-            updatedAt: Date.now(),
-            cards: nextCards
-          };
-        }
-
-        if (event.type === 'CARD_MOVE') {
-          const card = prev.cards[event.cardId];
-          if (!card) return prev;
-          return {
-            ...prev,
-            updatedAt: Date.now(),
-            cards: {
-              ...prev.cards,
-              [event.cardId]: {
-                ...card,
-                columnId: event.targetColumnId,
-                order: event.targetOrder,
-                updatedAt: event.updatedAt
-              }
+            if (event.type === 'CARD_DELETE') {
+              const nextCards = { ...b.cards };
+              delete nextCards[event.cardId];
+              return { ...b, updatedAt: Date.now(), cards: nextCards };
             }
-          };
-        }
 
-        if (event.type === 'COLUMN_UPSERT') {
-          const existingIdx = prev.columns.findIndex((c) => c.id === event.column.id);
-          const nextCols = existingIdx >= 0
-            ? prev.columns.map((c) => (c.id === event.column.id ? event.column : c))
-            : [...prev.columns, event.column];
-          return {
-            ...prev,
-            updatedAt: Date.now(),
-            columns: nextCols
-          };
-        }
-
-        if (event.type === 'COLUMN_DELETE') {
-          const nextCols = prev.columns.filter((c) => c.id !== event.columnId);
-          const nextCards: Record<string, Card> = {};
-          Object.values(prev.cards).forEach((c) => {
-            if (c.columnId !== event.columnId) {
-              nextCards[c.id] = c;
+            if (event.type === 'CARD_MOVE') {
+              const card = b.cards[event.cardId];
+              if (!card) return b;
+              return {
+                ...b,
+                updatedAt: Date.now(),
+                cards: {
+                  ...b.cards,
+                  [event.cardId]: {
+                    ...card,
+                    columnId: event.targetColumnId,
+                    order: event.targetOrder,
+                    updatedAt: event.updatedAt
+                  }
+                }
+              };
             }
+
+            if (event.type === 'COLUMN_UPSERT') {
+              const existingIdx = b.columns.findIndex((c) => c.id === event.column.id);
+              const nextCols =
+                existingIdx >= 0
+                  ? b.columns.map((c) => (c.id === event.column.id ? event.column : c))
+                  : [...b.columns, event.column];
+              return { ...b, updatedAt: Date.now(), columns: nextCols };
+            }
+
+            if (event.type === 'COLUMN_DELETE') {
+              const nextCols = b.columns.filter((c) => c.id !== event.columnId);
+              const nextCards: Record<string, Card> = {};
+              Object.values(b.cards).forEach((c) => {
+                if (c.columnId !== event.columnId) nextCards[c.id] = c;
+              });
+              return { ...b, updatedAt: Date.now(), columns: nextCols, cards: nextCards };
+            }
+
+            if (event.type === 'BOARD_RESET') {
+              return event.board;
+            }
+
+            return b;
           });
-          return {
-            ...prev,
-            updatedAt: Date.now(),
-            columns: nextCols,
-            cards: nextCards
-          };
-        }
 
-        if (event.type === 'BOARD_RESET') {
-          return event.board;
-        }
-
-        return prev;
-      });
+          return { ...ws, boards: updatedBoards };
+        })
+      );
     });
 
     return () => {
@@ -145,11 +234,7 @@ export const App: React.FC = () => {
       unsubscribe();
       manager.destroy();
     };
-  }, [roomId, currentUser]);
-
-  useEffect(() => {
-    localStorage.setItem(`yuumotion_board_${roomId}`, JSON.stringify(board));
-  }, [board, roomId]);
+  }, [roomId, currentUserPresence, activeWorkspaceId, activeBoard.id, currentUser.id]);
 
   useEffect(() => {
     const pruneInterval = setInterval(() => {
@@ -180,17 +265,175 @@ export const App: React.FC = () => {
     });
   };
 
-  const handleUpdateCloudConfig = (nextConfig: CloudSyncConfig) => {
-    setCloudConfig(nextConfig);
-    syncManagerRef.current?.updateCloudConfig(nextConfig);
+  const handleSelectWorkspace = (newWsId: string) => {
+    setActiveWorkspaceIdState(newWsId);
+    setActiveWorkspaceId(newWsId);
+    const targetWs = workspaces.find((w) => w.id === newWsId);
+    if (targetWs && targetWs.boards.length > 0) {
+      setActiveTarget({ type: 'board', id: targetWs.boards[0].id });
+    }
   };
 
-  const handleUpdateDbConfig = (nextConfig: DatabaseBridgeConfig) => {
-    setDbConfig(nextConfig);
-    saveStoredDbConfig(nextConfig);
+  const handleCreateWorkspace = (name: string, icon: string) => {
+    const newWs: Workspace = {
+      id: `ws-${Date.now()}`,
+      name,
+      icon,
+      ownerId: currentUser.id,
+      currentRole: 'owner',
+      members: [
+        {
+          id: currentUser.id,
+          name: currentUser.name,
+          email: currentUser.email,
+          avatar: currentUser.avatar,
+          color: currentUser.color,
+          role: 'owner',
+          joinedAt: Date.now()
+        }
+      ],
+      boards: [
+        {
+          ...INITIAL_BOARD,
+          id: `board-${Date.now()}`,
+          title: `${name} Roadmap`,
+          updatedAt: Date.now()
+        }
+      ],
+      pages: [],
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    };
+
+    setWorkspaces((prev) => [...prev, newWs]);
+    handleSelectWorkspace(newWs.id);
+  };
+
+  const handleUpdateActiveWorkspace = (updated: Workspace) => {
+    setWorkspaces((prev) => prev.map((w) => (w.id === updated.id ? updated : w)));
+  };
+
+  const handleDeleteWorkspace = (wsId: string) => {
+    if (workspaces.length <= 1) {
+      alert('Cannot delete the only remaining workspace.');
+      return;
+    }
+    const nextWs = workspaces.filter((w) => w.id !== wsId);
+    setWorkspaces(nextWs);
+    handleSelectWorkspace(nextWs[0].id);
+  };
+
+  const handleAddPage = () => {
+    if (!canEdit) return;
+
+    const newPage: NotionPage = {
+      id: `page-${Date.now()}`,
+      workspaceId: activeWorkspaceId,
+      title: 'Untitled Document',
+      icon: '📄',
+      contentHtml: '<p></p>',
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    };
+
+    setWorkspaces((prev) =>
+      prev.map((ws) =>
+        ws.id === activeWorkspaceId ? { ...ws, pages: [...ws.pages, newPage] } : ws
+      )
+    );
+    setActiveTarget({ type: 'page', id: newPage.id });
+
+    syncManagerRef.current?.broadcast({
+      type: 'PAGE_UPSERT',
+      page: newPage,
+      senderId: currentUser.id
+    });
+  };
+
+  const handleUpdatePage = (updated: NotionPage) => {
+    if (!canEdit) return;
+
+    setWorkspaces((prev) =>
+      prev.map((ws) =>
+        ws.id === activeWorkspaceId
+          ? {
+              ...ws,
+              pages: ws.pages.map((p) => (p.id === updated.id ? updated : p))
+            }
+          : ws
+      )
+    );
+
+    syncManagerRef.current?.broadcast({
+      type: 'PAGE_UPSERT',
+      page: updated,
+      senderId: currentUser.id
+    });
+  };
+
+  const handleDeletePage = (pageId: string) => {
+    if (!canEdit) return;
+
+    setWorkspaces((prev) =>
+      prev.map((ws) =>
+        ws.id === activeWorkspaceId
+          ? { ...ws, pages: ws.pages.filter((p) => p.id !== pageId) }
+          : ws
+      )
+    );
+
+    if (activeTarget.type === 'page' && activeTarget.id === pageId) {
+      const remainingPages = activeWorkspace.pages.filter((p) => p.id !== pageId);
+      if (remainingPages.length > 0) {
+        setActiveTarget({ type: 'page', id: remainingPages[0].id });
+      } else if (activeWorkspace.boards.length > 0) {
+        setActiveTarget({ type: 'board', id: activeWorkspace.boards[0].id });
+      }
+    }
+
+    syncManagerRef.current?.broadcast({
+      type: 'PAGE_DELETE',
+      pageId,
+      senderId: currentUser.id,
+      updatedAt: Date.now()
+    });
+  };
+
+  const handleAddBoard = (title: string) => {
+    if (!canEdit) return;
+
+    const newBoard: Board = {
+      id: `board-${Date.now()}`,
+      workspaceId: activeWorkspaceId,
+      title,
+      columns: INITIAL_BOARD.columns.map((c) => ({ ...c, updatedAt: Date.now() })),
+      cards: {},
+      updatedAt: Date.now()
+    };
+
+    setWorkspaces((prev) =>
+      prev.map((ws) =>
+        ws.id === activeWorkspaceId ? { ...ws, boards: [...ws.boards, newBoard] } : ws
+      )
+    );
+    setActiveTarget({ type: 'board', id: newBoard.id });
+  };
+
+  const handleUpdateActiveBoard = (updater: (prevBoard: Board) => Board) => {
+    if (!canEdit) return;
+
+    setWorkspaces((prevWs) =>
+      prevWs.map((ws) => {
+        if (ws.id !== activeWorkspaceId) return ws;
+        const nextBoards = ws.boards.map((b) => (b.id === activeBoard.id ? updater(b) : b));
+        return { ...ws, boards: nextBoards };
+      })
+    );
   };
 
   const handleAddCard = (columnId: string, title: string) => {
+    if (!canEdit) return;
+
     const newCard: Card = {
       id: `card-${Date.now()}`,
       columnId,
@@ -200,11 +443,11 @@ export const App: React.FC = () => {
       priority: 'low',
       checklist: [],
       attachments: [],
-      order: Object.values(board.cards).filter((c) => c.columnId === columnId).length,
+      order: Object.values(activeBoard.cards).filter((c) => c.columnId === columnId).length,
       updatedAt: Date.now()
     };
 
-    setBoard((prev) => ({
+    handleUpdateActiveBoard((prev) => ({
       ...prev,
       updatedAt: Date.now(),
       cards: { ...prev.cards, [newCard.id]: newCard }
@@ -218,6 +461,8 @@ export const App: React.FC = () => {
   };
 
   const handleAddCardOnDate = (columnId: string, title: string, dueDate: string) => {
+    if (!canEdit) return;
+
     const newCard: Card = {
       id: `card-${Date.now()}`,
       columnId,
@@ -228,11 +473,11 @@ export const App: React.FC = () => {
       dueDate,
       checklist: [],
       attachments: [],
-      order: Object.values(board.cards).filter((c) => c.columnId === columnId).length,
+      order: Object.values(activeBoard.cards).filter((c) => c.columnId === columnId).length,
       updatedAt: Date.now()
     };
 
-    setBoard((prev) => ({
+    handleUpdateActiveBoard((prev) => ({
       ...prev,
       updatedAt: Date.now(),
       cards: { ...prev.cards, [newCard.id]: newCard }
@@ -246,7 +491,9 @@ export const App: React.FC = () => {
   };
 
   const handleUpdateCard = (updated: Card) => {
-    setBoard((prev) => ({
+    if (!canEdit) return;
+
+    handleUpdateActiveBoard((prev) => ({
       ...prev,
       updatedAt: Date.now(),
       cards: { ...prev.cards, [updated.id]: updated }
@@ -260,7 +507,9 @@ export const App: React.FC = () => {
   };
 
   const handleDeleteCard = (cardId: string) => {
-    setBoard((prev) => {
+    if (!canEdit) return;
+
+    handleUpdateActiveBoard((prev) => {
       const next = { ...prev.cards };
       delete next[cardId];
       return { ...prev, updatedAt: Date.now(), cards: next };
@@ -275,10 +524,12 @@ export const App: React.FC = () => {
   };
 
   const handleDropCard = (cardId: string, targetColumnId: string) => {
-    const card = board.cards[cardId];
+    if (!canEdit) return;
+
+    const card = activeBoard.cards[cardId];
     if (!card || card.columnId === targetColumnId) return;
 
-    const targetOrder = Object.values(board.cards).filter((c) => c.columnId === targetColumnId).length;
+    const targetOrder = Object.values(activeBoard.cards).filter((c) => c.columnId === targetColumnId).length;
     const updatedCard: Card = {
       ...card,
       columnId: targetColumnId,
@@ -286,7 +537,7 @@ export const App: React.FC = () => {
       updatedAt: Date.now()
     };
 
-    setBoard((prev) => ({
+    handleUpdateActiveBoard((prev) => ({
       ...prev,
       updatedAt: Date.now(),
       cards: { ...prev.cards, [cardId]: updatedCard }
@@ -303,15 +554,17 @@ export const App: React.FC = () => {
   };
 
   const handleAddColumn = (title: string, color: string) => {
+    if (!canEdit) return;
+
     const newCol: Column = {
       id: `col-${Date.now()}`,
       title,
       color,
-      order: board.columns.length,
+      order: activeBoard.columns.length,
       updatedAt: Date.now()
     };
 
-    setBoard((prev) => ({
+    handleUpdateActiveBoard((prev) => ({
       ...prev,
       updatedAt: Date.now(),
       columns: [...prev.columns, newCol]
@@ -325,7 +578,9 @@ export const App: React.FC = () => {
   };
 
   const handleDeleteColumn = (columnId: string) => {
-    setBoard((prev) => {
+    if (!canEdit) return;
+
+    handleUpdateActiveBoard((prev) => {
       const nextCols = prev.columns.filter((c) => c.id !== columnId);
       const nextCards: Record<string, Card> = {};
       Object.values(prev.cards).forEach((c) => {
@@ -343,16 +598,22 @@ export const App: React.FC = () => {
   };
 
   const handleExport = () => {
-    const blob = new Blob([JSON.stringify(board, null, 2)], { type: 'application/json' });
+    const exportData = {
+      workspace: activeWorkspace,
+      exportedAt: Date.now()
+    };
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `yuumotion-${board.title.toLowerCase().replace(/\s+/g, '-')}-${roomId}.json`;
+    a.download = `yuumotion-workspace-${activeWorkspace.name.toLowerCase().replace(/\s+/g, '-')}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!canEdit) return;
+
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -360,14 +621,10 @@ export const App: React.FC = () => {
     reader.onload = (event) => {
       try {
         const parsed = JSON.parse(event.target?.result as string);
-        if (parsed && parsed.columns && parsed.cards) {
-          const nextBoard = { ...parsed, updatedAt: Date.now() };
-          setBoard(nextBoard);
-          syncManagerRef.current?.broadcast({
-            type: 'BOARD_RESET',
-            board: nextBoard,
-            senderId: currentUser.id
-          });
+        if (parsed?.workspace?.boards) {
+          handleUpdateActiveWorkspace({ ...parsed.workspace, updatedAt: Date.now() });
+        } else if (parsed?.columns && parsed?.cards) {
+          handleUpdateActiveBoard(() => ({ ...parsed, updatedAt: Date.now() }));
         }
       } catch {
         alert('Invalid JSON file format.');
@@ -379,77 +636,116 @@ export const App: React.FC = () => {
 
   const activeUsersList = useMemo(() => {
     const others = Object.values(presenceMap).filter((u) => u.id !== currentUser.id);
-    return [currentUser, ...others];
-  }, [presenceMap, currentUser]);
+    return [currentUserPresence, ...others];
+  }, [presenceMap, currentUserPresence, currentUser.id]);
 
-  const selectedCard = selectedCardId ? board.cards[selectedCardId] : null;
+  const selectedCard = selectedCardId ? activeBoard.cards[selectedCardId] : null;
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-appflowy-bg font-sans text-appflowy-text dark:bg-appflowy-darkBg dark:text-appflowy-darkText">
-      <Header
-        board={board}
-        currentRoom={roomId}
-        onRoomChange={setRoomId}
-        onlineUsers={activeUsersList}
+    <div className="flex h-screen overflow-hidden bg-appflowy-bg font-sans text-appflowy-text dark:bg-appflowy-darkBg dark:text-appflowy-darkText">
+      <Sidebar
+        isOpen={isSidebarOpen}
+        onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+        workspaces={workspaces}
+        activeWorkspaceId={activeWorkspaceId}
+        onSelectWorkspace={handleSelectWorkspace}
+        onCreateWorkspace={handleCreateWorkspace}
+        activeTarget={activeTarget}
+        onSelectTarget={setActiveTarget}
+        pages={activeWorkspace.pages}
+        boards={activeWorkspace.boards}
+        onAddPage={handleAddPage}
+        onDeletePage={handleDeletePage}
+        onAddBoard={handleAddBoard}
         currentUser={currentUser}
-        syncStatus={syncStatus}
-        activeView={activeView}
-        onViewChange={setActiveView}
-        onOpenSyncSettings={() => setIsSyncModalOpen(true)}
-        onOpenDbBridge={() => setIsDbModalOpen(true)}
-        isDark={isDark}
-        onToggleTheme={toggleTheme}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        onExport={handleExport}
-        onImport={handleImport}
+        currentUserRole={currentUserRole}
+        onOpenAuthModal={() => setIsAuthModalOpen(true)}
+        onOpenMembersModal={() => setIsMembersModalOpen(true)}
       />
 
-      <main className="flex-1 overflow-hidden">
-        {activeView === 'board' && (
-          <KanbanBoard
-            board={board}
-            searchQuery={searchQuery}
-            onCardClick={(card) => setSelectedCardId(card.id)}
-            onAddCard={handleAddCard}
-            onAddColumn={handleAddColumn}
-            onDeleteColumn={handleDeleteColumn}
-            onDropCard={handleDropCard}
-          />
-        )}
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <Header
+          board={activeBoard}
+          activePage={activePage}
+          currentMode={activeTarget.type}
+          workspaceName={activeWorkspace.name}
+          currentUserRole={currentUserRole}
+          isSidebarOpen={isSidebarOpen}
+          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+          currentRoom={roomId}
+          onRoomChange={setRoomId}
+          onlineUsers={activeUsersList}
+          currentUser={currentUserPresence}
+          syncStatus={syncStatus}
+          activeView={activeView}
+          onViewChange={setActiveView}
+          onOpenSyncSettings={() => setIsSyncModalOpen(true)}
+          onOpenDbBridge={() => setIsDbModalOpen(true)}
+          onOpenMembersModal={() => setIsMembersModalOpen(true)}
+          isDark={isDark}
+          onToggleTheme={toggleTheme}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onExport={handleExport}
+          onImport={handleImport}
+        />
 
-        {activeView === 'calendar' && (
-          <CalendarView
-            board={board}
-            searchQuery={searchQuery}
-            onCardClick={(card) => setSelectedCardId(card.id)}
-            onAddCardOnDate={handleAddCardOnDate}
-          />
-        )}
+        <main className="flex-1 overflow-hidden">
+          {activeTarget.type === 'page' && activePage ? (
+            <StandalonePageDoc
+              page={activePage}
+              currentUserRole={currentUserRole}
+              onUpdatePage={handleUpdatePage}
+            />
+          ) : (
+            <>
+              {activeView === 'board' && (
+                <KanbanBoard
+                  board={activeBoard}
+                  searchQuery={searchQuery}
+                  onCardClick={(card) => setSelectedCardId(card.id)}
+                  onAddCard={handleAddCard}
+                  onAddColumn={handleAddColumn}
+                  onDeleteColumn={handleDeleteColumn}
+                  onDropCard={handleDropCard}
+                />
+              )}
 
-        {activeView === 'timeline' && (
-          <TimelineGanttView
-            board={board}
-            searchQuery={searchQuery}
-            onCardClick={(card) => setSelectedCardId(card.id)}
-          />
-        )}
+              {activeView === 'calendar' && (
+                <CalendarView
+                  board={activeBoard}
+                  searchQuery={searchQuery}
+                  onCardClick={(card) => setSelectedCardId(card.id)}
+                  onAddCardOnDate={handleAddCardOnDate}
+                />
+              )}
 
-        {activeView === 'table' && (
-          <TableDatabaseView
-            board={board}
-            searchQuery={searchQuery}
-            onCardClick={(card) => setSelectedCardId(card.id)}
-            onUpdateCard={handleUpdateCard}
-            onAddCard={handleAddCard}
-          />
-        )}
-      </main>
+              {activeView === 'timeline' && (
+                <TimelineGanttView
+                  board={activeBoard}
+                  searchQuery={searchQuery}
+                  onCardClick={(card) => setSelectedCardId(card.id)}
+                />
+              )}
+
+              {activeView === 'table' && (
+                <TableDatabaseView
+                  board={activeBoard}
+                  searchQuery={searchQuery}
+                  onCardClick={(card) => setSelectedCardId(card.id)}
+                  onUpdateCard={handleUpdateCard}
+                  onAddCard={handleAddCard}
+                />
+              )}
+            </>
+          )}
+        </main>
+      </div>
 
       {selectedCard && (
         <CardDetailModal
           card={selectedCard}
-          columns={board.columns}
+          columns={activeBoard.columns}
           onClose={() => setSelectedCardId(null)}
           onUpdate={handleUpdateCard}
           onDelete={handleDeleteCard}
@@ -460,17 +756,41 @@ export const App: React.FC = () => {
         <CloudSyncModal
           config={cloudConfig}
           status={syncStatus}
-          onSave={handleUpdateCloudConfig}
+          onSave={(next) => {
+            setCloudConfig(next);
+            syncManagerRef.current?.updateCloudConfig(next);
+          }}
           onClose={() => setIsSyncModalOpen(false)}
         />
       )}
 
       {isDbModalOpen && (
         <DatabaseBridgeModal
-          board={board}
+          board={activeBoard}
           config={dbConfig}
-          onSaveConfig={handleUpdateDbConfig}
+          onSaveConfig={(next) => {
+            setDbConfig(next);
+            saveStoredDbConfig(next);
+          }}
           onClose={() => setIsDbModalOpen(false)}
+        />
+      )}
+
+      {isAuthModalOpen && (
+        <AuthModal
+          currentUser={currentUser}
+          onUserChange={setCurrentUser}
+          onClose={() => setIsAuthModalOpen(false)}
+        />
+      )}
+
+      {isMembersModalOpen && (
+        <WorkspaceMembersModal
+          workspace={activeWorkspace}
+          currentUser={currentUser}
+          onUpdateWorkspace={handleUpdateActiveWorkspace}
+          onDeleteWorkspace={handleDeleteWorkspace}
+          onClose={() => setIsMembersModalOpen(false)}
         />
       )}
     </div>

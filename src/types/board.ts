@@ -2,6 +2,8 @@ export type PriorityLevel = 'low' | 'medium' | 'high' | 'urgent';
 
 export type WorkspaceView = 'board' | 'calendar' | 'timeline' | 'table';
 
+export type UserRole = 'owner' | 'admin' | 'member' | 'viewer';
+
 export interface CardTag {
   id: string;
   name: string;
@@ -50,10 +52,56 @@ export interface Column {
 
 export interface Board {
   id: string;
+  workspaceId?: string;
   title: string;
   columns: Column[];
   cards: Record<string, Card>;
   updatedAt: number;
+}
+
+export interface NotionPage {
+  id: string;
+  workspaceId: string;
+  title: string;
+  icon?: string;
+  coverImage?: string;
+  contentHtml: string;
+  contentJson?: Record<string, unknown>;
+  parentId?: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface WorkspaceMember {
+  id: string;
+  name: string;
+  email?: string;
+  avatar: string;
+  color: string;
+  role: UserRole;
+  joinedAt: number;
+}
+
+export interface Workspace {
+  id: string;
+  name: string;
+  icon: string;
+  ownerId: string;
+  currentRole: UserRole;
+  members: WorkspaceMember[];
+  boards: Board[];
+  pages: NotionPage[];
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface AuthUser {
+  id: string;
+  name: string;
+  email?: string;
+  avatar: string;
+  color: string;
+  isCloudAuth: boolean;
 }
 
 export interface UserPresence {
@@ -87,4 +135,6 @@ export type BoardSyncEvent =
   | { type: 'COLUMN_UPSERT'; column: Column; senderId: string }
   | { type: 'COLUMN_DELETE'; columnId: string; senderId: string; updatedAt: number }
   | { type: 'BOARD_RESET'; board: Board; senderId: string }
+  | { type: 'PAGE_UPSERT'; page: NotionPage; senderId: string }
+  | { type: 'PAGE_DELETE'; pageId: string; senderId: string; updatedAt: number }
   | { type: 'PRESENCE_PING'; user: UserPresence; senderId: string };

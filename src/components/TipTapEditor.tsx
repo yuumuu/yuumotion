@@ -27,6 +27,7 @@ import {
 interface TipTapEditorProps {
   content: string;
   onChange: (html: string, json: Record<string, unknown>) => void;
+  editable?: boolean;
 }
 
 interface SlashCommand {
@@ -37,7 +38,7 @@ interface SlashCommand {
   action: (editor: ReturnType<typeof useEditor>) => void;
 }
 
-export const TipTapEditor: React.FC<TipTapEditorProps> = ({ content, onChange }) => {
+export const TipTapEditor: React.FC<TipTapEditorProps> = ({ content, onChange, editable = true }) => {
   const [showSlashMenu, setShowSlashMenu] = useState(false);
   const [slashQuery, setSlashQuery] = useState('');
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
@@ -45,6 +46,7 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ content, onChange })
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const editor = useEditor({
+    editable,
     extensions: [
       StarterKit.configure({
         heading: { levels: [1, 2, 3] }
@@ -85,6 +87,12 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ content, onChange })
       }
     }
   });
+
+  useEffect(() => {
+    if (editor && editor.isEditable !== editable) {
+      editor.setEditable(editable);
+    }
+  }, [editable, editor]);
 
   useEffect(() => {
     if (editor && content && editor.getHTML() !== content) {
@@ -218,132 +226,134 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ content, onChange })
         className="hidden"
       />
 
-      <div className="flex flex-wrap items-center justify-between border-b border-appflowy-border px-3 py-1.5 text-xs dark:border-appflowy-darkBorder">
-        <div className="flex flex-wrap items-center gap-0.5">
-          <button
-            type="button"
-            onClick={() => editor.chain().focus().toggleBold().run()}
-            className={`flex h-7 w-7 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-200/60 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 ${
-              editor.isActive('bold') ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' : ''
-            }`}
-            title="Bold"
-          >
-            <Bold className="h-3.5 w-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={() => editor.chain().focus().toggleItalic().run()}
-            className={`flex h-7 w-7 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-200/60 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 ${
-              editor.isActive('italic') ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' : ''
-            }`}
-            title="Italic"
-          >
-            <Italic className="h-3.5 w-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={() => editor.chain().focus().toggleStrike().run()}
-            className={`flex h-7 w-7 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-200/60 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 ${
-              editor.isActive('strike') ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' : ''
-            }`}
-            title="Strikethrough"
-          >
-            <Strikethrough className="h-3.5 w-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={() => editor.chain().focus().toggleCode().run()}
-            className={`flex h-7 w-7 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-200/60 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 ${
-              editor.isActive('code') ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' : ''
-            }`}
-            title="Inline Code"
-          >
-            <Code className="h-3.5 w-3.5" />
-          </button>
+      {editable && (
+        <div className="flex flex-wrap items-center justify-between border-b border-appflowy-border px-3 py-1.5 text-xs dark:border-appflowy-darkBorder">
+          <div className="flex flex-wrap items-center gap-0.5">
+            <button
+              type="button"
+              onClick={() => editor.chain().focus().toggleBold().run()}
+              className={`flex h-7 w-7 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-200/60 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 ${
+                editor.isActive('bold') ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' : ''
+              }`}
+              title="Bold"
+            >
+              <Bold className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => editor.chain().focus().toggleItalic().run()}
+              className={`flex h-7 w-7 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-200/60 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 ${
+                editor.isActive('italic') ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' : ''
+              }`}
+              title="Italic"
+            >
+              <Italic className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => editor.chain().focus().toggleStrike().run()}
+              className={`flex h-7 w-7 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-200/60 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 ${
+                editor.isActive('strike') ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' : ''
+              }`}
+              title="Strikethrough"
+            >
+              <Strikethrough className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => editor.chain().focus().toggleCode().run()}
+              className={`flex h-7 w-7 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-200/60 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 ${
+                editor.isActive('code') ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' : ''
+              }`}
+              title="Inline Code"
+            >
+              <Code className="h-3.5 w-3.5" />
+            </button>
 
-          <div className="mx-1 h-3.5 w-px bg-appflowy-border dark:bg-appflowy-darkBorder" />
+            <div className="mx-1 h-3.5 w-px bg-appflowy-border dark:bg-appflowy-darkBorder" />
 
-          <button
-            type="button"
-            onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-            className={`flex h-7 w-7 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-200/60 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 ${
-              editor.isActive('heading', { level: 1 }) ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' : ''
-            }`}
-            title="Heading 1"
-          >
-            <Heading1 className="h-3.5 w-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-            className={`flex h-7 w-7 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-200/60 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 ${
-              editor.isActive('heading', { level: 2 }) ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' : ''
-            }`}
-            title="Heading 2"
-          >
-            <Heading2 className="h-3.5 w-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={() => editor.chain().focus().toggleTaskList().run()}
-            className={`flex h-7 w-7 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-200/60 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 ${
-              editor.isActive('taskList') ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' : ''
-            }`}
-            title="Task List"
-          >
-            <CheckSquare className="h-3.5 w-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={() => editor.chain().focus().toggleBulletList().run()}
-            className={`flex h-7 w-7 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-200/60 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 ${
-              editor.isActive('bulletList') ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' : ''
-            }`}
-            title="Bulleted List"
-          >
-            <List className="h-3.5 w-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={() => editor.chain().focus().toggleBlockquote().run()}
-            className={`flex h-7 w-7 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-200/60 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 ${
-              editor.isActive('blockquote') ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' : ''
-            }`}
-            title="Quote"
-          >
-            <Quote className="h-3.5 w-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="flex h-7 w-7 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-200/60 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800"
-            title="Insert Image"
-          >
-            <ImageIcon className="h-3.5 w-3.5" />
-          </button>
+            <button
+              type="button"
+              onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+              className={`flex h-7 w-7 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-200/60 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 ${
+                editor.isActive('heading', { level: 1 }) ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' : ''
+              }`}
+              title="Heading 1"
+            >
+              <Heading1 className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+              className={`flex h-7 w-7 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-200/60 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 ${
+                editor.isActive('heading', { level: 2 }) ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' : ''
+              }`}
+              title="Heading 2"
+            >
+              <Heading2 className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => editor.chain().focus().toggleTaskList().run()}
+              className={`flex h-7 w-7 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-200/60 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 ${
+                editor.isActive('taskList') ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' : ''
+              }`}
+              title="Task List"
+            >
+              <CheckSquare className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => editor.chain().focus().toggleBulletList().run()}
+              className={`flex h-7 w-7 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-200/60 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 ${
+                editor.isActive('bulletList') ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' : ''
+              }`}
+              title="Bulleted List"
+            >
+              <List className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => editor.chain().focus().toggleBlockquote().run()}
+              className={`flex h-7 w-7 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-200/60 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 ${
+                editor.isActive('blockquote') ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' : ''
+              }`}
+              title="Quote"
+            >
+              <Quote className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="flex h-7 w-7 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-200/60 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800"
+              title="Insert Image"
+            >
+              <ImageIcon className="h-3.5 w-3.5" />
+            </button>
+          </div>
+
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => editor.chain().focus().undo().run()}
+              disabled={!editor.can().undo()}
+              className="flex h-6 w-6 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-200/60 disabled:opacity-30 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800"
+              title="Undo"
+            >
+              <Undo className="h-3 w-3" />
+            </button>
+            <button
+              type="button"
+              onClick={() => editor.chain().focus().redo().run()}
+              disabled={!editor.can().redo()}
+              className="flex h-6 w-6 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-200/60 disabled:opacity-30 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800"
+              title="Redo"
+            >
+              <Redo className="h-3 w-3" />
+            </button>
+          </div>
         </div>
-
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={() => editor.chain().focus().undo().run()}
-            disabled={!editor.can().undo()}
-            className="flex h-6 w-6 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-200/60 disabled:opacity-30 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800"
-            title="Undo"
-          >
-            <Undo className="h-3 w-3" />
-          </button>
-          <button
-            type="button"
-            onClick={() => editor.chain().focus().redo().run()}
-            disabled={!editor.can().redo()}
-            className="flex h-6 w-6 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-200/60 disabled:opacity-30 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800"
-            title="Redo"
-          >
-            <Redo className="h-3 w-3" />
-          </button>
-        </div>
-      </div>
+      )}
 
       <div className="p-4 text-xs leading-relaxed text-appflowy-text dark:text-appflowy-darkText">
         <EditorContent editor={editor} />
