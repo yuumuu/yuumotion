@@ -13,6 +13,7 @@ export interface DrawerProps {
   children: React.ReactNode;
   footer?: React.ReactNode;
   className?: string;
+  isSplitView?: boolean;
 }
 
 export const Drawer: React.FC<DrawerProps> = ({
@@ -24,7 +25,8 @@ export const Drawer: React.FC<DrawerProps> = ({
   onChangeMode,
   children,
   footer,
-  className
+  className,
+  isSplitView = false
 }) => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -36,6 +38,82 @@ export const Drawer: React.FC<DrawerProps> = ({
 
   if (!isOpen) return null;
 
+  // Split View: Renders directly alongside the canvas without dark blocking backdrop
+  if (isSplitView) {
+    return (
+      <aside
+        aria-label="Detail Inspector"
+        className={cn(
+          'flex h-full w-[440px] lg:w-[480px] flex-col border-l border-border bg-surface shadow-2xs animate-in slide-in-from-right-4 duration-200 shrink-0 z-20 overflow-hidden',
+          className
+        )}
+      >
+        {/* Header */}
+        <div className="flex h-14 items-center justify-between border-b border-border px-4 bg-bar shrink-0">
+          <div className="min-w-0 pr-2">
+            {title && (
+              <div className="font-display text-xs font-bold text-text truncate">
+                {title}
+              </div>
+            )}
+            {subtitle && (
+              <div className="text-[11px] text-muted truncate">{subtitle}</div>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1 shrink-0">
+            {onChangeMode && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => onChangeMode('modal')}
+                  className={cn(
+                    'p-1.5 rounded-lg text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer',
+                    currentMode === 'modal' && 'bg-hover text-text font-semibold'
+                  )}
+                  title="Ubah ke Center Modal"
+                >
+                  <Square className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onChangeMode('fullpage')}
+                  className={cn(
+                    'p-1.5 rounded-lg text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer',
+                    currentMode === 'fullpage' && 'bg-hover text-text font-semibold'
+                  )}
+                  title="Buka Halaman Penuh"
+                >
+                  <Maximize2 className="h-3.5 w-3.5" />
+                </button>
+              </>
+            )}
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 rounded-lg text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer"
+              title="Tutup (Esc)"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Content Body */}
+        <div className="flex-1 overflow-y-auto p-5">{children}</div>
+
+        {/* Footer */}
+        {footer && (
+          <div className="border-t border-border px-4 py-3 bg-bar shrink-0">
+            {footer}
+          </div>
+        )}
+      </aside>
+    );
+  }
+
+  // Standard Floating Overlay Drawer
   return (
     <div
       role="dialog"
@@ -69,7 +147,7 @@ export const Drawer: React.FC<DrawerProps> = ({
                     type="button"
                     onClick={() => onChangeMode('modal')}
                     className={cn(
-                      'p-1.5 rounded-md text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer',
+                      'p-1.5 rounded-lg text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer',
                       currentMode === 'modal' && 'bg-hover text-text font-semibold'
                     )}
                     title="Ubah ke Center Modal"
@@ -80,7 +158,7 @@ export const Drawer: React.FC<DrawerProps> = ({
                     type="button"
                     onClick={() => onChangeMode('fullpage')}
                     className={cn(
-                      'p-1.5 rounded-md text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer',
+                      'p-1.5 rounded-lg text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer',
                       currentMode === 'fullpage' && 'bg-hover text-text font-semibold'
                     )}
                     title="Buka Halaman Penuh"
@@ -93,7 +171,7 @@ export const Drawer: React.FC<DrawerProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="p-1.5 rounded-md text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer"
                 title="Tutup (Esc)"
               >
                 <X className="h-4 w-4" />
@@ -101,12 +179,12 @@ export const Drawer: React.FC<DrawerProps> = ({
             </div>
           </div>
 
-          {/* Body Content */}
+          {/* Body */}
           <div className="flex-1 overflow-y-auto p-6">{children}</div>
 
-          {/* Optional Footer */}
+          {/* Footer */}
           {footer && (
-            <div className="border-t border-border px-5 py-3.5 bg-bar shrink-0">
+            <div className="border-t border-border px-6 py-4 bg-bar shrink-0">
               {footer}
             </div>
           )}

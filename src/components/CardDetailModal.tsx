@@ -585,20 +585,21 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
     </div>
   );
 
-  // Mode 1: Side Peek Drawer
+  // Mode 1: Push & Split-View / Side Peek Drawer
   if (openMode === 'drawer') {
     return (
       <Drawer
         isOpen={true}
         onClose={onClose}
+        isSplitView={true}
         title={formattedCode}
         subtitle={title}
         currentMode="drawer"
         onChangeMode={(m) => setOpenMode(m)}
         footer={
           <div className="flex items-center justify-between">
-            <span className="text-xs text-muted">Perubahan tersimpan otomatis</span>
-            <Button variant="secondary" size="sm" onClick={onClose}>
+            <span className="text-[11px] text-muted font-medium">Tersimpan otomatis</span>
+            <Button variant="secondary" size="xs" onClick={onClose}>
               Selesai
             </Button>
           </div>

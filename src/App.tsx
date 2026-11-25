@@ -27,6 +27,8 @@ import { createSyncManager, getStoredCloudConfig } from './lib/sync';
 import { getStoredDbConfig, saveStoredDbConfig } from './lib/dbBridge';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
+import { NavigationRail } from './components/NavigationRail';
+import { ProjectExplorer } from './components/ProjectExplorer';
 import { KanbanBoard } from './components/KanbanBoard';
 import { CalendarView } from './components/CalendarView';
 import { TimelineGanttView } from './components/TimelineGanttView';
@@ -770,30 +772,59 @@ export const App: React.FC = () => {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-appflowy-bg font-sans text-appflowy-text dark:bg-appflowy-darkBg dark:text-appflowy-darkText">
-      <Sidebar
-        isOpen={isSidebarOpen}
-        onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+    <div className="flex h-screen overflow-hidden bg-bg font-sans text-text">
+      {/* Panel 1: Primary Navigation Rail */}
+      <NavigationRail
         workspaces={workspaces}
         activeWorkspaceId={activeWorkspaceId}
         onSelectWorkspace={handleSelectWorkspace}
-        onCreateWorkspace={handleCreateWorkspace}
-        activeTarget={activeTarget}
-        onSelectTarget={setActiveTarget}
-        pages={activeWorkspace.pages}
-        boards={activeWorkspace.boards}
-        onAddPage={handleAddPage}
-        onDeletePage={handleDeletePage}
-        onAddBoard={handleAddBoard}
-        currentUser={currentUser}
-        currentUserRole={currentUserRole}
-        onOpenAuthModal={() => setIsAuthModalOpen(true)}
-        onOpenMembersModal={() => setIsMembersModalOpen(true)}
         onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
         onOpenPreferences={() => setIsPreferencesModalOpen(true)}
+        currentUser={currentUser}
       />
 
-      <div className="flex flex-1 flex-col overflow-hidden">
+      {/* Panel 2: Project Context Explorer */}
+      <ProjectExplorer
+        isOpen={isSidebarOpen}
+        onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+        projectName={activeWorkspace.name}
+        activeTarget={activeTarget}
+        onSelectTarget={setActiveTarget}
+        boards={activeWorkspace.boards}
+        pages={activeWorkspace.pages}
+        onAddBoard={handleAddBoard}
+        onAddPage={handleAddPage}
+        onDeletePage={handleDeletePage}
+        currentUserRole={currentUserRole}
+      />
+
+      {/* Mobile Drawer Fallback */}
+      <div className="md:hidden">
+        <Sidebar
+          isOpen={isSidebarOpen}
+          onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+          workspaces={workspaces}
+          activeWorkspaceId={activeWorkspaceId}
+          onSelectWorkspace={handleSelectWorkspace}
+          onCreateWorkspace={handleCreateWorkspace}
+          activeTarget={activeTarget}
+          onSelectTarget={setActiveTarget}
+          pages={activeWorkspace.pages}
+          boards={activeWorkspace.boards}
+          onAddPage={handleAddPage}
+          onDeletePage={handleDeletePage}
+          onAddBoard={handleAddBoard}
+          currentUser={currentUser}
+          currentUserRole={currentUserRole}
+          onOpenAuthModal={() => setIsAuthModalOpen(true)}
+          onOpenMembersModal={() => setIsMembersModalOpen(true)}
+          onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
+          onOpenPreferences={() => setIsPreferencesModalOpen(true)}
+        />
+      </div>
+
+      {/* Panel 3: Main App Area */}
+      <div className="flex flex-1 flex-col overflow-hidden min-w-0">
         <Header
           board={activeBoard}
           activePage={activePage}
@@ -826,67 +857,71 @@ export const App: React.FC = () => {
           onOpenPreferences={() => setIsPreferencesModalOpen(true)}
         />
 
-        <main className="flex-1 overflow-hidden">
-          {activeTarget.type === 'page' && activePage ? (
-            <StandalonePageDoc
-              page={activePage}
-              currentUserRole={currentUserRole}
-              onUpdatePage={handleUpdatePage}
+        {/* Split-View Container for Main Canvas & Push Inspector */}
+        <div className="flex flex-1 overflow-hidden min-w-0">
+          <main className="flex-1 overflow-hidden min-w-0 flex flex-col">
+            {activeTarget.type === 'page' && activePage ? (
+              <StandalonePageDoc
+                page={activePage}
+                currentUserRole={currentUserRole}
+                onUpdatePage={handleUpdatePage}
+              />
+            ) : (
+              <>
+                {activeView === 'board' && (
+                  <KanbanBoard
+                    board={activeBoard}
+                    searchQuery={searchQuery}
+                    onCardClick={(card) => setSelectedCardId(card.id)}
+                    onAddCard={handleAddCard}
+                    onAddColumn={handleAddColumn}
+                    onDeleteColumn={handleDeleteColumn}
+                    onDropCard={handleDropCard}
+                  />
+                )}
+
+                {activeView === 'calendar' && (
+                  <CalendarView
+                    board={activeBoard}
+                    searchQuery={searchQuery}
+                    onCardClick={(card) => setSelectedCardId(card.id)}
+                    onAddCardOnDate={handleAddCardOnDate}
+                  />
+                )}
+
+                {activeView === 'timeline' && (
+                  <TimelineGanttView
+                    board={activeBoard}
+                    searchQuery={searchQuery}
+                    onCardClick={(card) => setSelectedCardId(card.id)}
+                  />
+                )}
+
+                {activeView === 'table' && (
+                  <TableDatabaseView
+                    board={activeBoard}
+                    searchQuery={searchQuery}
+                    onCardClick={(card) => setSelectedCardId(card.id)}
+                    onUpdateCard={handleUpdateCard}
+                    onAddCard={handleAddCard}
+                  />
+                )}
+              </>
+            )}
+          </main>
+
+          {/* Panel 4: Side Peek Split Inspector */}
+          {selectedCard && (
+            <CardDetailModal
+              card={selectedCard}
+              columns={activeBoard.columns}
+              onClose={() => setSelectedCardId(null)}
+              onUpdate={handleUpdateCard}
+              onDelete={handleDeleteCard}
             />
-          ) : (
-            <>
-              {activeView === 'board' && (
-                <KanbanBoard
-                  board={activeBoard}
-                  searchQuery={searchQuery}
-                  onCardClick={(card) => setSelectedCardId(card.id)}
-                  onAddCard={handleAddCard}
-                  onAddColumn={handleAddColumn}
-                  onDeleteColumn={handleDeleteColumn}
-                  onDropCard={handleDropCard}
-                />
-              )}
-
-              {activeView === 'calendar' && (
-                <CalendarView
-                  board={activeBoard}
-                  searchQuery={searchQuery}
-                  onCardClick={(card) => setSelectedCardId(card.id)}
-                  onAddCardOnDate={handleAddCardOnDate}
-                />
-              )}
-
-              {activeView === 'timeline' && (
-                <TimelineGanttView
-                  board={activeBoard}
-                  searchQuery={searchQuery}
-                  onCardClick={(card) => setSelectedCardId(card.id)}
-                />
-              )}
-
-              {activeView === 'table' && (
-                <TableDatabaseView
-                  board={activeBoard}
-                  searchQuery={searchQuery}
-                  onCardClick={(card) => setSelectedCardId(card.id)}
-                  onUpdateCard={handleUpdateCard}
-                  onAddCard={handleAddCard}
-                />
-              )}
-            </>
           )}
-        </main>
+        </div>
       </div>
-
-      {selectedCard && (
-        <CardDetailModal
-          card={selectedCard}
-          columns={activeBoard.columns}
-          onClose={() => setSelectedCardId(null)}
-          onUpdate={handleUpdateCard}
-          onDelete={handleDeleteCard}
-        />
-      )}
 
       {isSyncModalOpen && (
         <CloudSyncModal
