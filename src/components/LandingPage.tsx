@@ -749,104 +749,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
         </section>
 
-        {/* 5A. Full-Bleed 3D Open-Source Section — Kanban Matrix */}
+        {/* 5. Full-Bleed 3D Open-Source Section */}
         <section className="relative overflow-hidden bg-[#0B0D12] text-white py-28 sm:py-36 border-b border-white/10">
           <div className="absolute inset-0 pointer-events-none">
             <Suspense fallback={null}>
-              <Landing3DCanvas isDark={true} variant="kanban-matrix" />
+              <Landing3DCanvas isDark={true} />
             </Suspense>
           </div>
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#0B0D12] via-[#0B0D12]/80 via-45% to-transparent"
-          />
-
-          <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6">
-            <div className="max-w-lg space-y-5">
-              <h2 className="font-display text-3xl sm:text-5xl font-bold tracking-tight leading-tight">
-                Arsitektur Terbuka,{' '}
-                <span className="font-serif italic font-normal text-blue-400">Siap Diperluas</span>
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                Dibangun dalam satu repositori dengan frontend React + Vite dan backend Hono + Drizzle ORM untuk MySQL/TiDB di Wasmer Edge. Berlisensi Apache 2.0.
-              </p>
-              <div className="flex flex-wrap gap-3 pt-2">
-                <a
-                  href={GITHUB_REPO_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-xs font-semibold text-white shadow-lg transition-[transform,opacity] duration-150 hover:opacity-95 active:scale-[0.97]"
-                >
-                  <GithubLogo className="h-4 w-4" />
-                  <span>Beri Bintang &amp; Lihat Repo</span>
-                  <ArrowUpRight className="h-3.5 w-3.5" />
-                </a>
-                <button
-                  type="button"
-                  onClick={onEnterApp}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-white/25 bg-white/10 px-4 py-2.5 text-xs font-semibold text-white backdrop-blur-sm hover:bg-white/20 transition-colors cursor-pointer"
-                >
-                  <span>Coba Demo Langsung</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* 5B. Full-Bleed 3D Open-Source Section — Sculptural Mobius Wave */}
-        <section className="relative overflow-hidden bg-[#0B0D12] text-white py-28 sm:py-36 border-b border-white/10">
-          <div className="absolute inset-0 pointer-events-none">
-            <Suspense fallback={null}>
-              <Landing3DCanvas isDark={true} variant="mobius-wave" />
-            </Suspense>
-          </div>
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#0B0D12] via-[#0B0D12]/80 via-45% to-transparent"
-          />
-
-          <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6">
-            <div className="max-w-lg space-y-5">
-              <h2 className="font-display text-3xl sm:text-5xl font-bold tracking-tight leading-tight">
-                Arsitektur Terbuka,{' '}
-                <span className="font-serif italic font-normal text-blue-400">Siap Diperluas</span>
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                Dibangun dalam satu repositori dengan frontend React + Vite dan backend Hono + Drizzle ORM untuk MySQL/TiDB di Wasmer Edge. Berlisensi Apache 2.0.
-              </p>
-              <div className="flex flex-wrap gap-3 pt-2">
-                <a
-                  href={GITHUB_REPO_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-xs font-semibold text-white shadow-lg transition-[transform,opacity] duration-150 hover:opacity-95 active:scale-[0.97]"
-                >
-                  <GithubLogo className="h-4 w-4" />
-                  <span>Beri Bintang &amp; Lihat Repo</span>
-                  <ArrowUpRight className="h-3.5 w-3.5" />
-                </a>
-                <button
-                  type="button"
-                  onClick={onEnterApp}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-white/25 bg-white/10 px-4 py-2.5 text-xs font-semibold text-white backdrop-blur-sm hover:bg-white/20 transition-colors cursor-pointer"
-                >
-                  <span>Coba Demo Langsung</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* 5C. Full-Bleed 3D Open-Source Section — Exploded App Layers */}
-        <section className="relative overflow-hidden bg-[#0B0D12] text-white py-28 sm:py-36 border-b border-white/10">
-          <div className="absolute inset-0 pointer-events-none">
-            <Suspense fallback={null}>
-              <Landing3DCanvas isDark={true} variant="exploded-layers" />
-            </Suspense>
-          </div>
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#0B0D12] via-[#0B0D12]/80 via-45% to-transparent"
+            className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#0B0D12] via-[#0B0D12]/75 via-40% to-transparent"
           />
 
           <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6">
