@@ -49,13 +49,13 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   const daysOfWeek = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
 
   return (
-    <div className="flex h-full flex-1 flex-col overflow-hidden bg-appflowy-bg p-4 sm:p-5 dark:bg-appflowy-darkBg">
+    <div className="flex h-full flex-1 flex-col overflow-hidden bg-bg p-4 sm:p-5">
       <div className="mb-3.5 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <h2 className="text-lg font-semibold text-appflowy-text dark:text-appflowy-darkText">
+        <div className="flex items-center gap-2.5">
+          <h2 className="font-display text-lg font-bold tracking-tight text-text">
             {monthNames[month]} {year}
           </h2>
-          <div className="flex items-center gap-1 rounded-xl border border-appflowy-border bg-appflowy-surface p-0.5 dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface">
+          <div className="flex items-center gap-1 rounded-xl border border-border bg-surface p-0.5">
             <Button
               variant="ghost"
               size="xs"
@@ -82,25 +82,25 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 text-xs text-appflowy-muted dark:text-appflowy-darkMuted">
-          <CalendarIcon className="h-3.5 w-3.5 text-purple-500" />
+        <div className="flex items-center gap-1.5 text-xs text-muted">
+          <CalendarIcon className="h-3.5 w-3.5 text-project-solid" />
           <span>Klik pada tanggal mana saja untuk menjadwalkan kartu</span>
         </div>
       </div>
 
-      <div className="grid grid-cols-7 gap-px rounded-t-2xl border border-appflowy-border bg-neutral-200 text-center text-xs font-semibold uppercase tracking-wider text-appflowy-muted dark:border-appflowy-darkBorder dark:bg-neutral-800 dark:text-appflowy-darkMuted">
+      <div className="grid grid-cols-7 gap-px rounded-t-2xl border border-border bg-border text-center text-xs font-semibold uppercase tracking-wider text-muted">
         {daysOfWeek.map((day) => (
-          <div key={day} className="bg-appflowy-surface py-2.5 dark:bg-appflowy-darkSurface">
+          <div key={day} className="bg-bar py-2.5">
             {day}
           </div>
         ))}
       </div>
 
-      <div className="grid flex-1 grid-cols-7 gap-px overflow-y-auto rounded-b-2xl border border-t-0 border-appflowy-border bg-neutral-200 dark:border-appflowy-darkBorder dark:bg-neutral-800">
+      <div className="grid flex-1 grid-cols-7 gap-px overflow-y-auto rounded-b-2xl border border-t-0 border-border bg-border">
         {Array.from({ length: firstDayOfMonth }).map((_, i) => (
           <div
             key={`pad-${i}`}
-            className="min-h-24 bg-neutral-50/50 p-2 opacity-50 dark:bg-neutral-900/30"
+            className="min-h-24 bg-surface/30 p-2 opacity-40"
           />
         ))}
 
@@ -124,22 +124,22 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               }}
               className={`min-h-24 p-2 transition-colors cursor-pointer ${
                 isToday
-                  ? 'bg-purple-50/40 dark:bg-purple-950/20'
-                  : 'bg-appflowy-surface hover:bg-neutral-50/80 dark:bg-appflowy-darkSurface dark:hover:bg-neutral-900/50'
+                  ? 'bg-project-soft/50'
+                  : 'bg-surface hover:bg-hover'
               }`}
             >
-              <div className="mb-1 flex items-center justify-between">
+              <div className="mb-1.5 flex items-center justify-between">
                 <span
                   className={`flex h-5 w-5 items-center justify-center rounded-full text-xs font-semibold font-mono ${
                     isToday
-                      ? 'bg-purple-600 text-white'
-                      : 'text-appflowy-muted dark:text-appflowy-darkMuted'
+                      ? 'bg-project-solid text-white'
+                      : 'text-muted'
                   }`}
                 >
                   {day}
                 </span>
                 {dayCards.length > 0 && (
-                  <span className="text-[10px] text-appflowy-muted font-mono">{dayCards.length}</span>
+                  <span className="text-[10px] text-muted font-mono">{dayCards.length}</span>
                 )}
               </div>
 
@@ -155,7 +155,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                         e.stopPropagation();
                         onCardClick(card);
                       }}
-                      className={`truncate rounded px-1.5 py-0.5 text-[10px] font-medium leading-none cursor-pointer transition-transform hover:scale-[1.02] ${style.bg} ${style.text}`}
+                      className={`truncate rounded-md px-1.5 py-0.5 text-[10px] font-medium leading-normal cursor-pointer transition-transform hover:scale-[1.02] border border-border/40 ${style.bg} ${style.text}`}
                       title={card.title}
                     >
                       {card.title}

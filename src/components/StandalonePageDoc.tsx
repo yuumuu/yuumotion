@@ -2,7 +2,21 @@ import React, { useState, useRef } from 'react';
 import { NotionPage, UserRole } from '../types/board';
 import { canEditContent } from '../lib/auth';
 import { TipTapEditor } from './TipTapEditor';
-import { ImageIcon, Trash2, Lock, Clock, Sparkles } from 'lucide-react';
+import {
+  FileText,
+  BookOpen,
+  Sparkles,
+  Layers,
+  Compass,
+  Code,
+  Shield,
+  Workflow,
+  ImageIcon,
+  Trash2,
+  Lock,
+  Clock
+} from 'lucide-react';
+import { cn } from '../lib/cn';
 
 interface StandalonePageDocProps {
   page: NotionPage;
@@ -10,7 +24,16 @@ interface StandalonePageDocProps {
   onUpdatePage: (updated: NotionPage) => void;
 }
 
-const PRESET_ICONS = ['📝', '⚡', '🚀', '🎯', '💡', '📌', '📊', '📚', '🛠️', '✨', '🔥', '🌐'];
+const PRESET_ICONS = [
+  { id: 'doc', label: 'Dokumen', icon: <FileText className="h-5 w-5" /> },
+  { id: 'book', label: 'Catatan', icon: <BookOpen className="h-5 w-5" /> },
+  { id: 'sparkles', label: 'Ide Baru', icon: <Sparkles className="h-5 w-5" /> },
+  { id: 'layers', label: 'Spesifikasi', icon: <Layers className="h-5 w-5" /> },
+  { id: 'compass', label: 'Roadmap', icon: <Compass className="h-5 w-5" /> },
+  { id: 'code', label: 'Teknis', icon: <Code className="h-5 w-5" /> },
+  { id: 'shield', label: 'Keamanan', icon: <Shield className="h-5 w-5" /> },
+  { id: 'workflow', label: 'Alur Sistem', icon: <Workflow className="h-5 w-5" /> }
+];
 
 const PRESET_COVERS = [
   { name: 'Lavender Mist', style: 'linear-gradient(135deg, #E0E7FF 0%, #EDE9FE 50%, #F5F3FF 100%)' },
@@ -24,27 +47,18 @@ const PRESET_COVERS = [
 const DOC_TEMPLATES = [
   {
     name: 'Meeting Notes',
-    icon: '🎙️',
     title: 'Notulensi Rapat Tim',
-    html: '<h2>Agenda Rapat</h2><p>Pembahasan progres sprint, sinkronisasi edge wasmer, dan blocker.</p><h3>Peserta</h3><p>Yuu, Engineering Lead, Product Manager</p><h3>Poin Keputusan</h3><ul><li>Arsitektur offline-first diprioritaskan.</li><li>Sinkronisasi multi-user via realtime broadcast.</li></ul><h3>Action Items</h3><ul data-type="taskList"><li data-type="taskItem" data-checked="false"><label><input type="checkbox"></label><div><p>Update schema database MySQL & SQLite</p></div></li><li data-type="taskItem" data-checked="false"><label><input type="checkbox"></label><div><p>Testing deploy Wasmer static server</p></div></li></ul>'
+    html: '<h2>Agenda Rapat</h2><p>Pembahasan progres sprint, sinkronisasi edge wasmer, dan blocker.</p><h3>Poin Keputusan</h3><ul><li>Arsitektur offline-first diprioritaskan.</li><li>Sinkronisasi multi-user via realtime broadcast.</li></ul>'
   },
   {
     name: 'Product Specs (PRD)',
-    icon: '📋',
     title: 'Product Requirement Document',
-    html: '<h2>1. Latar Belakang & Problem Statement</h2><p>Pengguna membutuhkan aplikasi manajemen kartu dan dokumen yang cepat tanpa vendor lock-in berbayar.</p><h2>2. Sasaran Pengguna</h2><p>Tim pengembang, kreator, dan manajer proyek independen.</p><h2>3. Spesifikasi Fitur Utama</h2><ul data-type="taskList"><li data-type="taskItem" data-checked="true"><label><input type="checkbox" checked="checked"></label><div><p>Multi-view kanban, calendar, gantt, dan database table</p></div></li><li data-type="taskItem" data-checked="false"><label><input type="checkbox"></label><div><p>Notion-style slash commands (/)</p></div></li></ul><blockquote><p>Target rilis: Wasmer Edge Production CDN.</p></blockquote>'
+    html: '<h2>1. Latar Belakang & Problem Statement</h2><p>Pengguna membutuhkan aplikasi manajemen kartu dan dokumen yang cepat tanpa vendor lock-in berbayar.</p><h2>2. Sasaran Pengguna</h2><p>Tim pengembang, kreator, dan manajer proyek independen.</p>'
   },
   {
-    name: 'Sprint Planning',
-    icon: '🚀',
+    name: 'Sprint Roadmap',
     title: 'Sprint Planning Roadmap',
-    html: '<h2>Sprint Goal</h2><p>Menyelesaikan fitur aksesibilitas keyboard dan automasi kartu kanban.</p><h3>Daftar Tugas Sprint</h3><ul data-type="taskList"><li data-type="taskItem" data-checked="false"><label><input type="checkbox"></label><div><p>Implementasi auto-move done saat checklist 100%</p></div></li><li data-type="taskItem" data-checked="false"><label><input type="checkbox"></label><div><p>Audit WCAG contrast dan keyboard focus indicators</p></div></li></ul>'
-  },
-  {
-    name: 'Habit & Weekly Tracker',
-    icon: '🎯',
-    title: 'Weekly Focus & Tracker',
-    html: '<h2>Fokus Mingguan</h2><p>Fokus pada penyempurnaan UI/UX dan kebersihan kode antislop.</p><h3>Target Harian</h3><ul data-type="taskList"><li data-type="taskItem" data-checked="false"><label><input type="checkbox"></label><div><p>Review performa drag and drop board</p></div></li><li data-type="taskItem" data-checked="false"><label><input type="checkbox"></label><div><p>Dokumentasikan panduan shortcut keyboard</p></div></li></ul>'
+    html: '<h2>Sprint Goal</h2><p>Menyelesaikan fitur aksesibilitas keyboard dan automasi kartu kanban.</p>'
   }
 ];
 
@@ -54,19 +68,21 @@ export const StandalonePageDoc: React.FC<StandalonePageDocProps> = ({
   onUpdatePage
 }) => {
   const [title, setTitle] = useState(page.title);
-  const [icon, setIcon] = useState(page.icon || '📄');
   const [coverImage, setCoverImage] = useState(page.coverImage || '');
+  const [selectedIconId, setSelectedIconId] = useState(page.icon || 'doc');
   const [showIconPicker, setShowIconPicker] = useState(false);
   const [showCoverPicker, setShowCoverPicker] = useState(false);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
   const canEdit = canEditContent(currentUserRole);
 
+  const currentIconObj = PRESET_ICONS.find((i) => i.id === selectedIconId) || PRESET_ICONS[0];
+
   const syncChanges = (partial: Partial<NotionPage>) => {
     onUpdatePage({
       ...page,
       title,
-      icon,
+      icon: selectedIconId,
       coverImage: coverImage || undefined,
       ...partial,
       updatedAt: Date.now()
@@ -79,10 +95,10 @@ export const StandalonePageDoc: React.FC<StandalonePageDocProps> = ({
     }
   };
 
-  const handleSelectIcon = (newIcon: string) => {
-    setIcon(newIcon);
+  const handleSelectIcon = (iconId: string) => {
+    setSelectedIconId(iconId);
     setShowIconPicker(false);
-    syncChanges({ icon: newIcon });
+    syncChanges({ icon: iconId });
   };
 
   const handleCoverUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -100,9 +116,10 @@ export const StandalonePageDoc: React.FC<StandalonePageDocProps> = ({
   };
 
   return (
-    <div className="flex h-full flex-1 flex-col overflow-y-auto bg-appflowy-bg dark:bg-appflowy-darkBg">
+    <div className="flex h-full flex-1 flex-col overflow-y-auto bg-bg select-text">
+      {/* Cover Banner */}
       {coverImage && (
-        <div className="relative h-48 w-full flex-shrink-0 bg-neutral-100 dark:bg-neutral-900 overflow-hidden">
+        <div className="relative h-44 w-full flex-shrink-0 bg-bar overflow-hidden border-b border-border">
           {coverImage.startsWith('linear-gradient') || coverImage.startsWith('#') ? (
             <div style={{ background: coverImage }} className="h-full w-full" />
           ) : (
@@ -111,6 +128,7 @@ export const StandalonePageDoc: React.FC<StandalonePageDocProps> = ({
           {canEdit && (
             <div className="absolute right-4 top-4 flex items-center gap-2">
               <button
+                type="button"
                 onClick={() => setShowCoverPicker(!showCoverPicker)}
                 className="flex h-7 items-center gap-1.5 rounded-lg bg-black/60 px-2.5 text-xs font-medium text-white backdrop-blur-xs hover:bg-black/80 cursor-pointer"
               >
@@ -118,6 +136,7 @@ export const StandalonePageDoc: React.FC<StandalonePageDocProps> = ({
                 <span>Ganti Cover</span>
               </button>
               <button
+                type="button"
                 onClick={() => {
                   setCoverImage('');
                   syncChanges({ coverImage: undefined });
@@ -132,36 +151,44 @@ export const StandalonePageDoc: React.FC<StandalonePageDocProps> = ({
         </div>
       )}
 
-      <div className="mx-auto w-full max-w-4xl px-8 py-8">
+      {/* Main Canvas Container (Max-width 740px) */}
+      <div className="mx-auto w-full max-w-[740px] px-6 sm:px-8 py-8">
+        {/* Role Viewer Lockout Banner */}
         {!canEdit && (
-          <div className="mb-6 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50/70 p-3 text-xs text-amber-800 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-300">
-            <Lock className="h-4 w-4 flex-shrink-0" />
+          <div className="mb-6 flex items-center gap-2.5 rounded-xl border border-border bg-bar p-3.5 text-xs text-muted">
+            <Lock className="h-4 w-4 text-project-accent shrink-0" />
             <span>
-              You have <strong>Viewer</strong> access to this document. Content is in read-only mode.
+              Mode baca saja. Hubungi pemilik project untuk meminta akses edit.
             </span>
           </div>
         )}
 
+        {/* Icon & Cover Action Toolbar */}
         <div className="mb-6 flex items-center justify-between">
           <div className="relative">
             <button
+              type="button"
               onClick={() => canEdit && setShowIconPicker(!showIconPicker)}
-              className="flex h-12 w-12 items-center justify-center rounded-2xl bg-neutral-100 text-2xl shadow-xs hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700"
-              title="Change document icon"
+              className={cn(
+                'flex h-12 w-12 items-center justify-center rounded-2xl border border-border bg-project-soft text-project-accent shadow-card-rest transition-all',
+                canEdit ? 'hover:scale-105 cursor-pointer' : 'cursor-default'
+              )}
+              title="Ganti Ikon Dokumen"
             >
-              {icon}
+              {currentIconObj.icon}
             </button>
 
             {showIconPicker && canEdit && (
-              <div className="absolute left-0 top-14 z-50 flex w-56 flex-wrap gap-1.5 rounded-xl border border-appflowy-border bg-appflowy-surface p-2 shadow-xl dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface">
-                {PRESET_ICONS.map((emoji) => (
+              <div className="absolute left-0 top-14 z-50 flex w-64 flex-wrap gap-1.5 rounded-2xl border border-border bg-surface p-2.5 shadow-card-hover animate-in fade-in zoom-in-95 duration-100">
+                {PRESET_ICONS.map((item) => (
                   <button
-                    key={emoji}
+                    key={item.id}
                     type="button"
-                    onClick={() => handleSelectIcon(emoji)}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg text-lg hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                    onClick={() => handleSelectIcon(item.id)}
+                    className="flex h-9 w-9 items-center justify-center rounded-xl text-muted hover:text-project-accent hover:bg-project-soft transition-colors cursor-pointer"
+                    title={item.label}
                   >
-                    {emoji}
+                    {item.icon}
                   </button>
                 ))}
               </div>
@@ -171,8 +198,9 @@ export const StandalonePageDoc: React.FC<StandalonePageDocProps> = ({
           <div className="relative flex items-center gap-2">
             {!coverImage && canEdit && (
               <button
+                type="button"
                 onClick={() => setShowCoverPicker(!showCoverPicker)}
-                className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs text-appflowy-muted hover:bg-neutral-100 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 cursor-pointer"
+                className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer"
               >
                 <ImageIcon className="h-3.5 w-3.5" />
                 <span>Pilih Cover</span>
@@ -180,8 +208,8 @@ export const StandalonePageDoc: React.FC<StandalonePageDocProps> = ({
             )}
 
             {showCoverPicker && canEdit && (
-              <div className="absolute right-0 top-9 z-50 w-72 rounded-xl border border-appflowy-border bg-appflowy-surface p-3 shadow-xl dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface">
-                <div className="mb-2 text-xs font-semibold text-appflowy-text dark:text-appflowy-darkText">
+              <div className="absolute right-0 top-9 z-50 w-72 rounded-2xl border border-border bg-surface p-3 shadow-card-hover animate-in fade-in zoom-in-95 duration-100">
+                <div className="mb-2 text-xs font-semibold text-text">
                   Galeri Cover Pastel
                 </div>
                 <div className="grid grid-cols-2 gap-2 mb-3">
@@ -194,7 +222,7 @@ export const StandalonePageDoc: React.FC<StandalonePageDocProps> = ({
                         syncChanges({ coverImage: preset.style });
                         setShowCoverPicker(false);
                       }}
-                      className="group relative h-12 w-full overflow-hidden rounded-lg border border-neutral-200 text-left transition-all hover:scale-102 hover:border-purple-400 dark:border-neutral-700 cursor-pointer"
+                      className="group relative h-12 w-full overflow-hidden rounded-lg border border-border text-left transition-all hover:scale-102 hover:border-project-accent cursor-pointer"
                       style={{ background: preset.style }}
                     >
                       <span className="absolute bottom-1 left-1.5 rounded bg-black/40 px-1 py-0.2 text-[9px] font-medium text-white backdrop-blur-xs">
@@ -209,7 +237,7 @@ export const StandalonePageDoc: React.FC<StandalonePageDocProps> = ({
                     coverInputRef.current?.click();
                     setShowCoverPicker(false);
                   }}
-                  className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-appflowy-border py-1.5 text-xs text-appflowy-muted hover:bg-neutral-50 dark:border-appflowy-darkBorder dark:text-appflowy-darkMuted dark:hover:bg-neutral-800/50 cursor-pointer"
+                  className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-border py-1.5 text-xs text-muted hover:bg-hover cursor-pointer"
                 >
                   <ImageIcon className="h-3.5 w-3.5" />
                   <span>Unggah Gambar Kustom</span>
@@ -227,6 +255,7 @@ export const StandalonePageDoc: React.FC<StandalonePageDocProps> = ({
           </div>
         </div>
 
+        {/* Document Title Header */}
         <div className="mb-6">
           <input
             type="text"
@@ -235,18 +264,19 @@ export const StandalonePageDoc: React.FC<StandalonePageDocProps> = ({
             onChange={(e) => setTitle(e.target.value)}
             onBlur={handleTitleBlur}
             placeholder="Untitled Document"
-            className="w-full bg-transparent text-3xl font-extrabold tracking-tight text-appflowy-text placeholder-neutral-300 focus:outline-none dark:text-appflowy-darkText dark:placeholder-neutral-600"
+            className="w-full bg-transparent font-display text-[34px] font-bold tracking-tight text-text placeholder:text-muted focus:outline-none"
           />
-          <div className="mt-2 flex items-center gap-2 text-[11px] text-appflowy-muted dark:text-appflowy-darkMuted">
+          <div className="mt-2 flex items-center gap-2 text-[11px] text-muted font-mono">
             <Clock className="h-3 w-3" />
-            <span>Updated {new Date(page.updatedAt).toLocaleDateString()}</span>
+            <span>Diperbarui {new Date(page.updatedAt).toLocaleDateString()}</span>
           </div>
         </div>
 
+        {/* Template Quick Actions */}
         {canEdit && (
-          <div className="mb-4 flex flex-wrap items-center gap-1.5">
-            <span className="flex items-center gap-1 text-[11px] font-medium text-appflowy-muted dark:text-appflowy-darkMuted mr-1">
-              <Sparkles className="h-3 w-3 text-purple-500" />
+          <div className="mb-5 flex flex-wrap items-center gap-1.5 border-b border-border/80 pb-3">
+            <span className="flex items-center gap-1 text-[11px] font-medium text-muted mr-1">
+              <Sparkles className="h-3 w-3 text-project-accent" />
               Template:
             </span>
             {DOC_TEMPLATES.map((tmpl) => (
@@ -255,19 +285,17 @@ export const StandalonePageDoc: React.FC<StandalonePageDocProps> = ({
                 type="button"
                 onClick={() => {
                   setTitle(tmpl.title);
-                  setIcon(tmpl.icon);
-                  syncChanges({ title: tmpl.title, icon: tmpl.icon, contentHtml: tmpl.html });
+                  syncChanges({ title: tmpl.title, contentHtml: tmpl.html });
                 }}
-                className="flex items-center gap-1 rounded-lg border border-appflowy-border bg-appflowy-surface px-2.5 py-1 text-xs text-appflowy-text hover:border-purple-400 hover:text-purple-600 dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface dark:text-appflowy-darkText dark:hover:border-purple-500 cursor-pointer"
-                title={`Terapkan template ${tmpl.name}`}
+                className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 py-1 text-xs text-text hover:border-project-accent hover:text-project-accent transition-colors cursor-pointer"
               >
-                <span>{tmpl.icon}</span>
                 <span>{tmpl.name}</span>
               </button>
             ))}
           </div>
         )}
 
+        {/* TipTap Rich Editor */}
         <div className="min-h-[400px]">
           <TipTapEditor
             content={page.contentHtml}

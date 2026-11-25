@@ -1,14 +1,19 @@
+@import './styles/tokens.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   * {
-    border-color: theme('colors.appflowy.border');
+    border-color: var(--border);
   }
 
-  .dark * {
-    border-color: theme('colors.appflowy.darkBorder');
+  body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-size: var(--text-ui);
+    line-height: 1.5;
   }
 
   button, a, select, input[type="checkbox"], input[type="radio"], [role="button"] {
@@ -26,21 +31,24 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(156, 163, 175, 0.4);
+  background: var(--border-strong);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(156, 163, 175, 0.7);
+  background: var(--muted);
 }
 
 .ProseMirror {
   outline: none;
   min-height: 180px;
+  font-family: var(--font-sans, "Onest", -apple-system, sans-serif);
+  font-size: 15px;
+  line-height: 1.65;
 }
 
 .ProseMirror p.is-editor-empty:first-child::before {
-  color: #9ca3af;
+  color: var(--muted);
   content: attr(data-placeholder);
   float: left;
   height: 0;
@@ -70,31 +78,27 @@
 }
 
 .ProseMirror blockquote {
-  border-left: 3px solid #8b5cf6;
+  border-left: 3px solid var(--project-accent);
   padding-left: 0.75rem;
   margin-left: 0;
   margin-right: 0;
   font-style: italic;
-  color: #6b7280;
-}
-
-.dark .ProseMirror blockquote {
-  border-left-color: #a78bfa;
-  color: #9ca3af;
+  color: var(--muted);
 }
 
 .ProseMirror pre {
-  background: #1e1e24;
-  color: #f3f4f6;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  background: var(--bar);
+  color: var(--text);
+  border: 1px solid var(--border);
+  font-family: var(--font-mono, "Commit Mono", monospace);
   padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   overflow-x: auto;
 }
 
 .ProseMirror img {
   max-width: 100%;
   height: auto;
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   margin: 0.5rem 0;
 }

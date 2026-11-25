@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { Card, Column, PriorityLevel, CardTag, CardAttachment, CardActivity } from '../types/board';
 import { INITIAL_TAGS } from '../lib/constants';
 import { TipTapEditor } from './TipTapEditor';
@@ -9,21 +9,27 @@ import {
   Switch,
   TagPicker,
   AttachmentCard,
-  Separator
+  Separator,
+  Drawer,
+  Dialog
 } from './ui';
 import {
   X,
   Trash2,
-  AlertCircle,
   Tag,
   CheckSquare,
   FileText,
   Plus,
   Paperclip,
   ImageIcon,
-  Clock,
-  History
+  History,
+  Maximize2,
+  Square,
+  Layout
 } from 'lucide-react';
+import { usePreferences } from '../context/PreferencesContext';
+import { CardOpenMode } from '../types/preferences';
+import { cn } from '../lib/cn';
 
 interface CardDetailModalProps {
   card: Card;
@@ -40,6 +46,9 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
   onUpdate,
   onDelete
 }) => {
+  const { preferences } = usePreferences();
+  const [openMode, setOpenMode] = useState<CardOpenMode>(preferences.cardOpenMode || 'drawer');
+
   const [title, setTitle] = useState(card.title);
   const [description, setDescription] = useState(card.description);
   const [columnId, setColumnId] = useState(card.columnId);
@@ -63,21 +72,14 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
       }
     ];
   });
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
+  const formattedCode = `YUU-${card.id.replace(/\D/g, '').slice(-3) || '101'}`;
 
   const syncChanges = (partial: Partial<Card>) => {
-    onUpdate({
+    const updated: Card = {
       ...card,
       title,
       description,
@@ -88,105 +90,91 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
       coverImage: coverImage || undefined,
       tags,
       attachments,
-      activities,
       autoMoveDone,
+      activities,
       ...partial,
       updatedAt: Date.now()
-    });
+    };
+    onUpdate(updated);
   };
 
-  const logActivity = (action: string) => {
-    const act: CardActivity = {
-      id: `act-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
+  const addActivity = (action: string) => {
+    const newAct: CardActivity = {
+      id: `act-${Date.now()}`,
       userName: 'Anda',
       action,
       timestamp: Date.now()
     };
-    const nextActs = [act, ...activities];
-    setActivities(nextActs);
-    return nextActs;
+    const nextActivities = [newAct, ...activities];
+    setActivities(nextActivities);
+    syncChanges({ activities: nextActivities });
   };
 
   const handleTitleBlur = () => {
     if (title.trim() && title !== card.title) {
-      const nextActs = logActivity(`Mengubah judul kartu menjadi "${title.trim()}"`);
-      syncChanges({ title: title.trim(), activities: nextActs });
+      syncChanges({ title: title.trim() });
+      addActivity(`Mengubah judul menjadi "${title.trim()}"`);
     }
   };
 
-  const toggleChecklistItem = (itemId: string) => {
-    const targetItem = card.checklist.find((i) => i.id === itemId);
-    const nextChecklist = card.checklist.map((item) =>
-      item.id === itemId ? { ...item, completed: !item.completed } : item
-    );
-
-    const isAllComplete = nextChecklist.length > 0 && nextChecklist.every((i) => i.completed);
-    let nextColId = columnId;
-    let nextActivities = [
-      {
-        id: `act-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
-        userName: 'Anda',
-        action: `${targetItem?.completed ? 'Membatalkan' : 'Menyelesaikan'} checklist "${targetItem?.text}"`,
-        timestamp: Date.now()
-      },
-      ...activities
-    ];
-
-    if (isAllComplete && autoMoveDone) {
-      const doneCol = columns.find((c) => c.title.toLowerCase().includes('done')) || columns[columns.length - 1];
-      if (doneCol && doneCol.id !== columnId) {
-        nextColId = doneCol.id;
-        setColumnId(doneCol.id);
-        nextActivities = [
-          {
-            id: `act-${Date.now()}-auto`,
-            userName: 'Aturan Otomasi',
-            action: `Checklist 100% lengkap. Kartu otomatis dipindahkan ke kolom "${doneCol.title}"`,
-            timestamp: Date.now()
-          },
-          ...nextActivities
-        ];
-      }
-    }
-
-    setActivities(nextActivities);
-    syncChanges({ checklist: nextChecklist, columnId: nextColId, activities: nextActivities });
+  const handleColumnChange = (newColId: string) => {
+    setColumnId(newColId);
+    syncChanges({ columnId: newColId });
+    const colName = columns.find((c) => c.id === newColId)?.title || 'kolom baru';
+    addActivity(`Memindahkan kartu ke kolom "${colName}"`);
   };
 
-  const addChecklistItem = (e: React.FormEvent) => {
+  const handlePriorityChange = (newPriority: string) => {
+    const p = newPriority as PriorityLevel;
+    setPriority(p);
+    syncChanges({ priority: p });
+    addActivity(`Mengubah prioritas menjadi "${p}"`);
+  };
+
+  const handleAddChecklistItem = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newChecklistText.trim()) return;
+
     const newItem = {
       id: `chk-${Date.now()}`,
       text: newChecklistText.trim(),
       completed: false
     };
-    const nextActs = logActivity(`Menambahkan checklist "${newItem.text}"`);
-    syncChanges({ checklist: [...card.checklist, newItem], activities: nextActs });
+
+    const nextChecklist = [...card.checklist, newItem];
+    syncChanges({ checklist: nextChecklist });
     setNewChecklistText('');
+    addActivity(`Menambahkan checklist "${newItem.text}"`);
   };
 
-  const removeChecklistItem = (itemId: string) => {
-    syncChanges({ checklist: card.checklist.filter((item) => item.id !== itemId) });
+  const handleToggleChecklist = (id: string) => {
+    const nextChecklist = card.checklist.map((item) =>
+      item.id === id ? { ...item, completed: !item.completed } : item
+    );
+
+    const isAllCompleted =
+      nextChecklist.length > 0 && nextChecklist.every((item) => item.completed);
+
+    let nextColumnId = columnId;
+    if (isAllCompleted && autoMoveDone) {
+      const doneCol = columns.find(
+        (c) =>
+          c.title.toLowerCase().includes('done') ||
+          c.title.toLowerCase().includes('selesai')
+      );
+      if (doneCol && doneCol.id !== columnId) {
+        nextColumnId = doneCol.id;
+        setColumnId(doneCol.id);
+        addActivity('Semua checklist selesai: kartu otomatis dipindahkan ke Done');
+      }
+    }
+
+    syncChanges({ checklist: nextChecklist, columnId: nextColumnId });
   };
 
-  const toggleTag = (tag: CardTag) => {
-    const exists = tags.some((t) => t.id === tag.id);
-    const nextTags = exists ? tags.filter((t) => t.id !== tag.id) : [...tags, tag];
-    setTags(nextTags);
-    syncChanges({ tags: nextTags });
-  };
-
-  const handleCreateCustomTag = (name: string, color: string) => {
-    const newTag: CardTag = {
-      id: `tag-${Date.now()}`,
-      name,
-      color
-    };
-    setAllAvailableTags((prev) => [...prev, newTag]);
-    const nextTags = [...tags, newTag];
-    setTags(nextTags);
-    syncChanges({ tags: nextTags });
+  const handleDeleteChecklistItem = (id: string) => {
+    const nextChecklist = card.checklist.filter((item) => item.id !== id);
+    syncChanges({ checklist: nextChecklist });
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -197,32 +185,22 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
       const reader = new FileReader();
       reader.onload = () => {
         const newAttachment: CardAttachment = {
-          id: `att-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+          id: `att-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
           name: file.name,
           size: file.size,
-          mimeType: file.type || 'application/octet-stream',
+          mimeType: file.type,
           url: reader.result as string,
           createdAt: Date.now()
         };
-
-        setAttachments((prev) => {
-          const next = [...prev, newAttachment];
-          syncChanges({ attachments: next });
-          return next;
-        });
+        const nextAttachments = [...attachments, newAttachment];
+        setAttachments(nextAttachments);
+        syncChanges({ attachments: nextAttachments });
+        addActivity(`Mengunggah lampiran "${file.name}"`);
       };
       reader.readAsDataURL(file);
     });
 
     e.target.value = '';
-  };
-
-  const handleRemoveAttachment = (attId: string) => {
-    setAttachments((prev) => {
-      const next = prev.filter((a) => a.id !== attId);
-      syncChanges({ attachments: next });
-      return next;
-    });
   };
 
   const handleCoverUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -234,64 +212,242 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
       const url = reader.result as string;
       setCoverImage(url);
       syncChanges({ coverImage: url });
+      addActivity('Memperbarui cover gambar kartu');
     };
     reader.readAsDataURL(file);
     e.target.value = '';
   };
 
-  return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs animate-in fade-in duration-150"
-    >
-      <div className="relative flex h-[90vh] max-h-[860px] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-appflowy-border bg-appflowy-surface shadow-2xl dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface">
-        {coverImage && (
-          <div className="relative h-36 w-full flex-shrink-0 bg-neutral-100 dark:bg-neutral-900">
-            <img src={coverImage} alt="Card Cover" className="h-full w-full object-cover" />
-            <button
-              onClick={() => {
-                setCoverImage('');
-                syncChanges({ coverImage: undefined });
-              }}
-              className="absolute right-3 top-3 flex h-7 items-center gap-1 rounded-lg bg-black/60 px-2.5 text-[11px] font-medium text-white backdrop-blur-xs hover:bg-black/80 cursor-pointer"
+  // Render Inner Content
+  const renderDetailContent = () => (
+    <div className="space-y-6">
+      {/* Cover Image Banner */}
+      {coverImage && (
+        <div className="relative h-44 w-full overflow-hidden rounded-xl border border-border bg-bar">
+          <img src={coverImage} alt="Card Cover" className="h-full w-full object-cover" />
+          <button
+            type="button"
+            onClick={() => {
+              setCoverImage('');
+              syncChanges({ coverImage: undefined });
+              addActivity('Menghapus cover gambar kartu');
+            }}
+            className="absolute right-3 top-3 flex h-7 items-center gap-1 rounded-lg bg-black/60 px-2.5 text-xs font-medium text-white backdrop-blur-xs hover:bg-black/80 cursor-pointer"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            <span>Hapus Cover</span>
+          </button>
+        </div>
+      )}
+
+      {/* Title & Metadata Topbar */}
+      <div>
+        <div className="flex items-center gap-2 mb-2">
+          <span className="font-mono text-xs font-semibold text-project-accent bg-project-soft px-2 py-0.5 rounded-md">
+            {formattedCode}
+          </span>
+          <span className="text-xs text-muted">di kolom</span>
+          <span className="text-xs font-medium text-text">
+            {columns.find((c) => c.id === columnId)?.title || 'Papan'}
+          </span>
+        </div>
+
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          onBlur={handleTitleBlur}
+          className="w-full bg-transparent font-display text-xl sm:text-2xl font-bold tracking-tight text-text placeholder:text-muted focus:outline-none"
+          placeholder="Judul Tugas..."
+        />
+      </div>
+
+      {/* Grid Settings: Kolom, Prioritas, Tanggal */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3.5 p-3.5 rounded-xl border border-border bg-bar">
+        <div>
+          <label className="text-[11px] font-semibold uppercase tracking-wider text-muted block mb-1.5">
+            Status Kolom
+          </label>
+          <CustomSelect
+            value={columnId}
+            onChange={handleColumnChange}
+            options={columns.map((c) => ({ value: c.id, label: c.title }))}
+          />
+        </div>
+
+        <div>
+          <label className="text-[11px] font-semibold uppercase tracking-wider text-muted block mb-1.5">
+            Prioritas
+          </label>
+          <CustomSelect
+            value={priority}
+            onChange={handlePriorityChange}
+            options={[
+              { value: 'urgent', label: 'Urgent' },
+              { value: 'high', label: 'Tinggi' },
+              { value: 'medium', label: 'Sedang' },
+              { value: 'low', label: 'Rendah' }
+            ]}
+          />
+        </div>
+
+        <div>
+          <label className="text-[11px] font-semibold uppercase tracking-wider text-muted block mb-1.5">
+            Tanggal Mulai
+          </label>
+          <CustomDatePicker
+            value={startDate}
+            onChange={(d) => {
+              setStartDate(d);
+              syncChanges({ startDate: d });
+              addActivity(`Mengatur tanggal mulai ke "${d}"`);
+            }}
+            placeholder="Pilih mulai"
+          />
+        </div>
+
+        <div>
+          <label className="text-[11px] font-semibold uppercase tracking-wider text-muted block mb-1.5">
+            Tenggat Waktu
+          </label>
+          <CustomDatePicker
+            value={dueDate}
+            onChange={(d) => {
+              setDueDate(d);
+              syncChanges({ dueDate: d });
+              addActivity(`Mengatur tenggat waktu ke "${d}"`);
+            }}
+            placeholder="Pilih deadline"
+          />
+        </div>
+      </div>
+
+      {/* Tags Section */}
+      <div>
+        <label className="text-xs font-semibold uppercase tracking-wider text-muted flex items-center gap-1.5 mb-2">
+          <Tag className="h-3.5 w-3.5" />
+          Tags & Label
+        </label>
+        <TagPicker
+          selectedTags={tags}
+          allTags={allAvailableTags}
+          onToggleTag={(tag: CardTag) => {
+            const isSelected = tags.some((t) => t.id === tag.id);
+            const next = isSelected ? tags.filter((t) => t.id !== tag.id) : [...tags, tag];
+            setTags(next);
+            syncChanges({ tags: next });
+            addActivity(`${isSelected ? 'Menghapus' : 'Menambahkan'} tag "${tag.name}"`);
+          }}
+          onCreateTag={(name: string, color: string) => {
+            const newTag: CardTag = {
+              id: `tag-${Date.now()}`,
+              name,
+              color
+            };
+            setAllAvailableTags((prev) => [...prev, newTag]);
+            const next = [...tags, newTag];
+            setTags(next);
+            syncChanges({ tags: next });
+            addActivity(`Membuat tag baru "${name}"`);
+          }}
+        />
+      </div>
+
+      {/* TipTap Rich Editor Description */}
+      <div>
+        <label className="text-xs font-semibold uppercase tracking-wider text-muted flex items-center gap-1.5 mb-2">
+          <FileText className="h-3.5 w-3.5" />
+          Deskripsi & Catatan Lengkap
+        </label>
+        <div className="rounded-xl border border-border bg-surface p-3 min-h-[160px] shadow-2xs">
+          <TipTapEditor
+            content={description}
+            onChange={(html) => {
+              setDescription(html);
+              syncChanges({ description: html });
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Checklist Task Section */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-xs font-semibold uppercase tracking-wider text-muted flex items-center gap-1.5">
+            <CheckSquare className="h-3.5 w-3.5" />
+            Checklist Tugas
+          </label>
+          <span className="text-xs font-mono text-muted">
+            {card.checklist.filter((i) => i.completed).length}/{card.checklist.length} Selesai
+          </span>
+        </div>
+
+        <div className="space-y-1.5 mb-3">
+          {card.checklist.map((item) => (
+            <div
+              key={item.id}
+              className="flex items-center justify-between gap-2 rounded-lg border border-border bg-surface p-2 text-xs"
             >
-              <Trash2 className="h-3 w-3" />
-              <span>Hapus Cover</span>
-            </button>
-          </div>
-        )}
-
-        {/* Modal Top Bar */}
-        <div className="flex items-center justify-between border-b border-appflowy-border px-6 py-3 dark:border-appflowy-darkBorder">
-          <div className="flex items-center gap-2 text-xs text-appflowy-muted dark:text-appflowy-darkMuted">
-            <span>Di kolom</span>
-            <CustomSelect
-              value={columnId}
-              options={columns.map((c) => ({
-                value: c.id,
-                label: c.title,
-                colorDot: c.color
-              }))}
-              onChange={(val) => {
-                setColumnId(val);
-                syncChanges({ columnId: val });
-              }}
-              size="sm"
-            />
-          </div>
-
-          <div className="flex items-center gap-2">
-            {!coverImage && (
-              <Button
-                variant="ghost"
-                size="xs"
-                onClick={() => coverInputRef.current?.click()}
-                leftIcon={<ImageIcon className="h-3.5 w-3.5 text-appflowy-muted" />}
+              <label className="flex items-center gap-2 cursor-pointer flex-1 min-w-0">
+                <input
+                  type="checkbox"
+                  checked={item.completed}
+                  onChange={() => handleToggleChecklist(item.id)}
+                  className="rounded border-border text-project-solid focus:ring-project-accent"
+                />
+                <span className={cn('truncate', item.completed && 'line-through text-muted')}>
+                  {item.text}
+                </span>
+              </label>
+              <button
+                type="button"
+                onClick={() => handleDeleteChecklistItem(item.id)}
+                className="text-muted hover:text-danger p-1 rounded"
               >
-                Tambah Cover
-              </Button>
-            )}
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <form onSubmit={handleAddChecklistItem} className="flex gap-2">
+          <input
+            type="text"
+            placeholder="Tambah item checklist..."
+            value={newChecklistText}
+            onChange={(e) => setNewChecklistText(e.target.value)}
+            className="flex-1 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs text-text placeholder:text-muted focus:border-project-accent focus:outline-none"
+          />
+          <Button size="sm" variant="secondary" type="submit" leftIcon={<Plus className="h-3.5 w-3.5" />}>
+            Tambah
+          </Button>
+        </form>
+      </div>
+
+      {/* Lampiran Dokumen */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-xs font-semibold uppercase tracking-wider text-muted flex items-center gap-1.5">
+            <Paperclip className="h-3.5 w-3.5" />
+            Lampiran Dokumen & Gambar
+          </label>
+          <div className="flex items-center gap-2">
+            <Button
+              size="xs"
+              variant="secondary"
+              leftIcon={<ImageIcon className="h-3 w-3" />}
+              onClick={() => coverInputRef.current?.click()}
+            >
+              Ganti Cover
+            </Button>
+            <Button
+              size="xs"
+              variant="secondary"
+              leftIcon={<Paperclip className="h-3 w-3" />}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              Unggah File
+            </Button>
             <input
               ref={coverInputRef}
               type="file"
@@ -299,276 +455,217 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
               onChange={handleCoverUpload}
               className="hidden"
             />
-
-            <button
-              onClick={() => {
-                if (confirm('Hapus kartu ini secara permanen?')) {
-                  onDelete(card.id);
-                  onClose();
-                }
-              }}
-              className="flex h-7 w-7 items-center justify-center rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer"
-              title="Hapus Kartu"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
-
-            <button
-              onClick={onClose}
-              className="flex h-7 w-7 items-center justify-center rounded-lg text-appflowy-muted hover:bg-neutral-100 dark:hover:bg-neutral-800 cursor-pointer"
-              title="Tutup (Esc)"
-            >
-              <X className="h-4 w-4" />
-            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              onChange={handleFileUpload}
+              className="hidden"
+            />
           </div>
         </div>
 
-        {/* Scrollable Body */}
-        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-5">
-          <div>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              onBlur={handleTitleBlur}
-              placeholder="Judul Kartu..."
-              className="w-full bg-transparent text-xl font-bold tracking-tight text-appflowy-text placeholder-neutral-400 focus:outline-none dark:text-appflowy-darkText"
-            />
-          </div>
-
-          {/* Metadata Section */}
-          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3 rounded-2xl border border-appflowy-border/80 bg-neutral-50/70 p-3 dark:border-appflowy-darkBorder/80 dark:bg-neutral-900/30">
-            <div className="flex items-center gap-2">
-              <span className="flex w-16 items-center gap-1 text-xs text-appflowy-muted dark:text-appflowy-darkMuted">
-                <AlertCircle className="h-3.5 w-3.5" />
-                Prioritas
-              </span>
-              <CustomSelect
-                value={priority}
-                options={[
-                  { value: 'low', label: 'Rendah', colorDot: '#9CA3AF' },
-                  { value: 'medium', label: 'Sedang', colorDot: '#3B82F6' },
-                  { value: 'high', label: 'Tinggi', colorDot: '#F59E0B' },
-                  { value: 'urgent', label: 'Urgent', colorDot: '#EF4444' }
-                ]}
-                onChange={(p) => {
-                  setPriority(p as PriorityLevel);
-                  syncChanges({ priority: p as PriorityLevel });
+        {attachments.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+            {attachments.map((att) => (
+              <AttachmentCard
+                key={att.id}
+                attachment={att}
+                onRemove={() => {
+                  const next = attachments.filter((a) => a.id !== att.id);
+                  setAttachments(next);
+                  syncChanges({ attachments: next });
+                  addActivity(`Menghapus lampiran "${att.name}"`);
                 }}
-                className="flex-1"
-                size="sm"
               />
-            </div>
+            ))}
+          </div>
+        )}
+      </div>
 
-            <div className="flex items-center gap-2">
-              <span className="flex w-14 items-center gap-1 text-xs text-appflowy-muted dark:text-appflowy-darkMuted">
-                <Clock className="h-3.5 w-3.5" />
-                Mulai
-              </span>
-              <CustomDatePicker
-                value={startDate}
-                onChange={(d) => {
-                  setStartDate(d);
-                  syncChanges({ startDate: d });
-                }}
-                className="flex-1"
-                size="sm"
-              />
-            </div>
+      {/* Automasi & Audit Trail */}
+      <div className="pt-2">
+        <div className="flex items-center justify-between p-3 rounded-xl border border-border bg-bar mb-4">
+          <div>
+            <span className="text-xs font-semibold text-text block">Automasi Selesai (Auto-Move)</span>
+            <span className="text-[11px] text-muted block">
+              Pindahkan otomatis ke kolom Done saat seluruh checklist tercentang
+            </span>
+          </div>
+          <Switch
+            checked={autoMoveDone}
+            onChange={(e) => {
+              setAutoMoveDone(e.target.checked);
+              syncChanges({ autoMoveDone: e.target.checked });
+            }}
+          />
+        </div>
 
-            <div className="flex items-center gap-2">
-              <span className="flex w-14 items-center gap-1 text-xs text-appflowy-muted dark:text-appflowy-darkMuted">
-                <Clock className="h-3.5 w-3.5" />
-                Deadline
-              </span>
-              <CustomDatePicker
-                value={dueDate}
-                onChange={(d) => {
-                  setDueDate(d);
-                  syncChanges({ dueDate: d });
-                }}
-                className="flex-1"
-                size="sm"
-              />
-            </div>
+        {/* Activity Log */}
+        <div>
+          <div className="mb-2 flex items-center justify-between">
+            <span className="flex items-center gap-1.5 text-xs font-semibold text-muted">
+              <History className="h-3.5 w-3.5" />
+              Riwayat Aktivitas Kartu
+            </span>
+            <span className="text-[11px] text-muted font-mono">{activities.length} catatan</span>
           </div>
 
-          {/* Tags Section */}
-          <div>
-            <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-appflowy-muted dark:text-appflowy-darkMuted">
-              <Tag className="h-3.5 w-3.5" />
-              <span>Label & Tags</span>
-            </div>
-            <TagPicker
-              selectedTags={tags}
-              allTags={allAvailableTags}
-              onToggleTag={toggleTag}
-              onCreateTag={handleCreateCustomTag}
-            />
-          </div>
-
-          <Separator />
-
-          {/* Checklist Tasks Section */}
-          <div>
-            <div className="mb-2 flex items-center justify-between">
-              <span className="flex items-center gap-1.5 text-xs font-semibold text-appflowy-muted dark:text-appflowy-darkMuted">
-                <CheckSquare className="h-3.5 w-3.5" />
-                Checklist Sub-Tasks
-              </span>
-              <span className="text-xs text-appflowy-muted dark:text-appflowy-darkMuted font-mono">
-                {card.checklist.filter((i) => i.completed).length} dari {card.checklist.length}
-              </span>
-            </div>
-
-            <div className="space-y-1.5">
-              {card.checklist.map((item) => (
-                <div
-                  key={item.id}
-                  className="group flex items-center justify-between rounded-xl px-2.5 py-1.5 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-                >
-                  <label className="flex items-center gap-2.5 text-xs text-appflowy-text dark:text-appflowy-darkText cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={item.completed}
-                      onChange={() => toggleChecklistItem(item.id)}
-                      className="rounded border-neutral-300 text-purple-600 focus:ring-purple-500 cursor-pointer"
-                    />
-                    <span className={item.completed ? 'line-through text-appflowy-muted dark:text-appflowy-darkMuted' : ''}>
-                      {item.text}
-                    </span>
-                  </label>
-                  <button
-                    onClick={() => removeChecklistItem(item.id)}
-                    className="opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-rose-500 cursor-pointer p-0.5"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              ))}
-
-              <form onSubmit={addChecklistItem} className="flex items-center gap-2 pt-1">
-                <input
-                  type="text"
-                  placeholder="Tambah sub-task checklist..."
-                  value={newChecklistText}
-                  onChange={(e) => setNewChecklistText(e.target.value)}
-                  className="flex-1 rounded-lg border border-appflowy-border bg-appflowy-bg px-2.5 py-1 text-xs text-appflowy-text focus:outline-none focus:ring-1 focus:ring-purple-500 dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg dark:text-appflowy-darkText"
-                />
-                <Button type="submit" size="xs" variant="primary" leftIcon={<Plus className="h-3 w-3" />}>
-                  Tambah
-                </Button>
-              </form>
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Attachments Section */}
-          <div>
-            <div className="mb-2 flex items-center justify-between">
-              <span className="flex items-center gap-1.5 text-xs font-semibold text-appflowy-muted dark:text-appflowy-darkMuted">
-                <Paperclip className="h-3.5 w-3.5" />
-                Lampiran Dokumen & Gambar
-              </span>
-              <Button
-                variant="ghost"
-                size="xs"
-                onClick={() => fileInputRef.current?.click()}
-                leftIcon={<Plus className="h-3 w-3" />}
+          <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+            {activities.map((act) => (
+              <div
+                key={act.id}
+                className="flex items-start justify-between gap-2 rounded-lg border border-border/70 bg-bar/60 p-2 text-[11px]"
               >
-                Unggah File
-              </Button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                onChange={handleFileUpload}
-                className="hidden"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {attachments.map((att) => (
-                <AttachmentCard
-                  key={att.id}
-                  attachment={att}
-                  onRemove={() => handleRemoveAttachment(att.id)}
-                />
-              ))}
-              {attachments.length === 0 && (
-                <div className="col-span-full rounded-xl border border-dashed border-appflowy-border p-3 text-center text-xs text-appflowy-muted dark:border-appflowy-darkBorder dark:text-appflowy-darkMuted">
-                  Belum ada dokumen yang dilampirkan.
+                <div className="flex items-start gap-1.5">
+                  <span className="font-semibold text-project-accent">{act.userName}:</span>
+                  <span className="text-text">{act.action}</span>
                 </div>
-              )}
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* TipTap Document Canvas */}
-          <div>
-            <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-appflowy-muted dark:text-appflowy-darkMuted">
-              <FileText className="h-3.5 w-3.5" />
-              <span>Dokumen Catatan Lengkap</span>
-            </div>
-            <TipTapEditor
-              content={description}
-              onChange={(html, json) => {
-                setDescription(html);
-                syncChanges({ description: html, contentJson: json });
-              }}
-            />
-          </div>
-
-          {/* Auto-Rules & Automation Toggle */}
-          <div className="rounded-2xl border border-appflowy-border/80 bg-neutral-50/60 p-3 text-xs dark:border-appflowy-darkBorder/80 dark:bg-neutral-900/30">
-            <Switch
-              label="Otomasi Selesai (Auto-Move to Done)"
-              description="Otomatis geser kartu ke kolom Done saat seluruh checklist (100%) terpenuhi"
-              checked={autoMoveDone}
-              onChange={(e) => {
-                setAutoMoveDone(e.target.checked);
-                syncChanges({ autoMoveDone: e.target.checked });
-              }}
-            />
-          </div>
-
-          {/* Activity Log & Audit Trail */}
-          <div>
-            <div className="mb-2 flex items-center justify-between">
-              <span className="flex items-center gap-1.5 text-xs font-semibold text-appflowy-muted dark:text-appflowy-darkMuted">
-                <History className="h-3.5 w-3.5" />
-                Riwayat Aktivitas Kartu
-              </span>
-              <span className="text-[11px] text-appflowy-muted dark:text-appflowy-darkMuted font-mono">
-                {activities.length} aktivitas
-              </span>
-            </div>
-
-            <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
-              {activities.map((act) => (
-                <div
-                  key={act.id}
-                  className="flex items-start justify-between gap-2 rounded-xl border border-appflowy-border/60 bg-appflowy-bg/60 p-2 text-[11px] dark:border-appflowy-darkBorder/60 dark:bg-appflowy-darkBg/60"
-                >
-                  <div className="flex items-start gap-1.5">
-                    <span className="font-semibold text-purple-600 dark:text-purple-400">
-                      {act.userName}:
-                    </span>
-                    <span className="text-appflowy-text dark:text-appflowy-darkText">
-                      {act.action}
-                    </span>
-                  </div>
-                  <span className="text-[10px] text-appflowy-muted dark:text-appflowy-darkMuted whitespace-nowrap font-mono">
-                    {new Date(act.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                </div>
-              ))}
-            </div>
+                <span className="text-[10px] text-muted whitespace-nowrap font-mono">
+                  {new Date(act.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
+    </div>
+  );
+
+  // Switcher Toolbar Buttons
+  const renderModeSwitcher = () => (
+    <div className="flex items-center gap-1">
+      <button
+        type="button"
+        onClick={() => setOpenMode('drawer')}
+        className={cn(
+          'p-1.5 rounded-md text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer',
+          openMode === 'drawer' && 'bg-hover text-project-accent font-semibold'
+        )}
+        title="Mode Side Peek Drawer"
+      >
+        <Layout className="h-4 w-4" />
+      </button>
+      <button
+        type="button"
+        onClick={() => setOpenMode('modal')}
+        className={cn(
+          'p-1.5 rounded-md text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer',
+          openMode === 'modal' && 'bg-hover text-project-accent font-semibold'
+        )}
+        title="Mode Center Modal"
+      >
+        <Square className="h-4 w-4" />
+      </button>
+      <button
+        type="button"
+        onClick={() => setOpenMode('fullpage')}
+        className={cn(
+          'p-1.5 rounded-md text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer',
+          openMode === 'fullpage' && 'bg-hover text-project-accent font-semibold'
+        )}
+        title="Mode Halaman Penuh"
+      >
+        <Maximize2 className="h-4 w-4" />
+      </button>
+      <Separator orientation="vertical" className="h-4 mx-1" />
+      <button
+        type="button"
+        onClick={() => {
+          if (confirm(`Hapus kartu "${card.title}"?`)) {
+            onDelete(card.id);
+            onClose();
+          }
+        }}
+        className="p-1.5 rounded-md text-danger hover:bg-status-urgent-bg transition-colors cursor-pointer"
+        title="Hapus Kartu Ini"
+      >
+        <Trash2 className="h-4 w-4" />
+      </button>
+    </div>
+  );
+
+  // Mode 1: Side Peek Drawer
+  if (openMode === 'drawer') {
+    return (
+      <Drawer
+        isOpen={true}
+        onClose={onClose}
+        title={formattedCode}
+        subtitle={title}
+        currentMode="drawer"
+        onChangeMode={(m) => setOpenMode(m)}
+        footer={
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted">Perubahan tersimpan otomatis</span>
+            <Button variant="secondary" size="sm" onClick={onClose}>
+              Selesai
+            </Button>
+          </div>
+        }
+      >
+        {renderDetailContent()}
+      </Drawer>
+    );
+  }
+
+  // Mode 2: Center Modal
+  if (openMode === 'modal') {
+    return (
+      <Dialog
+        isOpen={true}
+        onClose={onClose}
+        maxWidth="2xl"
+        title={
+          <div className="flex items-center justify-between w-full pr-6">
+            <span className="font-mono text-xs font-semibold text-project-accent bg-project-soft px-2 py-0.5 rounded-md">
+              {formattedCode}
+            </span>
+            {renderModeSwitcher()}
+          </div>
+        }
+        footer={
+          <div className="flex items-center justify-between w-full">
+            <span className="text-xs text-muted">Tersinkronisasi secara realtime</span>
+            <Button variant="secondary" size="sm" onClick={onClose}>
+              Tutup
+            </Button>
+          </div>
+        }
+      >
+        {renderDetailContent()}
+      </Dialog>
+    );
+  }
+
+  // Mode 3: Full Page View
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-50 overflow-y-auto bg-bg animate-in fade-in duration-200"
+    >
+      <div className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-border bg-bar/95 backdrop-blur-md px-6">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            ← Kembali ke Papan
+          </Button>
+          <Separator orientation="vertical" className="h-4" />
+          <span className="font-mono text-xs font-semibold text-project-accent bg-project-soft px-2 py-0.5 rounded-md">
+            {formattedCode}
+          </span>
+          <span className="text-sm font-semibold text-text truncate max-w-md">{title}</span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {renderModeSwitcher()}
+          <Button variant="secondary" size="sm" onClick={onClose}>
+            Tutup
+          </Button>
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-4xl px-8 py-8">{renderDetailContent()}</div>
     </div>
   );
 };

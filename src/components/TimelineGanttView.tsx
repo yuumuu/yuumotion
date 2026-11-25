@@ -54,22 +54,22 @@ export const TimelineGanttView: React.FC<TimelineGanttViewProps> = ({
   };
 
   return (
-    <div className="flex h-full flex-1 flex-col overflow-hidden bg-appflowy-bg p-4 sm:p-5 dark:bg-appflowy-darkBg">
+    <div className="flex h-full flex-1 flex-col overflow-hidden bg-bg p-4 sm:p-5">
       <div className="mb-3.5 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Clock className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-          <h2 className="text-base font-semibold text-appflowy-text dark:text-appflowy-darkText">
+          <Clock className="h-4 w-4 text-project-solid" />
+          <h2 className="font-display text-base font-bold tracking-tight text-text">
             Timeline & Gantt Roadmap
           </h2>
         </div>
-        <div className="text-xs text-appflowy-muted dark:text-appflowy-darkMuted font-mono">
+        <div className="text-xs text-muted font-mono">
           Periode 3 Pekan
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-appflowy-border bg-appflowy-surface dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface shadow-2xs">
-        <div className="flex border-b border-appflowy-border bg-neutral-50/80 text-xs font-semibold text-appflowy-muted dark:border-appflowy-darkBorder dark:bg-neutral-900/60 dark:text-appflowy-darkMuted">
-          <div className="w-72 flex-shrink-0 border-r border-appflowy-border px-4 py-2.5 dark:border-appflowy-darkBorder">
+      <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-2xs">
+        <div className="flex border-b border-border bg-bar text-xs font-semibold text-muted">
+          <div className="w-72 flex-shrink-0 border-r border-border px-4 py-2.5">
             Tugas & Deliverables
           </div>
           <div className="flex flex-1 overflow-x-hidden">
@@ -79,11 +79,11 @@ export const TimelineGanttView: React.FC<TimelineGanttViewProps> = ({
               return (
                 <div
                   key={d.toISOString()}
-                  className={`flex-1 border-r border-appflowy-border/50 py-1.5 text-center text-[10px] ${
+                  className={`flex-1 border-r border-border/50 py-1.5 text-center text-[10px] ${
                     isToday
-                      ? 'bg-purple-100 font-bold text-purple-700 dark:bg-purple-950/60 dark:text-purple-300'
+                      ? 'bg-project-soft font-bold text-project-solid'
                       : isWeekend
-                      ? 'bg-neutral-100/50 dark:bg-neutral-800/40'
+                      ? 'bg-bar/50'
                       : ''
                   }`}
                 >
@@ -100,14 +100,14 @@ export const TimelineGanttView: React.FC<TimelineGanttViewProps> = ({
             const columnCards = filteredCards.filter((c) => c.columnId === column.id);
 
             return (
-              <div key={column.id} className="border-b border-appflowy-border/50 last:border-b-0">
-                <div className="sticky top-0 z-10 flex items-center gap-2 bg-neutral-100/70 px-4 py-1.5 text-[11px] font-semibold text-appflowy-muted backdrop-blur-xs dark:bg-neutral-900/70 dark:text-appflowy-darkMuted">
+              <div key={column.id} className="border-b border-border/50 last:border-b-0">
+                <div className="sticky top-0 z-10 flex items-center gap-2 bg-bar/80 px-4 py-1.5 text-[11px] font-semibold text-muted backdrop-blur-xs">
                   <span className="h-2 w-2 rounded-full" style={{ backgroundColor: column.color }} />
                   <span>{column.title}</span>
                   <span className="font-mono text-[10px]">({columnCards.length})</span>
                 </div>
 
-                <div className="divide-y divide-appflowy-border/30">
+                <div className="divide-y divide-border/30">
                   {columnCards.map((card) => {
                     const { leftPercent, widthPercent, isVisible } = calculateCardPosition(card);
                     const tag = card.tags[0];
@@ -116,12 +116,12 @@ export const TimelineGanttView: React.FC<TimelineGanttViewProps> = ({
                     return (
                       <div
                         key={card.id}
-                        className="flex h-10 items-center transition-colors hover:bg-neutral-50/50 dark:hover:bg-neutral-900/30"
+                        className="flex h-10 items-center transition-colors hover:bg-hover"
                       >
-                        <div className="w-72 flex-shrink-0 truncate border-r border-appflowy-border/50 px-4 text-xs font-medium text-appflowy-text dark:text-appflowy-darkText">
+                        <div className="w-72 flex-shrink-0 truncate border-r border-border/50 px-4 text-xs font-medium text-text">
                           <button
                             onClick={() => onCardClick(card)}
-                            className="truncate hover:text-purple-600 hover:underline cursor-pointer"
+                            className="truncate hover:text-project-solid hover:underline cursor-pointer"
                           >
                             {card.title}
                           </button>
@@ -140,14 +140,14 @@ export const TimelineGanttView: React.FC<TimelineGanttViewProps> = ({
                               <span className="truncate">{card.title}</span>
                             </div>
                           ) : (
-                            <span className="text-[10px] text-neutral-400 italic px-2">Diluar rentang waktu</span>
+                            <span className="text-[10px] text-muted italic px-2">Diluar rentang waktu</span>
                           )}
                         </div>
                       </div>
                     );
                   })}
                   {columnCards.length === 0 && (
-                    <div className="py-2 px-4 text-xs text-appflowy-muted italic">
+                    <div className="py-2 px-4 text-xs text-muted italic">
                       Tidak ada kartu di kolom ini
                     </div>
                   )}

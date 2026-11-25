@@ -15,7 +15,7 @@ export const TableDatabaseView: React.FC<TableDatabaseViewProps> = ({
   board,
   searchQuery,
   onCardClick,
-  onUpdateCard,
+  onUpdateCard: _onUpdateCard,
   onAddCard
 }) => {
   const [newTitle, setNewTitle] = useState('');
@@ -37,80 +37,68 @@ export const TableDatabaseView: React.FC<TableDatabaseViewProps> = ({
   };
 
   return (
-    <div className="flex h-full flex-1 flex-col overflow-hidden bg-appflowy-bg p-4 sm:p-5 dark:bg-appflowy-darkBg">
-      <div className="mb-3.5 flex items-center justify-between">
+    <div className="flex h-full flex-1 flex-col overflow-hidden bg-bg p-4 sm:p-5 select-none">
+      <div className="mb-3.5 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
-          <TableIcon className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-          <h2 className="text-base font-semibold text-appflowy-text dark:text-appflowy-darkText">
+          <TableIcon className="h-4 w-4 text-project-accent" />
+          <h2 className="font-display text-base font-bold text-text">
             Database Spreadsheet
           </h2>
           <Badge variant="neutral">{filteredCards.length} data kartu</Badge>
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto rounded-2xl border border-appflowy-border bg-appflowy-surface shadow-2xs dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface">
+      <div className="flex-1 overflow-auto rounded-2xl border border-border bg-surface shadow-card-rest">
         <table className="w-full border-collapse text-left text-xs">
           <thead>
-            <tr className="sticky top-0 z-10 border-b border-appflowy-border bg-neutral-50/90 font-medium text-appflowy-muted backdrop-blur-xs dark:border-appflowy-darkBorder dark:bg-neutral-900/90 dark:text-appflowy-darkMuted">
-              <th className="px-4 py-3 min-w-64">Nama Tugas / Kartu</th>
-              <th className="px-4 py-3 w-40">Status Kolom</th>
-              <th className="px-4 py-3 w-32">Prioritas</th>
-              <th className="px-4 py-3 w-48">Tags & Label</th>
-              <th className="px-4 py-3 w-32">Mulai</th>
-              <th className="px-4 py-3 w-32">Deadline</th>
-              <th className="px-4 py-3 w-28">Checklist</th>
-              <th className="px-4 py-3 w-24">Lampiran</th>
+            <tr className="sticky top-0 z-10 border-b border-border bg-bar/95 font-medium text-muted backdrop-blur-xs">
+              <th className="px-4 py-3 min-w-64 font-display">Nama Tugas / Kartu</th>
+              <th className="px-4 py-3 w-40 font-display">Status Kolom</th>
+              <th className="px-4 py-3 w-32 font-display">Prioritas</th>
+              <th className="px-4 py-3 w-48 font-display">Tags & Label</th>
+              <th className="px-4 py-3 w-32 font-display">Mulai</th>
+              <th className="px-4 py-3 w-32 font-display">Deadline</th>
+              <th className="px-4 py-3 w-28 font-display">Checklist</th>
+              <th className="px-4 py-3 w-24 font-display">Lampiran</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-appflowy-border/60 dark:divide-appflowy-darkBorder/60">
+          <tbody className="divide-y divide-border">
             {filteredCards.map((card) => {
               const completedChecklist = card.checklist.filter((i) => i.completed).length;
 
               return (
                 <tr
                   key={card.id}
-                  className="group transition-colors hover:bg-neutral-50/80 dark:hover:bg-neutral-900/50"
+                  onClick={() => onCardClick(card)}
+                  className="hover:bg-hover transition-colors cursor-pointer group h-[var(--space-row-h)]"
                 >
-                  <td className="px-4 py-2.5">
-                    <button
-                      onClick={() => onCardClick(card)}
-                      className="font-medium text-appflowy-text hover:text-purple-600 hover:underline dark:text-appflowy-darkText dark:hover:text-purple-400 text-left truncate max-w-sm block cursor-pointer"
-                    >
-                      {card.title}
-                    </button>
+                  <td className="px-4 py-2 font-medium text-text">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-[10px] text-muted">
+                        YUU-{card.id.replace(/\D/g, '').slice(-3) || '101'}
+                      </span>
+                      <span className="truncate">{card.title}</span>
+                    </div>
                   </td>
 
-                  <td className="px-4 py-2.5">
-                    <CustomSelect
-                      value={card.columnId}
-                      options={board.columns.map((col) => ({
-                        value: col.id,
-                        label: col.title,
-                        colorDot: col.color
-                      }))}
-                      onChange={(val) => {
-                        onUpdateCard({
-                          ...card,
-                          columnId: val,
-                          updatedAt: Date.now()
-                        });
-                      }}
-                      size="sm"
-                    />
+                  <td className="px-4 py-2 text-muted">
+                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-bar text-[11px] font-medium border border-border">
+                      {board.columns.find((c) => c.id === card.columnId)?.title || '-'}
+                    </span>
                   </td>
 
-                  <td className="px-4 py-2.5">
-                    <span className="capitalize text-appflowy-muted dark:text-appflowy-darkMuted">
+                  <td className="px-4 py-2">
+                    <span className="capitalize text-muted text-[11px]">
                       {card.priority}
                     </span>
                   </td>
 
-                  <td className="px-4 py-2.5">
+                  <td className="px-4 py-2">
                     <div className="flex flex-wrap gap-1">
                       {card.tags.map((tag) => (
                         <span
                           key={tag.id}
-                          className="rounded bg-neutral-100 px-1.5 py-0.5 text-[10px] font-medium text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300"
+                          className="rounded-full bg-project-soft px-1.5 py-0.2 text-[10px] font-medium text-project-accent"
                         >
                           {tag.name}
                         </span>
@@ -118,19 +106,19 @@ export const TableDatabaseView: React.FC<TableDatabaseViewProps> = ({
                     </div>
                   </td>
 
-                  <td className="px-4 py-2.5 font-mono text-[11px] text-appflowy-muted">
+                  <td className="px-4 py-2 font-mono text-[11px] text-muted">
                     {card.startDate || '-'}
                   </td>
 
-                  <td className="px-4 py-2.5 font-mono text-[11px] text-appflowy-muted">
+                  <td className="px-4 py-2 font-mono text-[11px] text-muted">
                     {card.dueDate || '-'}
                   </td>
 
-                  <td className="px-4 py-2.5 text-appflowy-muted font-mono text-[11px]">
+                  <td className="px-4 py-2 text-muted font-mono text-[11px]">
                     {completedChecklist}/{card.checklist.length}
                   </td>
 
-                  <td className="px-4 py-2.5 text-appflowy-muted text-[11px]">
+                  <td className="px-4 py-2 text-muted text-[11px] font-mono">
                     {card.attachments?.length || 0}
                   </td>
                 </tr>
@@ -140,7 +128,7 @@ export const TableDatabaseView: React.FC<TableDatabaseViewProps> = ({
         </table>
       </div>
 
-      <form onSubmit={handleCreate} className="mt-3 flex items-center gap-2">
+      <form onSubmit={handleCreate} className="mt-3 flex items-center gap-2 shrink-0">
         <div className="w-40 flex-shrink-0">
           <CustomSelect
             value={selectedColumn}

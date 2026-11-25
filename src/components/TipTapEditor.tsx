@@ -21,8 +21,16 @@ import {
   ImageIcon,
   Undo,
   Redo,
-  Sparkles
+  Info,
+  Lightbulb,
+  AlertTriangle,
+  Terminal,
+  Workflow,
+  Sigma,
+  Bookmark,
+  Share2
 } from 'lucide-react';
+import { cn } from '../lib/cn';
 
 interface TipTapEditorProps {
   content: string;
@@ -30,18 +38,20 @@ interface TipTapEditorProps {
   editable?: boolean;
 }
 
-interface SlashCommand {
+interface CommandItem {
   id: string;
+  category: 'Dasar' | 'Struktur' | 'Developer' | 'Embed';
   title: string;
   description: string;
-  icon: React.FC<{ className?: string }>;
-  action: (editor: ReturnType<typeof useEditor>) => void;
+  icon: React.ReactNode;
+  run: (editor: ReturnType<typeof useEditor>) => void;
 }
 
 export const TipTapEditor: React.FC<TipTapEditorProps> = ({ content, onChange, editable = true }) => {
   const [showSlashMenu, setShowSlashMenu] = useState(false);
   const [slashQuery, setSlashQuery] = useState('');
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const editorContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -56,7 +66,7 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ content, onChange, e
         nested: true
       }),
       Placeholder.configure({
-        placeholder: "Type '/' for Notion-style block commands, or start writing notes..."
+        placeholder: "Ketik '/' untuk perintah blok Notion-style atau mulai menulis catatan..."
       }),
       Image.configure({
         inline: true,
@@ -68,17 +78,18 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ content, onChange, e
       onChange(currentEditor.getHTML(), currentEditor.getJSON() as Record<string, unknown>);
 
       const { from } = currentEditor.state.selection;
-      const textBefore = currentEditor.state.doc.textBetween(Math.max(0, from - 20), from, '\n', '\0');
+      const textBefore = currentEditor.state.doc.textBetween(Math.max(0, from - 25), from, '\n', '\0');
       const slashMatch = textBefore.match(/\/([a-zA-Z0-9]*)$/);
 
       if (slashMatch) {
         setSlashQuery(slashMatch[1].toLowerCase());
+        setSelectedIndex(0);
         const coords = currentEditor.view.coordsAtPos(from);
         if (editorContainerRef.current) {
           const containerRect = editorContainerRef.current.getBoundingClientRect();
           setMenuPosition({
             top: coords.bottom - containerRect.top + 8,
-            left: Math.min(coords.left - containerRect.left, containerRect.width - 240)
+            left: Math.min(coords.left - containerRect.left, containerRect.width - 280)
           });
         }
         setShowSlashMenu(true);
@@ -102,122 +113,291 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ content, onChange, e
     }
   }, [content, editor]);
 
-  const executeSlashAction = (action: (ed: typeof editor) => void) => {
-    if (!editor) return;
-
-    const { from } = editor.state.selection;
-    const textBefore = editor.state.doc.textBetween(Math.max(0, from - 20), from, '\n', '\0');
+  const deleteSlashQuery = (ed: ReturnType<typeof useEditor>) => {
+    if (!ed) return;
+    const { from } = ed.state.selection;
+    const textBefore = ed.state.doc.textBetween(Math.max(0, from - 25), from, '\n', '\0');
     const slashMatch = textBefore.match(/\/([a-zA-Z0-9]*)$/);
-
     if (slashMatch) {
       const matchLength = slashMatch[0].length;
-      editor.commands.deleteRange({ from: from - matchLength, to: from });
+      ed.commands.deleteRange({ from: from - matchLength, to: from });
     }
-
-    action(editor);
-    setShowSlashMenu(false);
   };
 
-  const slashCommands: SlashCommand[] = [
+  const commandList: CommandItem[] = [
+    // Dasar
+    {
+      id: 'p',
+      category: 'Dasar',
+      title: 'Teks Paragraf',
+      description: 'Blok teks biasa untuk menulis catatan bebas',
+      icon: <span className="font-serif font-bold text-sm">T</span>,
+      run: (ed) => {
+        deleteSlashQuery(ed);
+        ed?.chain().focus().setParagraph().run();
+      }
+    },
     {
       id: 'h1',
+      category: 'Dasar',
       title: 'Heading 1',
-      description: 'Large section heading',
-      icon: Heading1,
-      action: (ed) => ed?.chain().focus().toggleHeading({ level: 1 }).run()
+      description: 'Judul seksi besar utama',
+      icon: <Heading1 className="h-4 w-4" />,
+      run: (ed) => {
+        deleteSlashQuery(ed);
+        ed?.chain().focus().toggleHeading({ level: 1 }).run();
+      }
     },
     {
       id: 'h2',
+      category: 'Dasar',
       title: 'Heading 2',
-      description: 'Medium sub-heading',
-      icon: Heading2,
-      action: (ed) => ed?.chain().focus().toggleHeading({ level: 2 }).run()
+      description: 'Sub-judul bagian menengah',
+      icon: <Heading2 className="h-4 w-4" />,
+      run: (ed) => {
+        deleteSlashQuery(ed);
+        ed?.chain().focus().toggleHeading({ level: 2 }).run();
+      }
     },
     {
       id: 'h3',
+      category: 'Dasar',
       title: 'Heading 3',
-      description: 'Small group heading',
-      icon: Heading3,
-      action: (ed) => ed?.chain().focus().toggleHeading({ level: 3 }).run()
+      description: 'Sub-judul bagian kecil',
+      icon: <Heading3 className="h-4 w-4" />,
+      run: (ed) => {
+        deleteSlashQuery(ed);
+        ed?.chain().focus().toggleHeading({ level: 3 }).run();
+      }
     },
     {
-      id: 'task',
-      title: 'To-do list',
-      description: 'Track tasks with interactive checkboxes',
-      icon: CheckSquare,
-      action: (ed) => ed?.chain().focus().toggleTaskList().run()
+      id: 'todo',
+      category: 'Dasar',
+      title: 'To-do Checklist',
+      description: 'Daftar tugas dengan kotak centang interaktif',
+      icon: <CheckSquare className="h-4 w-4" />,
+      run: (ed) => {
+        deleteSlashQuery(ed);
+        ed?.chain().focus().toggleTaskList().run();
+      }
     },
     {
       id: 'bullet',
-      title: 'Bulleted list',
-      description: 'Create a simple bulleted list',
-      icon: List,
-      action: (ed) => ed?.chain().focus().toggleBulletList().run()
+      category: 'Dasar',
+      title: 'Bullet List',
+      description: 'Daftar poin dengan bullet',
+      icon: <List className="h-4 w-4" />,
+      run: (ed) => {
+        deleteSlashQuery(ed);
+        ed?.chain().focus().toggleBulletList().run();
+      }
     },
     {
-      id: 'numbered',
-      title: 'Numbered list',
-      description: 'Create a list with numbering',
-      icon: ListOrdered,
-      action: (ed) => ed?.chain().focus().toggleOrderedList().run()
-    },
-    {
-      id: 'quote',
-      title: 'Quote',
-      description: 'Capture a quote or highlight statement',
-      icon: Quote,
-      action: (ed) => ed?.chain().focus().toggleBlockquote().run()
-    },
-    {
-      id: 'code',
-      title: 'Code Block',
-      description: 'Capture code snippet with monospace font',
-      icon: Code,
-      action: (ed) => ed?.chain().focus().toggleCodeBlock().run()
+      id: 'number',
+      category: 'Dasar',
+      title: 'Numbered List',
+      description: 'Daftar terurut angka',
+      icon: <ListOrdered className="h-4 w-4" />,
+      run: (ed) => {
+        deleteSlashQuery(ed);
+        ed?.chain().focus().toggleOrderedList().run();
+      }
     },
     {
       id: 'divider',
+      category: 'Dasar',
       title: 'Divider',
-      description: 'Visually divide blocks with a line',
-      icon: Minus,
-      action: (ed) => ed?.chain().focus().setHorizontalRule().run()
+      description: 'Garis pemisah horizontal 1px',
+      icon: <Minus className="h-4 w-4" />,
+      run: (ed) => {
+        deleteSlashQuery(ed);
+        ed?.chain().focus().setHorizontalRule().run();
+      }
+    },
+
+    // Struktur & Visual (Callouts tanpa border-left tebal)
+    {
+      id: 'callout-info',
+      category: 'Struktur',
+      title: 'Callout Info',
+      description: 'Kotak pastel informasi dengan ikon',
+      icon: <Info className="h-4 w-4 text-project-accent" />,
+      run: (ed) => {
+        deleteSlashQuery(ed);
+        ed?.chain().focus().insertContent(
+          '<blockquote style="border: 1px solid var(--project-accent); background: var(--project-soft); border-radius: 12px; padding: 12px 16px;"><p><strong>Info:</strong> Tulis catatan informasi penting di sini...</p></blockquote>'
+        ).run();
+      }
+    },
+    {
+      id: 'callout-tips',
+      category: 'Struktur',
+      title: 'Callout Tips',
+      description: 'Kotak tips produktivitas hijau',
+      icon: <Lightbulb className="h-4 w-4 text-status-done" />,
+      run: (ed) => {
+        deleteSlashQuery(ed);
+        ed?.chain().focus().insertContent(
+          '<blockquote style="border: 1px solid var(--done); background: var(--done-bg); color: var(--done); border-radius: 12px; padding: 12px 16px;"><p><strong>Tips:</strong> Gunakan pintasan keyboard Cmd+K untuk navigasi cepat...</p></blockquote>'
+        ).run();
+      }
+    },
+    {
+      id: 'callout-warning',
+      category: 'Struktur',
+      title: 'Callout Peringatan',
+      description: 'Kotak peringatan oranye hangat',
+      icon: <AlertTriangle className="h-4 w-4 text-status-high" />,
+      run: (ed) => {
+        deleteSlashQuery(ed);
+        ed?.chain().focus().insertContent(
+          '<blockquote style="border: 1px solid var(--high); background: var(--high-bg); color: var(--high); border-radius: 12px; padding: 12px 16px;"><p><strong>Perhatian:</strong> Perubahan skema data ini memerlukan migrasi...</p></blockquote>'
+        ).run();
+      }
+    },
+    {
+      id: 'quote',
+      category: 'Struktur',
+      title: 'Kutipan / Blockquote',
+      description: 'Kutipan teks bergaris aksen',
+      icon: <Quote className="h-4 w-4" />,
+      run: (ed) => {
+        deleteSlashQuery(ed);
+        ed?.chain().focus().toggleBlockquote().run();
+      }
     },
     {
       id: 'image',
-      title: 'Upload Image',
-      description: 'Embed an image from your device',
-      icon: ImageIcon,
-      action: () => fileInputRef.current?.click()
+      category: 'Struktur',
+      title: 'Gambar & Foto',
+      description: 'Unggah file gambar dari perangkat',
+      icon: <ImageIcon className="h-4 w-4" />,
+      run: () => {
+        fileInputRef.current?.click();
+      }
+    },
+
+    // Developer & Teknis
+    {
+      id: 'code',
+      category: 'Developer',
+      title: 'Code Block',
+      description: 'Blok kode dengan font Commit Mono',
+      icon: <Terminal className="h-4 w-4" />,
+      run: (ed) => {
+        deleteSlashQuery(ed);
+        ed?.chain().focus().toggleCodeBlock().run();
+      }
+    },
+    {
+      id: 'mermaid',
+      category: 'Developer',
+      title: 'Mermaid Diagram',
+      description: 'Diagram alur sistem atau arsitektur Mermaid',
+      icon: <Workflow className="h-4 w-4" />,
+      run: (ed) => {
+        deleteSlashQuery(ed);
+        ed?.chain().focus().insertContent(
+          '<pre><code>graph TD\n  A[Mulai] --&gt; B(Proses Algoritma)\n  B --&gt; C{Kondisi Selesai?}\n  C --&gt;|Ya| D[Hasil Sukses]</code></pre>'
+        ).run();
+      }
+    },
+    {
+      id: 'math',
+      category: 'Developer',
+      title: 'Rumus Matematika',
+      description: 'Blok rumus dan persamaan formula KaTeX',
+      icon: <Sigma className="h-4 w-4" />,
+      run: (ed) => {
+        deleteSlashQuery(ed);
+        ed?.chain().focus().insertContent(
+          '<pre><code>f(x) = \\int_{-\\infty}^{\\infty} \\hat{f}(\\xi)\\,e^{2 \\pi i \\xi x} \\,d\\xi</code></pre>'
+        ).run();
+      }
+    },
+
+    // Embed & Mentions
+    {
+      id: 'task-mention',
+      category: 'Embed',
+      title: 'Tautan Tugas (@YUU-xxx)',
+      description: 'Tautkan kartu tugas Kanban langsung di dokumen',
+      icon: <Bookmark className="h-4 w-4 text-project-accent" />,
+      run: (ed) => {
+        deleteSlashQuery(ed);
+        ed?.chain().focus().insertContent(
+          '<span style="background: var(--project-soft); color: var(--project-accent); padding: 2px 6px; border-radius: 6px; font-family: monospace; font-size: 12px; font-weight: 600;">@YUU-104 (In Progress)</span> '
+        ).run();
+      }
+    },
+    {
+      id: 'share-link',
+      category: 'Embed',
+      title: 'Web Bookmark / Link Card',
+      description: 'Kartu tautan web eksternal',
+      icon: <Share2 className="h-4 w-4" />,
+      run: (ed) => {
+        deleteSlashQuery(ed);
+        ed?.chain().focus().insertContent(
+          '<p><a href="https://github.com" target="_blank" rel="noopener noreferrer">https://github.com</a></p>'
+        ).run();
+      }
     }
   ];
 
-  const filteredCommands = slashCommands.filter(
+  const filteredCommands = commandList.filter(
     (cmd) =>
       cmd.title.toLowerCase().includes(slashQuery) ||
-      cmd.description.toLowerCase().includes(slashQuery) ||
-      cmd.id.includes(slashQuery)
+      cmd.description.toLowerCase().includes(slashQuery)
   );
+
+  const handleSelectCommand = (cmd: CommandItem) => {
+    if (editor) {
+      cmd.run(editor);
+      setShowSlashMenu(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!showSlashMenu) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSelectedIndex((prev) => (prev + 1) % Math.max(1, filteredCommands.length));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSelectedIndex((prev) => (prev - 1 + filteredCommands.length) % Math.max(1, filteredCommands.length));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (filteredCommands[selectedIndex]) {
+        handleSelectCommand(filteredCommands[selectedIndex]);
+      }
+    } else if (e.key === 'Escape') {
+      setShowSlashMenu(false);
+    }
+  };
 
   const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !editor) return;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = reader.result as string;
-      editor.chain().focus().setImage({ src: dataUrl, alt: file.name }).run();
-    };
-    reader.readAsDataURL(file);
+    if (file && editor) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        deleteSlashQuery(editor);
+        editor.chain().focus().setImage({ src: reader.result as string }).run();
+        setShowSlashMenu(false);
+      };
+      reader.readAsDataURL(file);
+    }
     e.target.value = '';
   };
-
-  if (!editor) return null;
 
   return (
     <div
       ref={editorContainerRef}
-      className="relative flex flex-col rounded-xl border border-appflowy-border bg-appflowy-bg dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg"
+      onKeyDown={handleKeyDown}
+      className="relative w-full font-sans select-text"
     >
+      {/* Hidden file input */}
       <input
         ref={fileInputRef}
         type="file"
@@ -226,171 +406,134 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ content, onChange, e
         className="hidden"
       />
 
-      {editable && (
-        <div className="flex flex-wrap items-center justify-between border-b border-appflowy-border px-3 py-1.5 text-xs dark:border-appflowy-darkBorder">
-          <div className="flex flex-wrap items-center gap-0.5">
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleBold().run()}
-              className={`flex h-7 w-7 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-200/60 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 ${
-                editor.isActive('bold') ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' : ''
-              }`}
-              title="Bold"
-            >
-              <Bold className="h-3.5 w-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleItalic().run()}
-              className={`flex h-7 w-7 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-200/60 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 ${
-                editor.isActive('italic') ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' : ''
-              }`}
-              title="Italic"
-            >
-              <Italic className="h-3.5 w-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleStrike().run()}
-              className={`flex h-7 w-7 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-200/60 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 ${
-                editor.isActive('strike') ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' : ''
-              }`}
-              title="Strikethrough"
-            >
-              <Strikethrough className="h-3.5 w-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleCode().run()}
-              className={`flex h-7 w-7 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-200/60 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 ${
-                editor.isActive('code') ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' : ''
-              }`}
-              title="Inline Code"
-            >
-              <Code className="h-3.5 w-3.5" />
-            </button>
-
-            <div className="mx-1 h-3.5 w-px bg-appflowy-border dark:bg-appflowy-darkBorder" />
-
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-              className={`flex h-7 w-7 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-200/60 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 ${
-                editor.isActive('heading', { level: 1 }) ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' : ''
-              }`}
-              title="Heading 1"
-            >
-              <Heading1 className="h-3.5 w-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-              className={`flex h-7 w-7 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-200/60 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 ${
-                editor.isActive('heading', { level: 2 }) ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' : ''
-              }`}
-              title="Heading 2"
-            >
-              <Heading2 className="h-3.5 w-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleTaskList().run()}
-              className={`flex h-7 w-7 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-200/60 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 ${
-                editor.isActive('taskList') ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' : ''
-              }`}
-              title="Task List"
-            >
-              <CheckSquare className="h-3.5 w-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleBulletList().run()}
-              className={`flex h-7 w-7 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-200/60 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 ${
-                editor.isActive('bulletList') ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' : ''
-              }`}
-              title="Bulleted List"
-            >
-              <List className="h-3.5 w-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleBlockquote().run()}
-              className={`flex h-7 w-7 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-200/60 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 ${
-                editor.isActive('blockquote') ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' : ''
-              }`}
-              title="Quote"
-            >
-              <Quote className="h-3.5 w-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="flex h-7 w-7 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-200/60 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800"
-              title="Insert Image"
-            >
-              <ImageIcon className="h-3.5 w-3.5" />
-            </button>
-          </div>
-
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().undo().run()}
-              disabled={!editor.can().undo()}
-              className="flex h-6 w-6 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-200/60 disabled:opacity-30 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800"
-              title="Undo"
-            >
-              <Undo className="h-3 w-3" />
-            </button>
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().redo().run()}
-              disabled={!editor.can().redo()}
-              className="flex h-6 w-6 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-200/60 disabled:opacity-30 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800"
-              title="Redo"
-            >
-              <Redo className="h-3 w-3" />
-            </button>
-          </div>
+      {/* Floating Toolbar saat mode edit */}
+      {editable && editor && (
+        <div className="mb-3 flex flex-wrap items-center gap-1 rounded-xl border border-border bg-bar p-1.5 shadow-2xs">
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleBold().run()}
+            className={cn('p-1.5 rounded-lg text-muted hover:text-text hover:bg-hover cursor-pointer', editor.isActive('bold') && 'bg-surface text-text font-bold')}
+            title="Tebal (Ctrl+B)"
+          >
+            <Bold className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleItalic().run()}
+            className={cn('p-1.5 rounded-lg text-muted hover:text-text hover:bg-hover cursor-pointer', editor.isActive('italic') && 'bg-surface text-text font-bold')}
+            title="Miring (Ctrl+I)"
+          >
+            <Italic className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleStrike().run()}
+            className={cn('p-1.5 rounded-lg text-muted hover:text-text hover:bg-hover cursor-pointer', editor.isActive('strike') && 'bg-surface text-text font-bold')}
+            title="Coret"
+          >
+            <Strikethrough className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleCode().run()}
+            className={cn('p-1.5 rounded-lg text-muted hover:text-text hover:bg-hover cursor-pointer', editor.isActive('code') && 'bg-surface text-text font-bold')}
+            title="Inline Code"
+          >
+            <Code className="h-3.5 w-3.5" />
+          </button>
+          <div className="h-4 w-px bg-border mx-1" />
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleBulletList().run()}
+            className={cn('p-1.5 rounded-lg text-muted hover:text-text hover:bg-hover cursor-pointer', editor.isActive('bulletList') && 'bg-surface text-text font-bold')}
+            title="Daftar Poin"
+          >
+            <List className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleTaskList().run()}
+            className={cn('p-1.5 rounded-lg text-muted hover:text-text hover:bg-hover cursor-pointer', editor.isActive('taskList') && 'bg-surface text-text font-bold')}
+            title="Checklist"
+          >
+            <CheckSquare className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleBlockquote().run()}
+            className={cn('p-1.5 rounded-lg text-muted hover:text-text hover:bg-hover cursor-pointer', editor.isActive('blockquote') && 'bg-surface text-text font-bold')}
+            title="Kutipan"
+          >
+            <Quote className="h-3.5 w-3.5" />
+          </button>
+          <div className="h-4 w-px bg-border mx-1" />
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().undo().run()}
+            disabled={!editor.can().undo()}
+            className="p-1.5 rounded-lg text-muted hover:text-text hover:bg-hover disabled:opacity-30 cursor-pointer"
+            title="Undo"
+          >
+            <Undo className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().redo().run()}
+            disabled={!editor.can().redo()}
+            className="p-1.5 rounded-lg text-muted hover:text-text hover:bg-hover disabled:opacity-30 cursor-pointer"
+            title="Redo"
+          >
+            <Redo className="h-3.5 w-3.5" />
+          </button>
         </div>
       )}
 
-      <div className="p-4 text-xs leading-relaxed text-appflowy-text dark:text-appflowy-darkText">
-        <EditorContent editor={editor} />
-      </div>
+      {/* Editor Content Canvas */}
+      <EditorContent
+        editor={editor}
+        className={cn(
+          'prose dark:prose-invert max-w-none focus:outline-none min-h-[220px]',
+          !editable && 'opacity-90 pointer-events-none'
+        )}
+      />
 
-      {showSlashMenu && filteredCommands.length > 0 && (
+      {/* Slash Command Menu Popover */}
+      {showSlashMenu && editable && (
         <div
           style={{ top: `${menuPosition.top}px`, left: `${menuPosition.left}px` }}
-          className="absolute z-50 max-h-64 w-60 overflow-y-auto rounded-xl border border-appflowy-border bg-appflowy-surface p-1.5 shadow-2xl backdrop-blur-md dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface"
+          className="absolute z-50 w-72 max-h-80 overflow-y-auto rounded-2xl border border-border bg-surface p-1.5 shadow-card-drag animate-in fade-in zoom-in-95 duration-150"
         >
-          <div className="flex items-center gap-1.5 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-purple-600 dark:text-purple-400">
-            <Sparkles className="h-3 w-3" />
-            <span>Notion Blocks</span>
+          <div className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted border-b border-border mb-1">
+            Perintah Blok (Tekan /)
           </div>
-          {filteredCommands.map((cmd) => {
-            const Icon = cmd.icon;
-            return (
+
+          {filteredCommands.length === 0 ? (
+            <div className="px-3 py-4 text-center text-xs text-muted">
+              Tidak ada perintah yang cocok
+            </div>
+          ) : (
+            filteredCommands.map((cmd, idx) => (
               <button
                 key={cmd.id}
                 type="button"
-                onClick={() => executeSlashAction(cmd.action)}
-                className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-xs transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                onClick={() => handleSelectCommand(cmd)}
+                className={cn(
+                  'flex w-full items-start gap-2.5 rounded-lg p-2 text-left transition-colors cursor-pointer',
+                  idx === selectedIndex
+                    ? 'bg-project-soft text-project-accent font-medium'
+                    : 'text-text hover:bg-hover'
+                )}
               >
-                <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
-                  <Icon className="h-3.5 w-3.5" />
+                <div className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-md bg-bar text-muted shrink-0">
+                  {cmd.icon}
                 </div>
-                <div>
-                  <div className="font-medium text-appflowy-text dark:text-appflowy-darkText">
-                    {cmd.title}
-                  </div>
-                  <div className="text-[10px] text-appflowy-muted dark:text-appflowy-darkMuted">
-                    {cmd.description}
-                  </div>
+                <div className="min-w-0">
+                  <div className="text-xs font-semibold leading-none">{cmd.title}</div>
+                  <div className="text-[11px] text-muted truncate mt-1">{cmd.description}</div>
                 </div>
               </button>
-            );
-          })}
+            ))
+          )}
         </div>
       )}
     </div>

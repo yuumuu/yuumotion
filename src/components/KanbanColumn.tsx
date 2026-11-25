@@ -3,6 +3,7 @@ import { Card, Column } from '../types/board';
 import { KanbanCard } from './KanbanCard';
 import { Plus, MoreHorizontal, Trash2 } from 'lucide-react';
 import { Button } from './ui';
+import { cn } from '../lib/cn';
 
 interface KanbanColumnProps {
   column: Column;
@@ -53,44 +54,52 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
     }
   };
 
+  const isDoneColumn = column.title.toLowerCase().includes('done') || column.title.toLowerCase().includes('selesai');
+
   return (
-    <div
+    <section
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      className={`flex h-full w-72 flex-shrink-0 flex-col rounded-xl border transition-all duration-200 ${
-        isDragOver
-          ? 'border-purple-500/80 bg-purple-50/50 shadow-md ring-2 ring-purple-500/20 dark:border-purple-500 dark:bg-purple-950/20'
-          : 'border-zinc-200/80 bg-zinc-100/60 dark:border-[#27272A] dark:bg-[#121215]'
-      }`}
+      className={cn(
+        'flex h-full w-[var(--space-col-w)] flex-shrink-0 flex-col rounded-2xl border border-border bg-bar transition-all duration-200 select-none',
+        isDragOver && 'border-project-accent ring-2 ring-project-ring shadow-card-hover'
+      )}
     >
-      <div className="flex items-center justify-between px-3 py-2.5">
+      {/* Column Header */}
+      <div className="flex items-center justify-between px-3.5 py-3 border-b border-border/80">
         <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: column.color }} />
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-appflowy-muted dark:text-appflowy-darkMuted">
+          <span
+            className="h-2.5 w-2.5 rounded-full shrink-0"
+            style={{ backgroundColor: column.color || 'var(--project-solid)' }}
+          />
+          <h2 className="font-display text-xs font-bold uppercase tracking-wider text-text">
             {column.title}
-          </h3>
-          <span className="flex h-4 min-w-4 items-center justify-center rounded-md border border-zinc-200 bg-zinc-200/70 px-1.5 font-mono text-[10px] font-semibold text-zinc-700 dark:border-zinc-800 dark:bg-[#18181B] dark:text-zinc-400">
+          </h2>
+          <span className="flex h-4 min-w-4 items-center justify-center rounded-md border border-border bg-surface px-1.5 font-mono text-[10px] font-semibold text-muted">
             {cards.length}
           </span>
         </div>
 
         <div className="relative">
           <button
+            type="button"
             onClick={() => setShowMenu(!showMenu)}
-            className="flex h-6 w-6 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-200/60 dark:text-appflowy-darkMuted dark:hover:bg-neutral-800 cursor-pointer"
+            className="flex h-6 w-6 items-center justify-center rounded-md text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer"
+            title="Menu Kolom"
           >
             <MoreHorizontal className="h-3.5 w-3.5" />
           </button>
 
           {showMenu && (
-            <div className="absolute right-0 top-7 z-20 w-36 rounded-xl border border-appflowy-border bg-appflowy-surface p-1 shadow-lg dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface">
+            <div className="absolute right-0 top-7 z-20 w-36 rounded-xl border border-border bg-surface p-1 shadow-card-hover animate-in fade-in zoom-in-95 duration-100">
               <button
+                type="button"
                 onClick={() => {
                   setShowMenu(false);
                   onDeleteColumn(column.id);
                 }}
-                className="flex w-full items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 cursor-pointer"
+                className="flex w-full items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs text-danger hover:bg-status-urgent-bg transition-colors cursor-pointer"
               >
                 <Trash2 className="h-3.5 w-3.5" />
                 <span>Hapus Kolom</span>
@@ -100,11 +109,13 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
         </div>
       </div>
 
-      <div className="flex-1 space-y-2 overflow-y-auto px-2.5 py-1">
+      {/* Cards List Area */}
+      <div className="flex-1 space-y-[var(--space-card-gap)] overflow-y-auto px-2.5 py-3">
         {cards.map((card) => (
           <KanbanCard
             key={card.id}
             card={card}
+            isDoneColumn={isDoneColumn}
             onClick={() => onCardClick(card)}
             onDragStart={(e) => {
               e.dataTransfer.setData('text/plain', card.id);
@@ -112,16 +123,17 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
           />
         ))}
 
+        {/* Drop Target Placeholder (Zero Layout Shift) */}
         {isDragOver && (
-          <div className="h-9 rounded-xl border-2 border-dashed border-purple-400/80 bg-purple-100/40 dark:border-purple-600/80 dark:bg-purple-950/30 animate-pulse" />
+          <div className="h-24 rounded-xl border-2 border-dashed border-project-accent/60 bg-project-soft/50 animate-pulse transition-all duration-200" />
         )}
 
+        {/* Inline Add Card Form */}
         {isAdding ? (
-          <form onSubmit={handleCreate} className="rounded-xl border border-purple-300 bg-white p-2.5 shadow-2xs dark:border-purple-800 dark:bg-neutral-800">
+          <form onSubmit={handleCreate} className="rounded-xl border border-project-accent bg-surface p-2.5 shadow-card-rest animate-in fade-in duration-150">
             <textarea
               autoFocus
-              rows={2}
-              placeholder="Tuliskan tugas yang perlu dikerjakan..."
+              placeholder="Tulis judul kartu baru..."
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               onKeyDown={(e) => {
@@ -129,33 +141,31 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
                   e.preventDefault();
                   handleCreate(e);
                 }
+                if (e.key === 'Escape') setIsAdding(false);
               }}
-              className="w-full resize-none bg-transparent text-xs text-appflowy-text focus:outline-none dark:text-appflowy-darkText placeholder-neutral-400"
+              rows={2}
+              className="w-full resize-none bg-transparent text-xs text-text placeholder:text-muted focus:outline-none font-sans"
             />
             <div className="mt-2 flex items-center justify-end gap-1.5">
-              <Button
-                type="button"
-                variant="ghost"
-                size="xs"
-                onClick={() => setIsAdding(false)}
-              >
+              <Button size="xs" variant="ghost" type="button" onClick={() => setIsAdding(false)}>
                 Batal
               </Button>
-              <Button type="submit" variant="primary" size="xs">
-                Tambah Kartu
+              <Button size="xs" variant="primary" type="submit">
+                Tambah
               </Button>
             </div>
           </form>
         ) : (
           <button
+            type="button"
             onClick={() => setIsAdding(true)}
-            className="flex w-full items-center gap-1.5 rounded-xl px-2 py-1.5 text-xs font-medium text-appflowy-muted transition-colors hover:bg-neutral-200/50 hover:text-appflowy-text dark:text-appflowy-darkMuted dark:hover:bg-neutral-800/60 dark:hover:text-appflowy-darkText cursor-pointer"
+            className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-border py-2 text-xs font-medium text-muted hover:border-project-accent hover:bg-project-soft hover:text-project-accent transition-all cursor-pointer"
           >
             <Plus className="h-3.5 w-3.5" />
-            <span>Kartu Baru</span>
+            <span>Tambah Kartu</span>
           </button>
         )}
       </div>
-    </div>
+    </section>
   );
 };

@@ -1,0 +1,117 @@
+import React, { useEffect } from 'react';
+import { X, Maximize2, Square } from 'lucide-react';
+import { cn } from '../../lib/cn';
+import { CardOpenMode } from '../../types/preferences';
+
+export interface DrawerProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title?: React.ReactNode;
+  subtitle?: React.ReactNode;
+  currentMode?: CardOpenMode;
+  onChangeMode?: (mode: CardOpenMode) => void;
+  children: React.ReactNode;
+  footer?: React.ReactNode;
+  className?: string;
+}
+
+export const Drawer: React.FC<DrawerProps> = ({
+  isOpen,
+  onClose,
+  title,
+  subtitle,
+  currentMode = 'drawer',
+  onChangeMode,
+  children,
+  footer,
+  className
+}) => {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    if (isOpen) window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-50 overflow-hidden bg-black/25 dark:bg-black/60 backdrop-blur-[2px] animate-in fade-in duration-200"
+    >
+      <div className="absolute inset-y-0 right-0 flex max-w-full pl-10">
+        <div
+          className={cn(
+            'flex w-screen max-w-[560px] flex-col border-l border-border bg-surface shadow-card-drag animate-in slide-in-from-right duration-250',
+            className
+          )}
+        >
+          {/* Header */}
+          <div className="flex h-14 items-center justify-between border-b border-border px-5 bg-bar shrink-0">
+            <div className="min-w-0 pr-2">
+              {title && (
+                <div className="font-display text-sm font-semibold text-text truncate">
+                  {title}
+                </div>
+              )}
+              {subtitle && (
+                <div className="text-xs text-muted truncate">{subtitle}</div>
+              )}
+            </div>
+
+            <div className="flex items-center gap-1 shrink-0">
+              {onChangeMode && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => onChangeMode('modal')}
+                    className={cn(
+                      'p-1.5 rounded-md text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer',
+                      currentMode === 'modal' && 'bg-hover text-text font-semibold'
+                    )}
+                    title="Ubah ke Center Modal"
+                  >
+                    <Square className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onChangeMode('fullpage')}
+                    className={cn(
+                      'p-1.5 rounded-md text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer',
+                      currentMode === 'fullpage' && 'bg-hover text-text font-semibold'
+                    )}
+                    title="Buka Halaman Penuh"
+                  >
+                    <Maximize2 className="h-4 w-4" />
+                  </button>
+                </>
+              )}
+
+              <button
+                type="button"
+                onClick={onClose}
+                className="p-1.5 rounded-md text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer"
+                title="Tutup (Esc)"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Body Content */}
+          <div className="flex-1 overflow-y-auto p-6">{children}</div>
+
+          {/* Optional Footer */}
+          {footer && (
+            <div className="border-t border-border px-5 py-3.5 bg-bar shrink-0">
+              {footer}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};

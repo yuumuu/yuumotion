@@ -40,11 +40,15 @@ import { WorkspaceMembersModal } from './components/WorkspaceMembersModal';
 import { LandingPage } from './components/LandingPage';
 import { AuthPage } from './components/AuthPage';
 import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
+import { CommandPalette } from './components/CommandPalette';
+import { PreferencesModal } from './components/PreferencesModal';
 import { ToastContainer, toast } from './components/ui';
 
 export const App: React.FC = () => {
   const [appRoute, setAppRoute] = useState<'app' | 'landing' | 'auth'>('app');
   const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [isPreferencesModalOpen, setIsPreferencesModalOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<AuthUser>(() => getStoredAuthUser());
   const [workspaces, setWorkspaces] = useState<Workspace[]>(() => getStoredWorkspaces(currentUser));
   const [activeWorkspaceId, setActiveWorkspaceIdState] = useState<string>(() =>
@@ -785,6 +789,8 @@ export const App: React.FC = () => {
         currentUserRole={currentUserRole}
         onOpenAuthModal={() => setIsAuthModalOpen(true)}
         onOpenMembersModal={() => setIsMembersModalOpen(true)}
+        onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
+        onOpenPreferences={() => setIsPreferencesModalOpen(true)}
       />
 
       <div className="flex flex-1 flex-col overflow-hidden">
@@ -816,6 +822,8 @@ export const App: React.FC = () => {
           onNavigateToLanding={() => setAppRoute('landing')}
           onOpenAuthModal={() => setIsAuthModalOpen(true)}
           onOpenShortcutsModal={() => setIsShortcutsModalOpen(true)}
+          onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
+          onOpenPreferences={() => setIsPreferencesModalOpen(true)}
         />
 
         <main className="flex-1 overflow-hidden">
@@ -925,6 +933,24 @@ export const App: React.FC = () => {
       <KeyboardShortcutsModal
         isOpen={isShortcutsModalOpen}
         onClose={() => setIsShortcutsModalOpen(false)}
+      />
+
+      <CommandPalette
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        onNavigateView={(v) => setActiveView(v as WorkspaceView)}
+        onQuickCreateTask={() => {
+          const title = prompt('Judul Tugas Baru:');
+          if (title?.trim() && activeBoard.columns[0]) {
+            handleAddCard(activeBoard.columns[0].id, title.trim());
+          }
+        }}
+        onOpenPreferences={() => setIsPreferencesModalOpen(true)}
+      />
+
+      <PreferencesModal
+        isOpen={isPreferencesModalOpen}
+        onClose={() => setIsPreferencesModalOpen(false)}
       />
 
       <ToastContainer />
