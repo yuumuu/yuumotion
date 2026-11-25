@@ -19,3 +19,5 @@ export * from './Kbd';
 export * from './Separator';
 export * from './AttachmentCard';
 export * from './ConfirmDialog';
+export * from './ColorPicker';
+export * from './EmojiPickerPopover';

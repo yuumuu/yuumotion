@@ -77,11 +77,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({
       onUserChange(result.user);
       onEnterApp();
     } else {
+      const normalizedEmail = email.trim().toLowerCase();
+      const deterministicId = `usr-offline-${normalizedEmail.replace(/[^a-z0-9]/g, '_')}`;
       const localUser: AuthUser = {
-        id: `usr-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-        name: email.split('@')[0] || 'User',
-        email: email.trim(),
-        avatar: (email.charAt(0) || 'U').toUpperCase(),
+        id: deterministicId,
+        name: normalizedEmail.split('@')[0] || 'User',
+        email: normalizedEmail,
+        avatar: (normalizedEmail.charAt(0) || 'U').toUpperCase(),
         color: selectedColor,
         isCloudAuth: false
       };

@@ -80,11 +80,23 @@ export async function checkWorkspaceRole(
 }
 
 const rateHits = new Map<string, number[]>();
+let lastPruneAt = Date.now();
 
 export function rateLimitAuth(maxAttempts = 15, windowMs = 60_000) {
   return async (c: Context, next: Next) => {
-    const ip = c.req.header('x-forwarded-for') || c.req.header('cf-connecting-ip') || 'local';
+    const ip = c.req.header('cf-connecting-ip') || c.req.header('x-real-ip') || c.req.header('x-forwarded-for')?.split(',')[0]?.trim() || 'local';
     const now = Date.now();
+
+    // Bersihkan entri kadaluarsa secara berkala agar Map tidak tumbuh tanpa batas
+    if (now - lastPruneAt > windowMs) {
+      for (const [key, hits] of rateHits.entries()) {
+        const active = hits.filter((ts) => now - ts < windowMs);
+        if (active.length === 0) rateHits.delete(key);
+        else rateHits.set(key, active);
+      }
+      lastPruneAt = now;
+    }
+
     const recent = (rateHits.get(ip) || []).filter((ts) => now - ts < windowMs);
     if (recent.length >= maxAttempts) {
       return c.json({ error: 'Terlalu banyak percobaan. Coba lagi sebentar.' }, 429);

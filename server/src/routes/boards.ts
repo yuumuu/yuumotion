@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm';
 import { db } from '../db';
 import { boards, columns, cards } from '../db/schema';
 import { requireAuth, AuthPayload, AppEnv, checkWorkspaceRole } from '../middleware/auth';
+import { authorizeWorkspaceResource } from '../middleware/workspaceGuard';
 import { broadcastWorkspaceEvent } from './events';
 
 export const boardRoutes = new Hono<AppEnv>();
@@ -40,7 +41,12 @@ boardRoutes.post('/', async (c) => {
 });
 
 boardRoutes.delete('/:id', async (c) => {
+  const auth = c.get('user') as AuthPayload;
   const boardId = c.req.param('id');
+  const guard = await authorizeWorkspaceResource(auth.sub, { boardId }, 'member');
+  if (guard.notFound) return c.json({ error: 'Papan tidak ditemukan' }, 404);
+  if (!guard.allowed) return c.json({ error: 'Forbidden' }, 403);
+
   await db.delete(cards).where(eq(cards.boardId, boardId));
   await db.delete(columns).where(eq(columns.boardId, boardId));
   await db.delete(boards).where(eq(boards.id, boardId));
@@ -48,7 +54,12 @@ boardRoutes.delete('/:id', async (c) => {
 });
 
 boardRoutes.post('/:boardId/cards', async (c) => {
+  const auth = c.get('user') as AuthPayload;
   const boardId = c.req.param('boardId');
+  const guard = await authorizeWorkspaceResource(auth.sub, { boardId }, 'member');
+  if (guard.notFound) return c.json({ error: 'Papan tidak ditemukan' }, 404);
+  if (!guard.allowed) return c.json({ error: 'Forbidden' }, 403);
+
   const body = await c.req.json<{ columnId: string; title: string; priority?: string }>();
   const now = Date.now();
   const cardId = `card-${crypto.randomUUID()}`;
@@ -71,7 +82,12 @@ boardRoutes.post('/:boardId/cards', async (c) => {
 });
 
 boardRoutes.patch('/cards/:cardId', async (c) => {
+  const auth = c.get('user') as AuthPayload;
   const cardId = c.req.param('cardId');
+  const guard = await authorizeWorkspaceResource(auth.sub, { cardId }, 'member');
+  if (guard.notFound) return c.json({ error: 'Kartu tidak ditemukan' }, 404);
+  if (!guard.allowed) return c.json({ error: 'Forbidden' }, 403);
+
   const body = await c.req.json<Record<string, unknown>>();
   const now = Date.now();
 

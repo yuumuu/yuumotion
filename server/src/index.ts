@@ -7,6 +7,7 @@ import { boardRoutes } from './routes/boards';
 import { pageRoutes } from './routes/pages';
 import { uploadRoutes } from './routes/uploads';
 import { eventRoutes } from './routes/events';
+import { notificationRoutes } from './routes/notifications';
 
 export const app = new Hono();
 
@@ -28,6 +29,7 @@ app.route('/api/boards', boardRoutes);
 app.route('/api/pages', pageRoutes);
 app.route('/api/uploads', uploadRoutes);
 app.route('/api/events', eventRoutes);
+app.route('/api/notifications', notificationRoutes);
 
 const port = Number(process.env.API_PORT || 8787);
 

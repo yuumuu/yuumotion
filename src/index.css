@@ -104,6 +104,43 @@
   border: 1px solid var(--border);
 }
 
+.ProseMirror table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;
+  margin: 0.75rem 0;
+  overflow: hidden;
+  border-radius: 0.5rem;
+}
+
+.ProseMirror td,
+.ProseMirror th {
+  min-width: 1em;
+  border: 1px solid var(--border);
+  padding: 0.45rem 0.65rem;
+  vertical-align: top;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.ProseMirror th {
+  font-weight: 600;
+  text-align: left;
+  background: var(--bar);
+}
+
+.ProseMirror .selectedCell:after {
+  z-index: 2;
+  position: absolute;
+  content: "";
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: color-mix(in srgb, var(--project-accent) 14%, transparent);
+  pointer-events: none;
+}
+
 @keyframes yuu-hero-drift {
   0%, 100% {
     transform: translate3d(-4%, -2%, 0) scale(1);

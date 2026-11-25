@@ -80,6 +80,7 @@ export const cards = mysqlTable('cards', {
 export const pages = mysqlTable('pages', {
   id: varchar('id', { length: 64 }).primaryKey(),
   workspaceId: varchar('workspace_id', { length: 64 }).notNull(),
+  parentId: varchar('parent_id', { length: 64 }),
   title: varchar('title', { length: 200 }).notNull(),
   icon: varchar('icon', { length: 16 }),
   coverImage: text('cover_image'),
@@ -87,6 +88,22 @@ export const pages = mysqlTable('pages', {
   shareToken: varchar('share_token', { length: 64 }),
   createdAt: bigint('created_at', { mode: 'number' }).notNull(),
   updatedAt: bigint('updated_at', { mode: 'number' }).notNull()
+});
+
+export const notifications = mysqlTable('notifications', {
+  id: varchar('id', { length: 64 }).primaryKey(),
+  workspaceId: varchar('workspace_id', { length: 64 }).notNull(),
+  recipientUserId: varchar('recipient_user_id', { length: 64 }).notNull(),
+  actorId: varchar('actor_id', { length: 64 }).notNull(),
+  actorName: varchar('actor_name', { length: 120 }).notNull(),
+  type: varchar('type', { length: 32 }).notNull(),
+  entityType: varchar('entity_type', { length: 16 }).notNull(),
+  entityId: varchar('entity_id', { length: 64 }).notNull(),
+  boardId: varchar('board_id', { length: 64 }),
+  title: varchar('title', { length: 200 }).notNull(),
+  snippet: text('snippet').notNull(),
+  isRead: boolean('is_read').notNull().default(false),
+  createdAt: bigint('created_at', { mode: 'number' }).notNull()
 });
 
 export const activities = mysqlTable('activities', {

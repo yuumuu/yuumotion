@@ -1,5 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
-  <rect width="100" height="100" rx="24" fill="#6366F1"/>
-  <path d="M30 32L50 62L70 32" stroke="white" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="50" cy="74" r="5" fill="#A5B4FC"/>
+  <defs>
+    <linearGradient id="yuu-blue" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="55%" stop-color="#2563EB"/>
+      <stop offset="100%" stop-color="#1D4ED8"/>
+    </linearGradient>
+  </defs>
+  <rect width="100" height="100" rx="24" fill="url(#yuu-blue)"/>
+  <path d="M30 32L50 62L70 32" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="50" cy="75" r="5.5" fill="#BFDBFE"/>
 </svg>

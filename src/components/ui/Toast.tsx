@@ -5,6 +5,7 @@ export interface ToastMessage {
   id: string;
   type: 'success' | 'error' | 'info';
   text: string;
+  exiting?: boolean;
 }
 
 type ToastListener = (toasts: ToastMessage[]) => void;
@@ -17,14 +18,22 @@ export const toast = {
   info: (text: string) => showToast('info', text)
 };
 
+function dismissToast(id: string) {
+  activeToasts = activeToasts.map((t) => (t.id === id ? { ...t, exiting: true } : t));
+  notify();
+  setTimeout(() => {
+    activeToasts = activeToasts.filter((t) => t.id !== id);
+    notify();
+  }, 150);
+}
+
 function showToast(type: ToastMessage['type'], text: string) {
   const id = `toast-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`;
   activeToasts = [...activeToasts, { id, type, text }];
   notify();
   setTimeout(() => {
-    activeToasts = activeToasts.filter((t) => t.id !== id);
-    notify();
-  }, 3500);
+    dismissToast(id);
+  }, 3350);
 }
 
 function notify() {
@@ -50,19 +59,20 @@ export const ToastContainer: React.FC = () => {
       {toasts.map((t) => (
         <div
           key={t.id}
-          className="pointer-events-auto flex items-center justify-between gap-2.5 rounded-xl border border-appflowy-border bg-appflowy-surface p-3 shadow-lg dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface animate-in slide-in-from-bottom-2 duration-150 text-xs"
+          className={`pointer-events-auto flex items-center justify-between gap-2.5 rounded-xl border border-appflowy-border bg-appflowy-surface p-3 shadow-lg dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface duration-150 text-xs ${
+            t.exiting
+              ? 'animate-out fade-out slide-out-to-bottom-2 fill-mode-forwards'
+              : 'animate-in fade-in slide-in-from-bottom-2'
+          }`}
         >
           <div className="flex items-center gap-2">
             {t.type === 'success' && <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0" />}
             {t.type === 'error' && <Warning className="h-4 w-4 text-rose-500 shrink-0" />}
-            {t.type === 'info' && <Info className="h-4 w-4 text-purple-500 shrink-0" />}
+            {t.type === 'info' && <Info className="h-4 w-4 text-project-solid shrink-0" />}
             <span className="font-medium text-appflowy-text dark:text-appflowy-darkText">{t.text}</span>
           </div>
           <button
-            onClick={() => {
-              activeToasts = activeToasts.filter((item) => item.id !== t.id);
-              notify();
-            }}
+            onClick={() => dismissToast(t.id)}
             className="text-appflowy-muted hover:text-appflowy-text dark:hover:text-appflowy-darkText cursor-pointer"
           >
             <X className="h-3.5 w-3.5" />

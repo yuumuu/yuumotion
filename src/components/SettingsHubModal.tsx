@@ -23,7 +23,7 @@ import {
   Bell,
   Plus
 } from '@phosphor-icons/react';
-import { Dialog, Button, Input, Switch, Kbd, CustomSelect, toast } from './ui';
+import { Dialog, Button, Input, Switch, Kbd, CustomSelect, ColorPicker, EmojiPickerPopover, toast } from './ui';
 import { cn } from '../lib/cn';
 import { usePreferences } from '../context/PreferencesContext';
 import { AppTheme, AppDensity, CardOpenMode, ProjectAccentTheme } from '../types/preferences';
@@ -49,11 +49,6 @@ interface SettingsHubModalProps {
 
 const AVATAR_COLORS = ['#2563EB', '#1D4ED8', '#0B0D12', '#3B82F6', '#0EA5E9', '#64748B'];
 const AVATAR_EMOJIS = ['🚀', '🎨', '⚡', '🦊', '✨', '💻'];
-const ALL_AVATAR_EMOJIS = [
-  '🚀', '🎨', '⚡', '🦊', '✨', '💻', '🧠', '🔥',
-  '🎯', '📋', '🌿', '🌊', '🎧', '🛠️', '📦', '🛡️',
-  '🌟', '🧩', '📐', '🔭', '🦉', '🐳', '🏔️', '☕'
-];
 const TIMEZONE_OPTIONS = [
   'Asia/Jakarta (WIB)',
   'Asia/Makassar (WITA)',
@@ -206,10 +201,10 @@ export const SettingsHubModal: React.FC<SettingsHubModalProps> = ({
   };
 
   const navItems: { id: SettingsTab; label: string; icon: React.ReactNode }[] = [
-    { id: 'profile', label: 'Profil Akun', icon: <User className="h-4 w-4" /> },
-    { id: 'appearance', label: 'Tampilan', icon: <Palette className="h-4 w-4" /> },
-    { id: 'sync', label: 'Sinkron & Data', icon: <Cloud className="h-4 w-4" /> },
-    { id: 'shortcuts', label: 'Pintasan', icon: <KeyboardIcon className="h-4 w-4" /> }
+    { id: 'profile', label: 'Profil Akun', icon: <User className="w-4 h-4" /> },
+    { id: 'appearance', label: 'Tampilan', icon: <Palette className="w-4 h-4" /> },
+    { id: 'sync', label: 'Sinkron & Data', icon: <Cloud className="w-4 h-4" /> },
+    { id: 'shortcuts', label: 'Pintasan', icon: <KeyboardIcon className="w-4 h-4" /> }
   ];
 
   return (
@@ -224,7 +219,7 @@ export const SettingsHubModal: React.FC<SettingsHubModalProps> = ({
         {/* Vertical Tab Menu */}
         <nav
           aria-label="Menu Pengaturan"
-          className="flex sm:flex-col gap-1 sm:w-44 shrink-0 border-b sm:border-b-0 sm:border-r border-border pb-3 sm:pb-0 sm:pr-4 overflow-x-auto"
+          className="flex overflow-x-auto gap-1 pb-3 border-b sm:flex-col sm:w-44 shrink-0 sm:border-b-0 sm:border-r border-border sm:pb-0 sm:pr-4"
         >
           {navItems.map((item) => {
             const active = activeTab === item.id;
@@ -252,19 +247,19 @@ export const SettingsHubModal: React.FC<SettingsHubModalProps> = ({
           {activeTab === 'profile' && (
             <form onSubmit={handleSaveProfile} className="space-y-5">
               {/* Avatar & Identity Card */}
-              <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-bg p-4">
+              <div className="flex flex-wrap gap-4 justify-between items-center p-4 rounded-2xl border border-border bg-bg">
                 <div className="flex items-center gap-3.5 min-w-0">
                   <div className="relative shrink-0">
                     {profileAvatarUrl ? (
                       <img
                         src={profileAvatarUrl}
                         alt={profileName}
-                        className="h-14 w-14 rounded-full object-cover ring-2 ring-border"
+                        className="object-cover w-14 h-14 rounded-full ring-2 ring-border"
                       />
                     ) : (
                       <div
                         style={{ backgroundColor: profileColor }}
-                        className="flex h-14 w-14 items-center justify-center rounded-full text-lg font-bold text-white shadow-sm"
+                        className="flex justify-center items-center w-14 h-14 text-lg font-bold text-white rounded-full shadow-sm"
                       >
                         {profileAvatarEmoji || profileName.trim().charAt(0).toUpperCase() || 'U'}
                       </div>
@@ -281,7 +276,7 @@ export const SettingsHubModal: React.FC<SettingsHubModalProps> = ({
                     />
                   </div>
                   <div className="min-w-0">
-                    <div className="font-display text-sm font-bold text-text truncate">
+                    <div className="text-sm font-bold truncate font-display text-text">
                       {profileName || 'Pengguna Lokal'}
                     </div>
                     <div className="text-[11px] text-muted truncate">
@@ -293,7 +288,7 @@ export const SettingsHubModal: React.FC<SettingsHubModalProps> = ({
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex gap-2 items-center">
                   <input
                     ref={avatarInputRef}
                     type="file"
@@ -318,7 +313,7 @@ export const SettingsHubModal: React.FC<SettingsHubModalProps> = ({
                         setProfileAvatarEmoji('');
                       }}
                       title="Reset ke inisial"
-                      className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-muted hover:text-rose-500 hover:bg-hover transition-colors cursor-pointer"
+                      className="flex justify-center items-center w-8 h-8 rounded-lg border transition-colors cursor-pointer border-border text-muted hover:text-rose-500 hover:bg-hover"
                     >
                       <Trash className="h-3.5 w-3.5" />
                     </button>
@@ -327,8 +322,8 @@ export const SettingsHubModal: React.FC<SettingsHubModalProps> = ({
               </div>
 
               {/* Avatar Emoji & Color */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2 relative">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="relative space-y-2">
                   <label className="text-xs font-semibold text-text">Preset Emoji Avatar</label>
                   <div className="flex flex-wrap gap-2">
                     {AVATAR_EMOJIS.map((em) => (
@@ -355,7 +350,7 @@ export const SettingsHubModal: React.FC<SettingsHubModalProps> = ({
                       onClick={() => setIsEmojiPickerOpen((v) => !v)}
                       title="Pilih dari semua emoji & ikon"
                       className={cn(
-                        'flex h-8 w-8 items-center justify-center rounded-lg border text-xs font-semibold transition-colors cursor-pointer',
+                        'flex justify-center items-center w-8 h-8 text-xs font-semibold rounded-lg border transition-colors cursor-pointer',
                         isEmojiPickerOpen
                           ? 'border-project-accent bg-project-soft text-project-solid'
                           : 'border-dashed border-border bg-bg text-muted hover:text-text hover:bg-hover'
@@ -365,46 +360,23 @@ export const SettingsHubModal: React.FC<SettingsHubModalProps> = ({
                     </button>
                   </div>
 
-                  {isEmojiPickerOpen && (
-                    <div className="mt-2 rounded-xl border border-border bg-surface p-2.5 shadow-popover">
-                      <div className="mb-1.5 flex items-center justify-between text-[10px] font-semibold uppercase tracking-wider text-muted">
-                        <span>Semua Emoji &amp; Ikon</span>
-                        <button
-                          type="button"
-                          onClick={() => setIsEmojiPickerOpen(false)}
-                          className="text-muted hover:text-text cursor-pointer"
-                        >
-                          Tutup
-                        </button>
-                      </div>
-                      <div className="grid grid-cols-8 gap-1">
-                        {ALL_AVATAR_EMOJIS.map((em) => (
-                          <button
-                            key={em}
-                            type="button"
-                            onClick={() => {
-                              setProfileAvatarEmoji(em);
-                              setProfileAvatarUrl('');
-                              setIsEmojiPickerOpen(false);
-                            }}
-                            className={cn(
-                              'flex h-7 w-7 items-center justify-center rounded-md text-sm transition-colors cursor-pointer',
-                              profileAvatarEmoji === em && !profileAvatarUrl
-                                ? 'bg-project-soft ring-1 ring-project-accent'
-                                : 'hover:bg-hover'
-                            )}
-                          >
-                            {em}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                  <EmojiPickerPopover
+                    isOpen={isEmojiPickerOpen}
+                    selectedEmoji={profileAvatarEmoji}
+                    onSelect={(em) => {
+                      setProfileAvatarEmoji(em);
+                      setProfileAvatarUrl('');
+                    }}
+                    onClose={() => setIsEmojiPickerOpen(false)}
+                  />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-text">Warna Identitas Avatar</label>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-semibold text-text">Warna Identitas Avatar</label>
+                    <span className="font-mono text-[10px] uppercase text-muted">{profileColor}</span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
                     {AVATAR_COLORS.map((color) => (
                       <button
                         key={color}
@@ -419,6 +391,12 @@ export const SettingsHubModal: React.FC<SettingsHubModalProps> = ({
                         {profileColor === color && <Check className="h-3.5 w-3.5" weight="bold" />}
                       </button>
                     ))}
+                    <ColorPicker
+                      value={profileColor}
+                      onChange={setProfileColor}
+                      presets={AVATAR_COLORS}
+                      align="right"
+                    />
                   </div>
                 </div>
               </div>
@@ -470,7 +448,7 @@ export const SettingsHubModal: React.FC<SettingsHubModalProps> = ({
                   value={profileBio}
                   onChange={(e) => setProfileBio(e.target.value)}
                   placeholder="Ceritakan fokus kerja atau catatan singkat untuk anggota tim..."
-                  className="w-full rounded-xl border border-border bg-bg px-3 py-2 text-xs text-text placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-project-accent/40 resize-none"
+                  className="px-3 py-2 w-full text-xs rounded-xl border resize-none border-border bg-bg text-text placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-project-accent/40"
                 />
               </div>
 
@@ -504,8 +482,8 @@ export const SettingsHubModal: React.FC<SettingsHubModalProps> = ({
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-start gap-2">
+                <div className="flex gap-3 justify-between items-center">
+                  <div className="flex gap-2 items-start">
                     <Bell className="h-4 w-4 text-project-solid shrink-0 mt-0.5" />
                     <div>
                       <div className="text-xs font-semibold text-text">Notifikasi Tenggat</div>
@@ -521,8 +499,8 @@ export const SettingsHubModal: React.FC<SettingsHubModalProps> = ({
 
               {/* Account Security & Logout */}
               <div className="rounded-xl border border-border bg-bg p-3.5 space-y-3">
-                <div className="flex items-center gap-2 text-xs font-semibold text-text">
-                  <Lock className="h-4 w-4 text-project-solid" />
+                <div className="flex gap-2 items-center text-xs font-semibold text-text">
+                  <Lock className="w-4 h-4 text-project-solid" />
                   <span>Keamanan Akun &amp; Sesi</span>
                 </div>
                 <div className="space-y-2.5 max-w-sm">
@@ -544,7 +522,7 @@ export const SettingsHubModal: React.FC<SettingsHubModalProps> = ({
                 </div>
 
                 {onLogout && (
-                  <div className="flex items-center justify-between pt-2 border-t border-border">
+                  <div className="flex justify-between items-center pt-2 border-t border-border">
                     <span className="text-[11px] text-muted">
                       Keluar dari sesi aktif dan kembali ke halaman depan.
                     </span>
@@ -560,7 +538,7 @@ export const SettingsHubModal: React.FC<SettingsHubModalProps> = ({
                 )}
               </div>
 
-              <div className="pt-1 flex justify-end">
+              <div className="flex justify-end pt-1">
                 <Button type="submit" variant="primary" size="sm">
                   Simpan Profil
                 </Button>
@@ -576,9 +554,9 @@ export const SettingsHubModal: React.FC<SettingsHubModalProps> = ({
                 <div className="grid grid-cols-3 gap-2.5">
                   {(
                     [
-                      { id: 'light', label: 'Terang', icon: <Sun className="h-4 w-4" /> },
-                      { id: 'dark', label: 'Gelap', icon: <Moon className="h-4 w-4" /> },
-                      { id: 'system', label: 'Sistem', icon: <Desktop className="h-4 w-4" /> }
+                      { id: 'light', label: 'Terang', icon: <Sun className="w-4 h-4" /> },
+                      { id: 'dark', label: 'Gelap', icon: <Moon className="w-4 h-4" /> },
+                      { id: 'system', label: 'Sistem', icon: <Desktop className="w-4 h-4" /> }
                     ] as { id: AppTheme; label: string; icon: React.ReactNode }[]
                   ).map((t) => (
                     <button
@@ -602,7 +580,7 @@ export const SettingsHubModal: React.FC<SettingsHubModalProps> = ({
               {/* Project Accent */}
               <div className="space-y-2.5">
                 <label className="text-xs font-semibold text-text">Aksen Warna Project</label>
-                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
                   {ACCENT_PRESETS.map((preset) => {
                     const active = activeProjectTheme === preset.id;
                     return (
@@ -616,10 +594,10 @@ export const SettingsHubModal: React.FC<SettingsHubModalProps> = ({
                         )}
                       >
                         <span
-                          className="h-5 w-5 rounded-full flex items-center justify-center text-white"
+                          className="flex justify-center items-center w-5 h-5 text-white rounded-full"
                           style={{ backgroundColor: preset.solid }}
                         >
-                          {active && <Check className="h-3 w-3" weight="bold" />}
+                          {active && <Check className="w-3 h-3" weight="bold" />}
                         </span>
                         <span>{preset.label}</span>
                       </button>
@@ -629,7 +607,7 @@ export const SettingsHubModal: React.FC<SettingsHubModalProps> = ({
               </div>
 
               {/* Density & Card Open Mode */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <label className="text-xs font-semibold text-text">Kepadatan</label>
                   <div className="grid grid-cols-2 gap-2">
@@ -682,7 +660,7 @@ export const SettingsHubModal: React.FC<SettingsHubModalProps> = ({
 
               <div className="flex items-center justify-between rounded-xl border border-border bg-bg p-3.5">
                 <div className="flex items-center gap-2.5">
-                  <Sparkle className="h-4 w-4 text-project-solid" />
+                  <Sparkle className="w-4 h-4 text-project-solid" />
                   <div>
                     <div className="text-xs font-semibold text-text">Kurangi Animasi</div>
                     <div className="text-[11px] text-muted">Nonaktifkan efek transisi gerak berlebih</div>
@@ -698,10 +676,10 @@ export const SettingsHubModal: React.FC<SettingsHubModalProps> = ({
 
           {activeTab === 'sync' && (
             <div className="space-y-5">
-              <form onSubmit={handleSaveSync} className="space-y-3 rounded-2xl border border-border bg-bg p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <WifiHigh className="h-4 w-4 text-status-done" />
+              <form onSubmit={handleSaveSync} className="p-4 space-y-3 rounded-2xl border border-border bg-bg">
+                <div className="flex justify-between items-center">
+                  <div className="flex gap-2 items-center">
+                    <WifiHigh className="w-4 h-4 text-status-done" />
                     <span className="text-xs font-semibold text-text">
                       Supabase Realtime ({syncStatus === 'connected' ? 'Terhubung' : 'Mode Lokal'})
                     </span>
@@ -731,7 +709,7 @@ export const SettingsHubModal: React.FC<SettingsHubModalProps> = ({
 
               <div className="space-y-2.5">
                 <label className="text-xs font-semibold text-text">Cadangan Data &amp; SQL Bridge</label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                   <Button
                     type="button"
                     variant="secondary"
@@ -785,7 +763,7 @@ export const SettingsHubModal: React.FC<SettingsHubModalProps> = ({
                     <span className="font-medium text-text">{s.desc}</span>
                     <span className="ml-2 font-mono text-[10px] text-muted">({s.cat})</span>
                   </div>
-                  <div className="flex items-center gap-1 shrink-0">
+                  <div className="flex gap-1 items-center shrink-0">
                     {s.keys.map((k) => (
                       <Kbd key={k}>{k}</Kbd>
                     ))}

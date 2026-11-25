@@ -1,5 +1,6 @@
-// Klien API terpadu dengan dukungan cookie session & fallback graceful ke mode lokal
+import { NotificationItem } from '../types/board';
 
+// Klien API terpadu dengan dukungan cookie session & fallback graceful ke mode lokal
 export class ApiError extends Error {
   constructor(public status: number, message: string) {
     super(message);
@@ -49,6 +50,40 @@ export const apiClient = {
     update: (id: string, data: { name?: string; icon?: string; joinPolicy?: string }) =>
       request(`/workspaces/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
     remove: (id: string) => request(`/workspaces/${id}`, { method: 'DELETE' })
+  },
+
+  boards: {
+    create: (workspaceId: string, title: string) =>
+      request('/boards', { method: 'POST', body: JSON.stringify({ workspaceId, title }) }),
+    remove: (id: string) => request(`/boards/${id}`, { method: 'DELETE' }),
+    createCard: (boardId: string, data: { columnId: string; title: string; priority?: string }) =>
+      request(`/boards/${boardId}/cards`, { method: 'POST', body: JSON.stringify(data) }),
+    updateCard: (cardId: string, data: Record<string, unknown>) =>
+      request(`/boards/cards/${cardId}`, { method: 'PATCH', body: JSON.stringify(data) })
+  },
+
+  pages: {
+    create: (data: { workspaceId: string; title?: string; contentHtml?: string; parentId?: string | null; icon?: string }) =>
+      request<{ id: string; parentId: string | null; updatedAt: number }>('/pages', {
+        method: 'POST',
+        body: JSON.stringify(data)
+      }),
+    update: (
+      id: string,
+      data: { title?: string; contentHtml?: string; shareToken?: string | null; parentId?: string | null; icon?: string; coverImage?: string | null }
+    ) => request(`/pages/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    remove: (id: string) => request(`/pages/${id}`, { method: 'DELETE' })
+  },
+
+  notifications: {
+    list: () => request<{ notifications: NotificationItem[] }>('/notifications'),
+    create: (payload: Omit<NotificationItem, 'id' | 'isRead' | 'createdAt'>) =>
+      request<{ notification: NotificationItem }>('/notifications', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      }),
+    markRead: (id: string) => request<{ ok: boolean }>(`/notifications/${id}/read`, { method: 'PATCH' }),
+    markAllRead: () => request<{ ok: boolean }>('/notifications/read-all', { method: 'POST' })
   },
 
   uploads: {

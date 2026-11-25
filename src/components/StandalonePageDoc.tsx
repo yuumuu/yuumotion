@@ -24,8 +24,10 @@ import { Button } from './ui';
 
 interface StandalonePageDocProps {
   page: NotionPage;
+  allPages?: NotionPage[];
   currentUserRole: UserRole;
   onUpdatePage: (updated: NotionPage) => void;
+  onSelectPage?: (pageId: string) => void;
 }
 
 const PRESET_ICONS = [
@@ -68,8 +70,10 @@ const DOC_TEMPLATES = [
 
 export const StandalonePageDoc: React.FC<StandalonePageDocProps> = ({
   page,
+  allPages = [],
   currentUserRole,
-  onUpdatePage
+  onUpdatePage,
+  onSelectPage
 }) => {
   const [title, setTitle] = useState(page.title);
   const [coverImage, setCoverImage] = useState(page.coverImage || '');
@@ -114,6 +118,20 @@ export const StandalonePageDoc: React.FC<StandalonePageDocProps> = ({
       target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
+
+  const breadcrumbs = useMemo(() => {
+    const chain: NotionPage[] = [page];
+    const visited = new Set<string>([page.id]);
+    let curr: NotionPage | undefined = page;
+    while (curr?.parentId && !visited.has(curr.parentId)) {
+      const parent = allPages.find((p) => p.id === curr?.parentId);
+      if (!parent) break;
+      visited.add(parent.id);
+      chain.unshift(parent);
+      curr = parent;
+    }
+    return chain;
+  }, [page, allPages]);
 
   const currentIconObj = PRESET_ICONS.find((i) => i.id === selectedIconId) || PRESET_ICONS[0];
 
@@ -206,6 +224,33 @@ export const StandalonePageDoc: React.FC<StandalonePageDocProps> = ({
               Mode baca saja. Hubungi pemilik project untuk meminta akses edit.
             </span>
           </div>
+        )}
+
+        {/* Breadcrumb Sub-halaman */}
+        {breadcrumbs.length > 1 && (
+          <nav aria-label="Breadcrumb dokumen" className="mb-4 flex flex-wrap items-center gap-1.5 text-xs text-muted">
+            {breadcrumbs.map((crumb, idx) => {
+              const isLast = idx === breadcrumbs.length - 1;
+              return (
+                <React.Fragment key={crumb.id}>
+                  {idx > 0 && <span className="text-muted/60">/</span>}
+                  {isLast ? (
+                    <span className="font-semibold text-text truncate max-w-[180px]">
+                      {crumb.title || 'Untitled Document'}
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => onSelectPage?.(crumb.id)}
+                      className="hover:text-project-solid hover:underline truncate max-w-[160px] cursor-pointer"
+                    >
+                      {crumb.title || 'Untitled Document'}
+                    </button>
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </nav>
         )}
 
         {/* Icon & Cover Action Toolbar */}

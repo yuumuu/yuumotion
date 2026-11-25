@@ -2,10 +2,14 @@ import { AuthUser, UserRole, Workspace, NotionPage } from '../types/board';
 import { INITIAL_BOARD } from './constants';
 import { createClient } from '@supabase/supabase-js';
 import { getStoredCloudConfig } from './sync';
+import {
+  getWorkspacesStorageKey,
+  getActiveWorkspaceStorageKey,
+  isGuestUser,
+  migrateLegacyGlobalWorkspacesToGuest
+} from './storageNamespace';
 
 const AUTH_USER_KEY = 'yuumotion_auth_user';
-const WORKSPACES_KEY = 'yuumotion_workspaces_list';
-const ACTIVE_WORKSPACE_KEY = 'yuumotion_active_workspace_id';
 
 const AVATAR_COLORS = ['#8B5CF6', '#3B82F6', '#10B981', '#F59E0B', '#EC4899', '#06B6D4'];
 
@@ -70,12 +74,14 @@ export const INITIAL_NOTION_PAGES: NotionPage[] = [
 ];
 
 export function getStoredWorkspaces(currentUser: AuthUser): Workspace[] {
-  const raw = localStorage.getItem(WORKSPACES_KEY);
+  migrateLegacyGlobalWorkspacesToGuest();
+  const storageKey = getWorkspacesStorageKey(currentUser);
+  const raw = localStorage.getItem(storageKey);
   if (raw) {
     try {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        // Sanitasi agar aman terhadap cache versi lama
+      if (Array.isArray(parsed)) {
+        if (parsed.length === 0) return [];
         const sanitized: Workspace[] = parsed.map((ws: Partial<Workspace>) => {
           const boards = Array.isArray(ws.boards) ? ws.boards : [INITIAL_BOARD];
           const pages = Array.isArray(ws.pages) ? ws.pages : INITIAL_NOTION_PAGES;
@@ -111,6 +117,11 @@ export function getStoredWorkspaces(currentUser: AuthUser): Workspace[] {
     } catch {
       // Fallback if malformed
     }
+  }
+
+  // Akun login baru mulai kosong agar tidak tercampur data tamu.
+  if (!isGuestUser(currentUser)) {
+    return [];
   }
 
   const initialWorkspace: Workspace = {
@@ -162,24 +173,24 @@ export function getStoredWorkspaces(currentUser: AuthUser): Workspace[] {
     updatedAt: Date.now()
   };
 
-  localStorage.setItem(WORKSPACES_KEY, JSON.stringify([initialWorkspace]));
+  localStorage.setItem(storageKey, JSON.stringify([initialWorkspace]));
   return [initialWorkspace];
 }
 
-export function saveStoredWorkspaces(workspaces: Workspace[]) {
-  localStorage.setItem(WORKSPACES_KEY, JSON.stringify(workspaces));
+export function saveStoredWorkspaces(workspaces: Workspace[], currentUser?: AuthUser | null) {
+  localStorage.setItem(getWorkspacesStorageKey(currentUser), JSON.stringify(workspaces));
 }
 
-export function getActiveWorkspaceId(workspaces: Workspace[]): string {
-  const stored = localStorage.getItem(ACTIVE_WORKSPACE_KEY);
+export function getActiveWorkspaceId(workspaces: Workspace[], currentUser?: AuthUser | null): string {
+  const stored = localStorage.getItem(getActiveWorkspaceStorageKey(currentUser));
   if (stored && workspaces.some((w) => w.id === stored)) {
     return stored;
   }
   return workspaces[0]?.id || 'ws-default';
 }
 
-export function setActiveWorkspaceId(workspaceId: string) {
-  localStorage.setItem(ACTIVE_WORKSPACE_KEY, workspaceId);
+export function setActiveWorkspaceId(workspaceId: string, currentUser?: AuthUser | null) {
+  localStorage.setItem(getActiveWorkspaceStorageKey(currentUser), workspaceId);
 }
 
 export async function loginWithSupabaseAuth(email: string, password: string):Promise<{ success: boolean; user?: AuthUser; message?: string }> {

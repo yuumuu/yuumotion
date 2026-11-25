@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Board, SyncConnectionStatus, UserPresence, UserRole, NotionPage } from '../types/board';
+import { Board, SyncConnectionStatus, UserPresence, UserRole, NotionPage, NotificationItem } from '../types/board';
+import { NotificationInbox } from './NotificationInbox';
 import {
   MagnifyingGlass,
   Radio,
@@ -32,6 +33,10 @@ interface HeaderProps {
   onOpenCommandPalette?: () => void;
   onOpenSettings?: (tab: SettingsTab) => void;
   onSelectOnlineUser?: (user: UserPresence) => void;
+  notifications?: NotificationItem[];
+  onMarkNotificationRead?: (id: string) => void;
+  onMarkAllNotificationsRead?: () => void;
+  onSelectNotification?: (item: NotificationItem) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -48,7 +53,11 @@ export const Header: React.FC<HeaderProps> = ({
   onNavigateToLanding,
   onOpenCommandPalette,
   onOpenSettings,
-  onSelectOnlineUser
+  onSelectOnlineUser,
+  notifications = [],
+  onMarkNotificationRead,
+  onMarkAllNotificationsRead,
+  onSelectNotification
 }) => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [menuPos, setMenuPos] = useState({ top: 56, right: 16 });
@@ -97,7 +106,7 @@ export const Header: React.FC<HeaderProps> = ({
         <button
           type="button"
           onClick={onToggleSidebar}
-          className="flex md:hidden justify-center items-center w-8 h-8 rounded-lg transition-colors cursor-pointer text-muted hover:bg-hover hover:text-text shrink-0"
+          className="flex justify-center items-center w-8 h-8 rounded-lg transition-colors cursor-pointer md:hidden text-muted hover:bg-hover hover:text-text shrink-0"
           title="Toggle Sidebar ([)"
         >
           <MenuIcon className="w-4 h-4" />
@@ -128,25 +137,24 @@ export const Header: React.FC<HeaderProps> = ({
         <Kbd>⌘K</Kbd>
       </button>
 
-      {/* Right: Compact Sync Status & Clean Profile Menu */}
+      {/* Right: Online Team, Sync Status & Clean Profile Menu */}
       <div className="flex gap-2.5 items-center shrink-0">
         {onlineUsers.length > 0 && (
-          <div className="hidden xl:flex items-center -space-x-1.5">
-            {onlineUsers.slice(0, 3).map((user) => (
+          <div className="hidden sm:flex items-center -space-x-1.5 mr-0.5">
+            {onlineUsers.slice(0, 4).map((u) => (
               <button
-                key={user.id}
+                key={u.id}
                 type="button"
-                onClick={() => onSelectOnlineUser?.(user)}
-                className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-bar text-white text-[9px] font-bold shadow-2xs hover:scale-110 transition-transform cursor-pointer"
-                style={{ backgroundColor: user.color }}
-                title={`${user.name} · Klik untuk lihat profil`}
+                onClick={() => onSelectOnlineUser?.(u)}
+                title={`${u.name} (Lihat Profil)`}
+                style={{ backgroundColor: u.color || '#2563EB' }}
+                className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-bar text-[10px] font-bold text-white shadow-2xs transition-transform hover:scale-110 hover:z-10 cursor-pointer"
               >
-                {user.avatarEmoji || user.avatar}
+                {u.avatarEmoji || u.avatar || u.name?.[0]?.toUpperCase() || 'U'}
               </button>
             ))}
           </div>
         )}
-
         <button
           type="button"
           onClick={() => onOpenSettings?.('sync')}
@@ -178,6 +186,15 @@ export const Header: React.FC<HeaderProps> = ({
             </span>
           )}
         </button>
+
+        {onMarkNotificationRead && onMarkAllNotificationsRead && onSelectNotification && (
+          <NotificationInbox
+            notifications={notifications}
+            onMarkRead={onMarkNotificationRead}
+            onMarkAllRead={onMarkAllNotificationsRead}
+            onSelectNotification={onSelectNotification}
+          />
+        )}
 
         {/* User Menu Trigger */}
         <button

@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { eq, and } from 'drizzle-orm';
 import { db } from '../db';
-import { workspaces, workspaceMembers, boards, pages } from '../db/schema';
+import { workspaces, workspaceMembers, boards, columns, cards, pages } from '../db/schema';
 import { requireAuth, AuthPayload, AppEnv, checkWorkspaceRole } from '../middleware/auth';
 import { broadcastWorkspaceEvent } from './events';
 
@@ -21,13 +21,20 @@ workspaceRoutes.get('/', async (c) => {
     const wsRows = await db.select().from(workspaces).where(eq(workspaces.id, m.workspaceId)).limit(1);
     if (!wsRows[0]) continue;
     const wsBoards = await db.select().from(boards).where(eq(boards.workspaceId, m.workspaceId));
+    const hydratedBoards = [];
+    for (const b of wsBoards) {
+      const bCols = await db.select().from(columns).where(eq(columns.boardId, b.id));
+      const bCards = await db.select().from(cards).where(eq(cards.boardId, b.id));
+      const cardsMap = Object.fromEntries(bCards.map((card) => [card.id, card]));
+      hydratedBoards.push({ ...b, columns: bCols, cards: cardsMap });
+    }
     const wsPages = await db.select().from(pages).where(eq(pages.workspaceId, m.workspaceId));
     const wsMembers = await db.select().from(workspaceMembers).where(eq(workspaceMembers.workspaceId, m.workspaceId));
     results.push({
       ...wsRows[0],
       currentRole: m.role,
       members: wsMembers,
-      boards: wsBoards,
+      boards: hydratedBoards,
       pages: wsPages
     });
   }

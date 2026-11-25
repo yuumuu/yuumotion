@@ -13,8 +13,8 @@ export const Switch = React.forwardRef<HTMLInputElement, SwitchProps>(
       <label htmlFor={generatedId} className="inline-flex items-center justify-between gap-3 cursor-pointer select-none">
         {(label || description) && (
           <div>
-            {label && <p className="text-xs font-medium text-appflowy-text dark:text-appflowy-darkText">{label}</p>}
-            {description && <p className="text-[11px] text-appflowy-muted dark:text-appflowy-darkMuted">{description}</p>}
+            {label && <p className="text-xs font-medium text-text">{label}</p>}
+            {description && <p className="text-[11px] text-muted">{description}</p>}
           </div>
         )}
         <div className="relative inline-flex items-center">
@@ -28,8 +28,8 @@ export const Switch = React.forwardRef<HTMLInputElement, SwitchProps>(
             {...props}
           />
           <div
-            className={`h-5 w-9 rounded-full transition-colors relative focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:outline-none ${
-              checked ? 'bg-purple-600 dark:bg-purple-500' : 'bg-neutral-300 dark:bg-neutral-700'
+            className={`h-5 w-9 rounded-full transition-colors relative peer-focus-visible:ring-2 peer-focus-visible:ring-project-solid/40 peer-focus-visible:ring-offset-1 ${
+              checked ? 'bg-project-solid' : 'bg-neutral-300 dark:bg-neutral-700'
             } ${className}`}
           >
             <span

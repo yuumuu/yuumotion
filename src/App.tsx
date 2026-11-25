@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
-  AuthUser,
   Board,
   Card,
+  ChecklistItem,
   CloudSyncConfig,
   Column,
   DatabaseBridgeConfig,
+  NotificationItem,
   NotionPage,
   SyncConnectionStatus,
   UserPresence,
@@ -16,11 +17,7 @@ import {
 } from './types/board';
 import { INITIAL_BOARD } from './lib/constants';
 import {
-  getStoredAuthUser,
-  saveStoredAuthUser,
-  getStoredWorkspaces,
   saveStoredWorkspaces,
-  getActiveWorkspaceId,
   setActiveWorkspaceId,
   canEditContent,
   hasActiveSession,
@@ -29,7 +26,9 @@ import {
   setActiveSession,
   AppRoute
 } from './lib/auth';
-import { apiClient } from './services/apiClient';
+import { useAuthSession } from './hooks/useAuthSession';
+import { getNotificationsStorageKey, isGuestUser } from './lib/storageNamespace';
+import { GuestMigrationModal } from './components/GuestMigrationModal';
 import { createSyncManager, getStoredCloudConfig } from './lib/sync';
 import { getStoredDbConfig, saveStoredDbConfig } from './lib/dbBridge';
 import { Header } from './components/Header';
@@ -37,6 +36,9 @@ import { Sidebar } from './components/Sidebar';
 import { NavigationRail } from './components/NavigationRail';
 import { ProjectExplorer } from './components/ProjectExplorer';
 import { ProjectBanner } from './components/ProjectBanner';
+import { FilterSortBar } from './components/FilterSortBar';
+import { BoardFilterState, DEFAULT_BOARD_FILTER } from './types/filter';
+import { filterAndSortCards } from './lib/cardFilter';
 import { KanbanBoard } from './components/KanbanBoard';
 import { CalendarView } from './components/CalendarView';
 import { TimelineGanttView } from './components/TimelineGanttView';
@@ -57,6 +59,7 @@ import { EntitySettingsModal } from './components/EntitySettingsModal';
 import { MemberProfileModal, ProfileDetailTarget } from './components/MemberProfileModal';
 import { BoardTemplate } from './data/boardTemplates';
 import { ActivityService } from './services/activityService';
+import { apiClient } from './services/apiClient';
 import { ToastContainer, ConfirmDialog, toast } from './components/ui';
 import { Plus, Kanban, FileText, UserPlus } from '@phosphor-icons/react';
 
@@ -105,11 +108,20 @@ export const App: React.FC = () => {
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
-  const [currentUser, setCurrentUser] = useState<AuthUser>(() => getStoredAuthUser());
-  const [workspaces, setWorkspaces] = useState<Workspace[]>(() => getStoredWorkspaces(currentUser));
-  const [activeWorkspaceId, setActiveWorkspaceIdState] = useState<string>(() =>
-    getActiveWorkspaceId(workspaces)
-  );
+  const {
+    currentUser,
+    setCurrentUser,
+    workspaces,
+    setWorkspaces,
+    activeWorkspaceId,
+    setActiveWorkspaceIdState,
+    guestMigrationOpen,
+    guestWorkspacesCount,
+    handleUserChange,
+    handleImportGuestWorkspaces,
+    handleSkipGuestMigration,
+    handleLogout: performLogout
+  } = useAuthSession();
 
   const activeWorkspace = useMemo(() => {
     return workspaces?.find((w) => w.id === activeWorkspaceId) || workspaces?.[0] || {
@@ -147,7 +159,16 @@ export const App: React.FC = () => {
   const [activeView, setActiveView] = useState<WorkspaceView>('board');
   const [isDark, setIsDark] = useState(false);
   const [searchQuery] = useState('');
+  const [boardFilter, setBoardFilter] = useState<BoardFilterState>(DEFAULT_BOARD_FILTER);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+  const [notifications, setNotifications] = useState<NotificationItem[]>(() => {
+    try {
+      const raw = localStorage.getItem(getNotificationsStorageKey(currentUser));
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  });
 
   const [isDbModalOpen, setIsDbModalOpen] = useState(false);
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
@@ -176,9 +197,54 @@ export const App: React.FC = () => {
     return undefined;
   }, [activeWorkspace, activeTarget]);
 
+  const totalBoardCardsCount = useMemo(
+    () => Object.keys(activeBoard.cards || {}).length,
+    [activeBoard.cards]
+  );
+
+  const filteredCardsList = useMemo(() => {
+    const allCards = Object.values(activeBoard.cards || {});
+    return filterAndSortCards(allCards, boardFilter, searchQuery, currentUser.id);
+  }, [activeBoard.cards, boardFilter, searchQuery, currentUser.id]);
+
+  const filteredBoard = useMemo<Board>(() => {
+    const cardsMap: Record<string, Card> = {};
+    filteredCardsList.forEach((c, idx) => {
+      cardsMap[c.id] = boardFilter.sortField === 'manual' ? c : { ...c, order: idx };
+    });
+    return { ...activeBoard, cards: cardsMap };
+  }, [activeBoard, filteredCardsList, boardFilter.sortField]);
+
   useEffect(() => {
-    saveStoredWorkspaces(workspaces);
-  }, [workspaces]);
+    saveStoredWorkspaces(workspaces, currentUser);
+  }, [workspaces, currentUser]);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(getNotificationsStorageKey(currentUser));
+      setNotifications(raw ? JSON.parse(raw) : []);
+    } catch {
+      setNotifications([]);
+    }
+    if (!isGuestUser(currentUser)) {
+      apiClient.notifications
+        .list()
+        .then((res) => {
+          if (Array.isArray(res.notifications)) {
+            setNotifications(res.notifications);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [currentUser.id]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(getNotificationsStorageKey(currentUser), JSON.stringify(notifications));
+    } catch {
+      // Ignore storage quota errors
+    }
+  }, [notifications, currentUser]);
 
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
@@ -429,7 +495,7 @@ export const App: React.FC = () => {
 
   const handleSelectWorkspace = (newWsId: string) => {
     setActiveWorkspaceIdState(newWsId);
-    setActiveWorkspaceId(newWsId);
+    setActiveWorkspaceId(newWsId, currentUser);
     const targetWs = workspaces.find((w) => w.id === newWsId);
     if (targetWs && Array.isArray(targetWs.boards) && targetWs.boards.length > 0) {
       setActiveTarget({ type: 'board', id: targetWs.boards[0].id });
@@ -502,7 +568,7 @@ export const App: React.FC = () => {
 
     setWorkspaces((prev) => [...prev, newWs]);
     setActiveWorkspaceIdState(wsId);
-    setActiveWorkspaceId(wsId);
+    setActiveWorkspaceId(wsId, currentUser);
     if (includeBoard) {
       setActiveTarget({ type: 'board', id: starterBoardId });
     } else if (includeDocs) {
@@ -526,13 +592,14 @@ export const App: React.FC = () => {
     toast.info('Workspace telah dihapus.');
   };
 
-  const handleAddPage = () => {
+  const handleAddPage = (parentId?: string) => {
     if (!canEdit) return;
 
     const newPage: NotionPage = {
       id: `page-${Date.now()}`,
       workspaceId: activeWorkspaceId,
-      title: 'Untitled Document',
+      parentId,
+      title: parentId ? 'Sub-halaman Baru' : 'Untitled Document',
       icon: '📄',
       contentHtml: '<p></p>',
       createdAt: Date.now(),
@@ -768,6 +835,114 @@ export const App: React.FC = () => {
       updatedAt: Date.now()
     });
     toast.info('Kartu telah dihapus.');
+  };
+
+  const handleConvertChecklistToCard = (sourceCardId: string, item: ChecklistItem) => {
+    if (!canEdit) return;
+    const sourceCard = activeBoard.cards[sourceCardId];
+    if (!sourceCard) return;
+
+    const newCardId = `card-${Date.now()}`;
+    const newCard: Card = {
+      id: newCardId,
+      columnId: sourceCard.columnId,
+      title: item.text,
+      description: '',
+      tags: [],
+      priority: 'medium',
+      dueDate: item.dueDate,
+      assignees: item.assigneeId ? [item.assigneeId] : undefined,
+      checklist: [],
+      attachments: [],
+      order: Object.values(activeBoard.cards).filter((c) => c.columnId === sourceCard.columnId).length,
+      updatedAt: Date.now()
+    };
+
+    const updatedSource: Card = {
+      ...sourceCard,
+      checklist: sourceCard.checklist.filter((c) => c.id !== item.id),
+      updatedAt: Date.now()
+    };
+
+    handleUpdateActiveBoard((prev) => ({
+      ...prev,
+      updatedAt: Date.now(),
+      cards: {
+        ...prev.cards,
+        [sourceCardId]: updatedSource,
+        [newCardId]: newCard
+      }
+    }));
+
+    syncManagerRef.current?.broadcast({ type: 'CARD_UPSERT', card: updatedSource, senderId: currentUser.id });
+    syncManagerRef.current?.broadcast({ type: 'CARD_UPSERT', card: newCard, senderId: currentUser.id });
+    toast.success(`Sub-tugas "${item.text}" dijadikan kartu baru.`);
+  };
+
+  const handleMarkNotificationRead = (id: string) => {
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
+    if (!isGuestUser(currentUser)) {
+      apiClient.notifications.markRead(id).catch(() => {});
+    }
+  };
+
+  const handleMarkAllNotificationsRead = () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    if (!isGuestUser(currentUser)) {
+      apiClient.notifications.markAllRead().catch(() => {});
+    }
+  };
+
+  const handleSelectNotification = (item: NotificationItem) => {
+    if (item.workspaceId && item.workspaceId !== activeWorkspaceId) {
+      handleSelectWorkspace(item.workspaceId);
+    }
+    if (item.entityType === 'page') {
+      setActiveTarget({ type: 'page', id: item.entityId });
+    } else {
+      if (item.boardId) setActiveTarget({ type: 'board', id: item.boardId });
+      setSelectedCardId(item.entityId);
+    }
+  };
+
+  const handleMentionUser = (
+    member: { id: string; name: string },
+    card: Card,
+    commentText: string
+  ) => {
+    const newNotif: NotificationItem = {
+      id: `notif-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      workspaceId: activeWorkspaceId,
+      recipientUserId: member.id,
+      actorId: currentUser.id,
+      actorName: currentUser.name,
+      type: 'mention_card',
+      entityType: 'card',
+      entityId: card.id,
+      boardId: activeBoard.id,
+      title: `${currentUser.name} menyebut Anda di "${card.title}"`,
+      snippet: commentText,
+      isRead: false,
+      createdAt: Date.now()
+    };
+    setNotifications((prev) => [newNotif, ...prev].slice(0, 50));
+    if (!isGuestUser(currentUser)) {
+      apiClient.notifications
+        .create({
+          workspaceId: activeWorkspaceId,
+          recipientUserId: member.id,
+          actorId: currentUser.id,
+          actorName: currentUser.name,
+          type: 'mention_card',
+          entityType: 'card',
+          entityId: card.id,
+          boardId: activeBoard.id,
+          title: newNotif.title,
+          snippet: commentText
+        })
+        .catch(() => {});
+    }
+    toast.info(`Notifikasi @mention dikirim ke ${member.name}.`);
   };
 
   const handleDropCard = (cardId: string, targetColumnId: string) => {
@@ -1027,21 +1202,10 @@ export const App: React.FC = () => {
 
   const selectedCard = selectedCardId ? activeBoard.cards[selectedCardId] : null;
 
-  const handleLogout = () => {
-    apiClient.auth.logout().catch(() => {});
-    const guestUser: AuthUser = {
-      id: `usr-guest-${Math.random().toString(36).substring(2, 7)}`,
-      name: 'Guest Collab',
-      avatar: 'G',
-      color: '#10B981',
-      isCloudAuth: false
-    };
-    saveStoredAuthUser(guestUser);
-    setCurrentUser(guestUser);
-    setActiveSession(false);
+  const handleLogout = async () => {
+    await performLogout();
     setIsSettingsOpen(false);
     goToRoute('landing');
-    toast.info('Berhasil keluar dari akun.');
   };
 
   if (shareTokenParam) {
@@ -1112,8 +1276,7 @@ export const App: React.FC = () => {
       <AuthPage
         currentUser={currentUser}
         onUserChange={(user) => {
-          setCurrentUser(user);
-          setActiveSession(true);
+          void handleUserChange(user);
         }}
         onNavigateHome={() => goToRoute('landing')}
         onEnterApp={() => {
@@ -1131,6 +1294,13 @@ export const App: React.FC = () => {
           userName={currentUser.name}
           onCreateWorkspace={handleCreateWorkspace}
           onNavigateLanding={() => goToRoute('landing')}
+        />
+        <GuestMigrationModal
+          isOpen={guestMigrationOpen}
+          guestWorkspaceCount={guestWorkspacesCount}
+          userName={currentUser.name}
+          onImportGuestWorkspaces={handleImportGuestWorkspaces}
+          onStartFresh={handleSkipGuestMigration}
         />
         <ToastContainer />
       </>
@@ -1175,7 +1345,8 @@ export const App: React.FC = () => {
           setActiveTarget({ type: 'board', id: boardId });
           setIsShareModalOpen(true);
         }}
-        onAddPage={handleAddPage}
+        onAddPage={() => handleAddPage()}
+        onAddSubPage={(parentId) => handleAddPage(parentId)}
         onDeletePage={handleDeletePage}
         currentUserRole={currentUserRole}
       />
@@ -1193,7 +1364,8 @@ export const App: React.FC = () => {
           onSelectTarget={setActiveTarget}
           pages={activeWorkspace?.pages || []}
           boards={activeWorkspace?.boards || []}
-          onAddPage={handleAddPage}
+          onAddPage={() => handleAddPage()}
+          onAddSubPage={(parentId) => handleAddPage(parentId)}
           onDeletePage={handleDeletePage}
           onAddBoard={handleAddBoard}
           onDeleteBoard={handleDeleteBoard}
@@ -1224,6 +1396,10 @@ export const App: React.FC = () => {
           onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
           onOpenSettings={openSettingsTab}
           onSelectOnlineUser={(u) => setSelectedProfileMember(u)}
+          notifications={notifications}
+          onMarkNotificationRead={handleMarkNotificationRead}
+          onMarkAllNotificationsRead={handleMarkAllNotificationsRead}
+          onSelectNotification={handleSelectNotification}
         />
 
         {/* Split-View Container for Main Canvas & Push Inspector */}
@@ -1235,14 +1411,16 @@ export const App: React.FC = () => {
                 canEdit={canEdit}
                 onCreateBoard={() => handleAddBoard('Papan Baru')}
                 onOpenTemplates={() => setIsTemplateModalOpen(true)}
-                onCreatePage={handleAddPage}
+                onCreatePage={() => handleAddPage()}
               />
             ) : activeTarget.type === 'page' && activePage ? (
               <StandalonePageDoc
                 key={activePage.id}
                 page={activePage}
+                allPages={activeWorkspace?.pages || []}
                 currentUserRole={currentUserRole}
                 onUpdatePage={handleUpdatePage}
+                onSelectPage={(pageId) => setActiveTarget({ type: 'page', id: pageId })}
               />
             ) : (
               <>
@@ -1262,9 +1440,19 @@ export const App: React.FC = () => {
                   }}
                 />
 
+                <FilterSortBar
+                  board={activeBoard}
+                  members={activeWorkspace?.members || []}
+                  currentUserId={currentUser.id}
+                  filter={boardFilter}
+                  filteredCount={filteredCardsList.length}
+                  totalCount={totalBoardCardsCount}
+                  onChange={setBoardFilter}
+                />
+
                 {activeView === 'board' && (
                   <KanbanBoard
-                    board={activeBoard}
+                    board={filteredBoard}
                     members={activeWorkspace?.members || []}
                     searchQuery={searchQuery}
                     onCardClick={(card) => setSelectedCardId(card.id)}
@@ -1280,7 +1468,7 @@ export const App: React.FC = () => {
 
                 {activeView === 'calendar' && (
                   <CalendarView
-                    board={activeBoard}
+                    board={filteredBoard}
                     searchQuery={searchQuery}
                     onCardClick={(card) => setSelectedCardId(card.id)}
                     onAddCardOnDate={handleAddCardOnDate}
@@ -1290,7 +1478,7 @@ export const App: React.FC = () => {
 
                 {activeView === 'timeline' && (
                   <TimelineGanttView
-                    board={activeBoard}
+                    board={filteredBoard}
                     searchQuery={searchQuery}
                     onCardClick={(card) => setSelectedCardId(card.id)}
                     onUpdateCard={handleUpdateCard}
@@ -1299,7 +1487,7 @@ export const App: React.FC = () => {
 
                 {activeView === 'table' && (
                   <TableDatabaseView
-                    board={activeBoard}
+                    board={filteredBoard}
                     searchQuery={searchQuery}
                     onCardClick={(card) => setSelectedCardId(card.id)}
                     onUpdateCard={handleUpdateCard}
@@ -1320,6 +1508,8 @@ export const App: React.FC = () => {
               onClose={() => setSelectedCardId(null)}
               onUpdate={handleUpdateCard}
               onDelete={handleDeleteCard}
+              onConvertChecklistToCard={handleConvertChecklistToCard}
+              onMentionUser={handleMentionUser}
             />
           )}
         </div>
@@ -1537,6 +1727,14 @@ export const App: React.FC = () => {
         onShareBoard={() => setIsShareModalOpen(true)}
         onOpenTemplates={() => setIsTemplateModalOpen(true)}
         onDeleteBoard={handleDeleteBoard}
+      />
+
+      <GuestMigrationModal
+        isOpen={guestMigrationOpen}
+        guestWorkspaceCount={guestWorkspacesCount}
+        userName={currentUser.name}
+        onImportGuestWorkspaces={handleImportGuestWorkspaces}
+        onStartFresh={handleSkipGuestMigration}
       />
 
       <ToastContainer />

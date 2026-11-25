@@ -16,5 +16,10 @@
 - **Aesthetic**: Menjaga estetika AppFlowy yang tenang, rapi, dan bersih dengan palet warna pastel.
 - **Copywriting**: Dilarang menggunakan em dash (`—`) dalam teks UI; gunakan koma, titik, titik dua, atau tanda kurung.
 - **Affordance**: Pastikan seluruh kontrol interaktif memiliki `cursor: pointer`.
+- **Color Tokens**: Dilarang memakai warna hardcoded (`purple-*`) pada komponen `src/components/ui/`; gunakan token sistem (`project-solid`, `project-accent`, `text`, `muted`).
 - **RBAC Guardrails**: Komponen penulisan dokumen (TipTap) dan pengelolaan kartu harus selalu menghormati role `Viewer` dengan mengunci kanvas ke mode `editable={false}` dan menyembunyikan tombol mutasi.
 - **Micro-Animations**: Pertahankan animasi yang halus, terarah, dan ringan (drag-and-drop tilt, drop target indicator) tanpa menyebabkan pergeseran layout (*layout shift*).
+
+## 4. Auth, Storage & Backend Sync Invariants
+- **Storage Isolation**: Semua key `localStorage` data pengguna wajib dipisahkan antara sesi `guest` dan `user_<id>`, serta di-reload otomatis saat login, register, maupun logout.
+- **Route Authorization**: Setiap endpoint mutasi di `server/src/routes/` wajib memverifikasi membership & role workspace (`checkWorkspaceRole`), bukan hanya `requireAuth`.

@@ -6,6 +6,7 @@ import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
 import Placeholder from '@tiptap/extension-placeholder';
 import Image from '@tiptap/extension-image';
+import { Table, TableRow, TableHeader, TableCell } from '@tiptap/extension-table';
 import {
   TextB as Bold,
   TextItalic as Italic,
@@ -30,7 +31,8 @@ import {
   Sigma,
   BookmarkSimple as Bookmark,
   ShareNetwork as Share2,
-  DownloadSimple
+  DownloadSimple,
+  Table as TableIcon
 } from '@phosphor-icons/react';
 import { cn } from '../lib/cn';
 
@@ -75,7 +77,13 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ content, onChange, e
       Image.configure({
         inline: true,
         allowBase64: true
-      })
+      }),
+      Table.configure({
+        resizable: true
+      }),
+      TableRow,
+      TableHeader,
+      TableCell
     ],
     content: content || '<p></p>',
     onUpdate: ({ editor: currentEditor }) => {
@@ -220,6 +228,17 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ content, onChange, e
       run: (ed) => {
         deleteSlashQuery(ed);
         ed?.chain().focus().setHorizontalRule().run();
+      }
+    },
+    {
+      id: 'tabel',
+      category: 'Struktur',
+      title: 'Tabel (3x3)',
+      description: 'Sisipkan tabel terstruktur dengan header baris',
+      icon: <TableIcon className="h-4 w-4" />,
+      run: (ed) => {
+        deleteSlashQuery(ed);
+        ed?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
       }
     },
 
@@ -546,6 +565,42 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ content, onChange, e
           >
             <ImageIcon className="h-3.5 w-3.5" />
           </button>
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
+            className={cn('p-1.5 rounded-lg text-muted hover:text-text hover:bg-hover cursor-pointer', editor.isActive('table') && 'bg-surface text-text font-bold')}
+            title="Sisipkan Tabel 3x3"
+          >
+            <TableIcon className="h-3.5 w-3.5" />
+          </button>
+          {editor.isActive('table') && (
+            <div className="flex items-center gap-0.5 rounded-lg border border-border bg-surface px-1 py-0.5 text-[10px]">
+              <button
+                type="button"
+                onClick={() => editor.chain().focus().addColumnAfter().run()}
+                className="px-1.5 py-0.5 rounded text-muted hover:text-text hover:bg-hover cursor-pointer"
+                title="Tambah Kolom"
+              >
+                +Kolom
+              </button>
+              <button
+                type="button"
+                onClick={() => editor.chain().focus().addRowAfter().run()}
+                className="px-1.5 py-0.5 rounded text-muted hover:text-text hover:bg-hover cursor-pointer"
+                title="Tambah Baris"
+              >
+                +Baris
+              </button>
+              <button
+                type="button"
+                onClick={() => editor.chain().focus().deleteTable().run()}
+                className="px-1.5 py-0.5 rounded text-danger hover:bg-danger/10 cursor-pointer"
+                title="Hapus Tabel"
+              >
+                Hapus
+              </button>
+            </div>
+          )}
           <button
             type="button"
             onClick={handleExportMarkdown}

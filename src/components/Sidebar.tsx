@@ -31,6 +31,7 @@ interface SidebarProps {
   pages: NotionPage[];
   boards: Board[];
   onAddPage: () => void;
+  onAddSubPage?: (parentId: string) => void;
   onDeletePage: (pageId: string) => void;
   onAddBoard: (title: string) => void;
   onDeleteBoard?: (boardId: string) => void;
@@ -54,6 +55,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   pages,
   boards,
   onAddPage,
+  onAddSubPage,
   onDeletePage,
   onAddBoard,
   onDeleteBoard,
@@ -352,39 +354,68 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     Belum ada dokumen.
                   </div>
                 ) : (
-                  (pages || []).map((p) => {
-                    const isActive = activeTarget.type === 'page' && activeTarget.id === p.id;
-                    return (
-                      <div
-                        key={p.id}
-                        className={cn(
-                          'group flex items-center justify-between rounded-xl px-2.5 py-1.5 text-xs transition-all cursor-pointer',
-                          isActive
-                            ? 'bg-project-soft text-project-solid font-semibold border border-project-ring shadow-2xs'
-                            : 'text-text hover:bg-hover'
-                        )}
-                        onClick={() => onSelectTarget({ type: 'page', id: p.id })}
-                      >
-                        <div className="flex items-center gap-2 truncate min-w-0">
-                          <FileText className={cn('h-3.5 w-3.5 shrink-0', isActive ? 'text-project-solid' : 'text-muted')} />
-                          <span className="truncate">{p.title || 'Untitled Document'}</span>
-                        </div>
-                        {canEdit && (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setPageToDelete(p);
-                            }}
-                            className="opacity-0 group-hover:opacity-100 p-0.5 text-muted hover:text-danger rounded hover:bg-surface transition-opacity"
-                            title="Hapus Dokumen"
-                          >
-                            <Trash className="h-3 w-3" />
-                          </button>
-                        )}
-                      </div>
-                    );
-                  })
+                  (() => {
+                    const pageIds = new Set(pages.map((p) => p.id));
+                    const renderMobileTree = (parentId: string | undefined, depth: number): React.ReactNode => {
+                      const children = pages.filter((p) =>
+                        parentId === undefined ? !p.parentId || !pageIds.has(p.parentId) : p.parentId === parentId
+                      );
+                      if (children.length === 0) return null;
+                      return children.map((p) => {
+                        const isActive = activeTarget.type === 'page' && activeTarget.id === p.id;
+                        const indentPx = Math.min(depth, 4) * 12 + 10;
+                        return (
+                          <React.Fragment key={p.id}>
+                            <div
+                              style={{ paddingLeft: `${indentPx}px` }}
+                              className={cn(
+                                'group flex items-center justify-between rounded-xl pr-2.5 py-1.5 text-xs transition-all cursor-pointer',
+                                isActive
+                                  ? 'bg-project-soft text-project-solid font-semibold border border-project-ring shadow-2xs'
+                                  : 'text-text hover:bg-hover'
+                              )}
+                              onClick={() => onSelectTarget({ type: 'page', id: p.id })}
+                            >
+                              <div className="flex items-center gap-2 truncate min-w-0">
+                                <FileText className={cn('h-3.5 w-3.5 shrink-0', isActive ? 'text-project-solid' : 'text-muted')} />
+                                <span className="truncate">{p.title || 'Untitled Document'}</span>
+                              </div>
+                              {canEdit && (
+                                <div className="flex items-center gap-0.5 shrink-0">
+                                  {onAddSubPage && (
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        onAddSubPage(p.id);
+                                      }}
+                                      className="opacity-0 group-hover:opacity-100 p-0.5 text-muted hover:text-project-solid rounded hover:bg-surface transition-opacity cursor-pointer"
+                                      title="Tambah Sub-halaman"
+                                    >
+                                      <Plus className="h-3 w-3" />
+                                    </button>
+                                  )}
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setPageToDelete(p);
+                                    }}
+                                    className="opacity-0 group-hover:opacity-100 p-0.5 text-muted hover:text-danger rounded hover:bg-surface transition-opacity cursor-pointer"
+                                    title="Hapus Dokumen"
+                                  >
+                                    <Trash className="h-3 w-3" />
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                            {renderMobileTree(p.id, depth + 1)}
+                          </React.Fragment>
+                        );
+                      });
+                    };
+                    return renderMobileTree(undefined, 0);
+                  })()
                 )}
               </div>
             </div>
