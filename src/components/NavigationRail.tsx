@@ -51,18 +51,18 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
         className="hidden sm:flex h-full w-14 flex-col items-center justify-between border-r border-white/15 bg-gradient-to-b from-[#1D4ED8] via-[#2563EB] to-[#1E40AF] text-white py-3 select-none shrink-0 z-30"
       >
         {/* Top: Brand App Logo & Workspace Switcher */}
-        <div className="flex flex-col items-center gap-3 w-full">
+        <div className="flex flex-col gap-3 items-center w-full">
           <div
-            className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 p-0.5 shadow-2xs ring-1 ring-white/20"
+            className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 p-0.5 shadow-2xs ring-1 ring-white/30"
             title="Yuumotion Workspace"
           >
-            <img src="/icon.svg" alt="Yuumotion" className="h-8 w-8 rounded-xl" />
+            <img src="/icon.svg" alt="Yuumotion" className="w-8 h-8 rounded-xl" />
           </div>
 
           <div className="w-8 border-t border-white/20" />
 
           {/* Workspace Switcher List */}
-          <div className="flex flex-col items-center gap-2 pt-1 w-full px-2">
+          <div className="flex flex-col gap-2 items-center px-2 pt-1 w-full">
             {safeWorkspaces.map((ws) => {
               const isActive = ws.id === activeWorkspaceId;
               return (
@@ -97,7 +97,7 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
                   )}
                   {isActive && onToggleSidebar ? (
                     <SidebarSimple
-                      className="h-4 w-4"
+                      className="w-4 h-4"
                       weight={isSidebarOpen ? 'fill' : 'regular'}
                     />
                   ) : (
@@ -121,25 +121,25 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
         </div>
 
         {/* Bottom: Theme Toggle, Settings & Profile */}
-        <div className="flex flex-col items-center gap-2 w-full">
+        <div className="flex flex-col gap-2 items-center w-full">
           <button
             type="button"
             onClick={() =>
               updatePreferences({ theme: preferences.theme === 'dark' ? 'light' : 'dark' })
             }
-            className="flex h-8 w-8 items-center justify-center rounded-xl text-white/80 hover:text-white hover:bg-white/15 transition-colors cursor-pointer"
+            className="flex justify-center items-center w-8 h-8 rounded-xl transition-colors cursor-pointer text-white/80 hover:text-white hover:bg-white/15"
             title="Ganti Tema (Gelap / Terang)"
           >
-            {preferences.theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            {preferences.theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
 
           <button
             type="button"
             onClick={() => onOpenSettings?.('appearance')}
-            className="flex h-8 w-8 items-center justify-center rounded-xl text-white/80 hover:text-white hover:bg-white/15 transition-colors cursor-pointer"
+            className="flex justify-center items-center w-8 h-8 rounded-xl transition-colors cursor-pointer text-white/80 hover:text-white hover:bg-white/15"
             title="Pengaturan Tampilan & Preferensi"
           >
-            <Gear className="h-4 w-4" />
+            <Gear className="w-4 h-4" />
           </button>
 
           <div className="w-8 border-t border-white/20 my-0.5" />
@@ -148,7 +148,7 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
             type="button"
             onClick={() => onOpenSettings?.('profile')}
             style={{ backgroundColor: currentUser?.color || '#6366F1' }}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-white font-bold text-xs shadow-2xs ring-2 ring-white/30 hover:scale-105 active:scale-95 transition-transform cursor-pointer"
+            className="flex justify-center items-center w-8 h-8 text-xs font-bold text-white rounded-full ring-2 transition-transform cursor-pointer shadow-2xs ring-white/30 hover:scale-105 active:scale-95"
             title={`Profil: ${currentUser?.name || 'User'}`}
           >
             {currentUser?.name?.[0]?.toUpperCase() || 'U'}

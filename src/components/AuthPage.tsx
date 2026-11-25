@@ -209,7 +209,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     placeholder="nama@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="py-2 pr-3 pl-9 w-full text-xs rounded-xl border border-appflowy-border bg-appflowy-bg text-appflowy-text placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-purple-500 dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg dark:text-appflowy-darkText"
+                    className="py-2 pr-3 pl-9 w-full text-xs rounded-xl border border-appflowy-border bg-appflowy-bg text-appflowy-text placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-project-ring dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg dark:text-appflowy-darkText"
                   />
                 </div>
               </div>
@@ -226,7 +226,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="py-2 pr-3 pl-9 w-full text-xs rounded-xl border border-appflowy-border bg-appflowy-bg text-appflowy-text placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-purple-500 dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg dark:text-appflowy-darkText"
+                    className="py-2 pr-3 pl-9 w-full text-xs rounded-xl border border-appflowy-border bg-appflowy-bg text-appflowy-text placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-project-ring dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg dark:text-appflowy-darkText"
                   />
                 </div>
               </div>
@@ -253,7 +253,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     placeholder="Contoh: Yuu Designer"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="py-2 pr-3 pl-9 w-full text-xs rounded-xl border border-appflowy-border bg-appflowy-bg text-appflowy-text placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-purple-500 dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg dark:text-appflowy-darkText"
+                    className="py-2 pr-3 pl-9 w-full text-xs rounded-xl border border-appflowy-border bg-appflowy-bg text-appflowy-text placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-project-ring dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg dark:text-appflowy-darkText"
                   />
                 </div>
               </div>
@@ -269,7 +269,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     placeholder="nama@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="py-2 pr-3 pl-9 w-full text-xs rounded-xl border border-appflowy-border bg-appflowy-bg text-appflowy-text placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-purple-500 dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg dark:text-appflowy-darkText"
+                    className="py-2 pr-3 pl-9 w-full text-xs rounded-xl border border-appflowy-border bg-appflowy-bg text-appflowy-text placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-project-ring dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg dark:text-appflowy-darkText"
                   />
                 </div>
               </div>

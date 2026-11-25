@@ -280,7 +280,9 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ content, onChange, e
       title: 'Gambar & Foto',
       description: 'Unggah file gambar dari perangkat',
       icon: <ImageIcon className="h-4 w-4" />,
-      run: () => {
+      run: (ed) => {
+        deleteSlashQuery(ed);
+        setShowSlashMenu(false);
         fileInputRef.current?.click();
       }
     },
@@ -390,8 +392,8 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ content, onChange, e
     if (file && editor) {
       const reader = new FileReader();
       reader.onload = () => {
-        deleteSlashQuery(editor);
-        editor.chain().focus().setImage({ src: reader.result as string }).run();
+        const src = reader.result as string;
+        editor.chain().focus().setImage({ src, alt: file.name }).run();
         setShowSlashMenu(false);
       };
       reader.readAsDataURL(file);

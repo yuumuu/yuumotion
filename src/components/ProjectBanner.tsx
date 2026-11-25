@@ -51,7 +51,7 @@ export const ProjectBanner: React.FC<ProjectBannerProps> = ({
   return (
     <div className="px-4 pt-4 pb-2 select-none sm:px-6 bg-bg shrink-0">
       {/* Banner Utama (Gaya Quickit) */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#4F46E5] via-[#2563EB] to-[#3B82F6] px-5 py-4 sm:px-6 sm:py-5 text-white shadow-card-sm">
+      <div className="overflow-hidden relative px-5 py-4 text-white bg-gradient-to-l via-blue-600 rounded-2xl from-project-solid to-project-accent sm:px-6 sm:py-5 shadow-card-sm">
         <div
           aria-hidden="true"
           className="absolute -top-12 -right-12 w-44 h-44 rounded-full blur-2xl pointer-events-none bg-white/15"

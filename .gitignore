@@ -1,5 +1,5 @@
-node_modules
-dist
+node_modules/
+dist/
 dist-ssr
 *.local
 .vscode/*
@@ -12,3 +12,4 @@ dist-ssr
 *.sln
 *.sw?
 .playwright-mcp
+.archify/

@@ -38,7 +38,7 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
       onClose={onClose}
       title={
         <div className="flex items-center gap-2">
-          <Keyboard className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+          <Keyboard className="h-4 w-4 text-project-solid" />
           <span>Pintasan Keyboard (Shortcuts)</span>
         </div>
       }
@@ -62,7 +62,7 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
           if (items.length === 0) return null;
           return (
             <div key={cat} className="space-y-1.5">
-              <h4 className="text-[10px] font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">
+              <h4 className="text-[10px] font-bold uppercase tracking-wider text-project-solid">
                 {cat}
               </h4>
               <div className="rounded-xl border border-appflowy-border/80 bg-neutral-50/50 p-2 dark:border-appflowy-darkBorder/80 dark:bg-neutral-900/40 space-y-1">

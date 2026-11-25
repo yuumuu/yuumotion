@@ -1187,6 +1187,7 @@ export const App: React.FC = () => {
               />
             ) : activeTarget.type === 'page' && activePage ? (
               <StandalonePageDoc
+                key={activePage.id}
                 page={activePage}
                 currentUserRole={currentUserRole}
                 onUpdatePage={handleUpdatePage}

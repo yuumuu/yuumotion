@@ -78,6 +78,18 @@
 }
 
 .ProseMirror blockquote {
+  border-left: 3px solid var(--project-solid);
+  padding-left: 1rem;
+  color: var(--muted);
+}
+
+.ProseMirror img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.75rem;
+  margin: 0.75rem 0;
+  border: 1px solid var(--border);
+}
   border-left: 3px solid var(--project-accent);
   padding-left: 0.75rem;
   margin-left: 0;

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { NotionPage, UserRole } from '../types/board';
 import { canEditContent } from '../lib/auth';
 import { TipTapEditor } from './TipTapEditor';
@@ -78,8 +78,17 @@ export const StandalonePageDoc: React.FC<StandalonePageDocProps> = ({
   const [showCoverPicker, setShowCoverPicker] = useState(false);
   const [isFullWidth, setIsFullWidth] = useState(false);
   const [showOutline, setShowOutline] = useState(true);
+  const [docEpoch, setDocEpoch] = useState(0);
   const coverInputRef = useRef<HTMLInputElement>(null);
   const editorWrapperRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setTitle(page.title);
+    setCoverImage(page.coverImage || '');
+    setSelectedIconId(page.icon || 'doc');
+    setShowIconPicker(false);
+    setShowCoverPicker(false);
+  }, [page.id]);
 
   const canEdit = canEditContent(currentUserRole);
 
@@ -346,6 +355,7 @@ export const StandalonePageDoc: React.FC<StandalonePageDocProps> = ({
                 onClick={() => {
                   setTitle(tmpl.title);
                   syncChanges({ title: tmpl.title, contentHtml: tmpl.html });
+                  setDocEpoch((n) => n + 1);
                 }}
                 className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 py-1 text-xs text-text hover:border-project-accent hover:text-project-accent transition-colors cursor-pointer"
               >
@@ -358,6 +368,7 @@ export const StandalonePageDoc: React.FC<StandalonePageDocProps> = ({
         {/* TipTap Rich Editor */}
         <div ref={editorWrapperRef} className="min-h-[400px]">
           <TipTapEditor
+            key={`${page.id}-${docEpoch}`}
             content={page.contentHtml}
             editable={canEdit}
             onChange={(html, json) => {

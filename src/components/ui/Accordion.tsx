@@ -31,7 +31,7 @@ export const Accordion: React.FC<AccordionProps> = ({
         </div>
         <CaretDown
           className={`h-3.5 w-3.5 text-appflowy-muted transition-transform duration-200 ${
-            isOpen ? 'rotate-180 text-purple-600 dark:text-purple-400' : ''
+            isOpen ? 'rotate-180 text-project-solid' : ''
           }`}
         />
       </button>

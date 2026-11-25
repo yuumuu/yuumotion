@@ -87,24 +87,24 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
           openContextMenu(e, [
             ...(onOpenWorkspaceSettings
               ? [
-                  {
-                    id: 'ws-settings',
-                    label: 'Pengaturan Workspace',
-                    icon: <Gear className="h-3.5 w-3.5" />,
-                    onClick: onOpenWorkspaceSettings
-                  }
-                ]
+                {
+                  id: 'ws-settings',
+                  label: 'Pengaturan Workspace',
+                  icon: <Gear className="h-3.5 w-3.5" />,
+                  onClick: onOpenWorkspaceSettings
+                }
+              ]
               : []),
             ...(onDeleteWorkspace
               ? [
-                  {
-                    id: 'ws-delete',
-                    label: 'Hapus Workspace',
-                    variant: 'danger' as const,
-                    icon: <Trash className="h-3.5 w-3.5" />,
-                    onClick: onDeleteWorkspace
-                  }
-                ]
+                {
+                  id: 'ws-delete',
+                  label: 'Hapus Workspace',
+                  variant: 'danger' as const,
+                  icon: <Trash className="h-3.5 w-3.5" />,
+                  onClick: onDeleteWorkspace
+                }
+              ]
               : [])
           ])
         }
@@ -120,7 +120,7 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
           <button
             type="button"
             onClick={onOpenWorkspaceSettings}
-            className="opacity-0 group-hover:opacity-100 p-1 rounded-lg text-muted hover:text-text hover:bg-hover transition-opacity cursor-pointer shrink-0"
+            className="p-1 rounded-lg opacity-0 transition-opacity cursor-pointer group-hover:opacity-100 text-muted hover:text-text hover:bg-hover shrink-0"
             title="Pengaturan Workspace"
           >
             <Gear className="h-3.5 w-3.5" />
@@ -130,13 +130,13 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
 
       {/* Navigation Tree */}
       <div className="overflow-y-auto flex-1 px-2 py-3 space-y-4">
-        
+
         {/* Section 1: Papan Kanban */}
         <div className="space-y-1">
           <div className="flex items-center justify-between px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-muted">
             <div className="flex items-center gap-1.5">
               <Kanban className="w-3 h-3" />
-              <span>Papan Sprint</span>
+              <span>Papan Kerja</span>
             </div>
             {canEdit && (
               <div className="flex items-center gap-0.5">
@@ -186,39 +186,39 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
                       openContextMenu(e, [
                         ...(onShareBoard
                           ? [
-                              {
-                                id: 'board-share',
-                                label: 'Bagikan Papan',
-                                icon: <Globe className="h-3.5 w-3.5" />,
-                                onClick: () => onShareBoard(b.id)
-                              }
-                            ]
+                            {
+                              id: 'board-share',
+                              label: 'Bagikan Papan',
+                              icon: <Globe className="h-3.5 w-3.5" />,
+                              onClick: () => onShareBoard(b.id)
+                            }
+                          ]
                           : []),
                         ...(onOpenBoardSettings
                           ? [
-                              {
-                                id: 'board-settings',
-                                label: 'Pengaturan Papan',
-                                icon: <Gear className="h-3.5 w-3.5" />,
-                                onClick: () => onOpenBoardSettings(b.id)
-                              }
-                            ]
+                            {
+                              id: 'board-settings',
+                              label: 'Pengaturan Papan',
+                              icon: <Gear className="h-3.5 w-3.5" />,
+                              onClick: () => onOpenBoardSettings(b.id)
+                            }
+                          ]
                           : []),
                         ...(canEdit && onDeleteBoard
                           ? [
-                              {
-                                id: 'board-delete',
-                                label: 'Hapus Papan',
-                                variant: 'danger' as const,
-                                icon: <Trash className="h-3.5 w-3.5" />,
-                                onClick: () => setBoardToDelete(b)
-                              }
-                            ]
+                            {
+                              id: 'board-delete',
+                              label: 'Hapus Papan',
+                              variant: 'danger' as const,
+                              icon: <Trash className="h-3.5 w-3.5" />,
+                              onClick: () => setBoardToDelete(b)
+                            }
+                          ]
                           : [])
                       ])
                     }
                   >
-                    <div className="flex items-center gap-2 min-w-0 truncate">
+                    <div className="flex gap-2 items-center min-w-0 truncate">
                       <Kanban className={cn('h-3.5 w-3.5 shrink-0', isActive ? 'text-project-solid' : 'text-muted')} />
                       <span className="truncate">{b.title}</span>
                     </div>
@@ -247,7 +247,7 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
           <div className="flex items-center justify-between px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-muted">
             <div className="flex items-center gap-1.5">
               <FolderOpen className="w-3 h-3" />
-              <span>Dokumen & PRD</span>
+              <span>Dokumen</span>
             </div>
             {canEdit && (
               <button
@@ -284,14 +284,14 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
                       openContextMenu(e, [
                         ...(canEdit
                           ? [
-                              {
-                                id: 'page-delete',
-                                label: 'Hapus Dokumen',
-                                variant: 'danger' as const,
-                                icon: <Trash className="h-3.5 w-3.5" />,
-                                onClick: () => setPageToDelete(p)
-                              }
-                            ]
+                            {
+                              id: 'page-delete',
+                              label: 'Hapus Dokumen',
+                              variant: 'danger' as const,
+                              icon: <Trash className="h-3.5 w-3.5" />,
+                              onClick: () => setPageToDelete(p)
+                            }
+                          ]
                           : [])
                       ])
                     }
