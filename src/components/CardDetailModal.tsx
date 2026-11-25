@@ -112,7 +112,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
     onUpdate(updated);
   };
 
-  const addActivity = (action: string) => {
+  const addActivity = (action: string, extraPartial?: Partial<Card>) => {
     const newAct: CardActivity = {
       id: `act-${Date.now()}`,
       userName: 'Anda',
@@ -121,7 +121,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
     };
     const nextActivities = [newAct, ...activities];
     setActivities(nextActivities);
-    syncChanges({ activities: nextActivities });
+    syncChanges({ ...extraPartial, activities: nextActivities });
   };
 
   const handleTitleBlur = () => {
@@ -206,12 +206,9 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
           url: reader.result as string,
           createdAt: Date.now()
         };
-        setAttachments((prev) => {
-          const nextAttachments = [...prev, newAttachment];
-          syncChanges({ attachments: nextAttachments });
-          return nextAttachments;
-        });
-        addActivity(`Mengunggah lampiran "${file.name}"`);
+        const nextAttachments = [...attachments, newAttachment];
+        setAttachments(nextAttachments);
+        addActivity(`Mengunggah lampiran "${file.name}"`, { attachments: nextAttachments });
       };
       reader.readAsDataURL(file);
     });
@@ -227,8 +224,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
     reader.onload = () => {
       const url = reader.result as string;
       setCoverImage(url);
-      syncChanges({ coverImage: url });
-      addActivity('Memperbarui cover gambar kartu');
+      addActivity('Memperbarui cover gambar kartu', { coverImage: url });
     };
     reader.readAsDataURL(file);
     e.target.value = '';
@@ -254,8 +250,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
               type="button"
               onClick={() => {
                 setCoverImage('');
-                syncChanges({ coverImage: undefined });
-                addActivity('Menghapus cover gambar kartu');
+                addActivity('Menghapus cover gambar kartu', { coverImage: undefined });
               }}
               className="flex h-7 items-center gap-1 rounded-lg bg-black/65 px-2.5 text-xs font-medium text-white backdrop-blur-xs hover:bg-danger cursor-pointer"
             >
