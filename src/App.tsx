@@ -45,6 +45,7 @@ import { WorkspaceMembersModal } from './components/WorkspaceMembersModal';
 import { LandingPage } from './components/LandingPage';
 import { AuthPage } from './components/AuthPage';
 import { EmptyWorkspaceOnboarding } from './components/EmptyWorkspaceOnboarding';
+import { EmptyWorkspaceContent } from './components/EmptyWorkspaceContent';
 import { CommandPalette } from './components/CommandPalette';
 import { SettingsHubModal, SettingsTab } from './components/SettingsHubModal';
 import { BoardTemplateModal } from './components/BoardTemplateModal';
@@ -582,10 +583,6 @@ export const App: React.FC = () => {
 
   const handleDeleteBoard = (boardId: string) => {
     if (!canEdit) return;
-    if ((activeWorkspace?.boards?.length || 0) <= 1) {
-      toast.info('Minimal harus ada 1 papan di dalam workspace.');
-      return;
-    }
 
     const remainingBoards = activeWorkspace.boards.filter((b) => b.id !== boardId);
     setWorkspaces((prev) =>
@@ -597,6 +594,8 @@ export const App: React.FC = () => {
     if (activeTarget.type === 'board' && activeTarget.id === boardId) {
       if (remainingBoards.length > 0) {
         setActiveTarget({ type: 'board', id: remainingBoards[0].id });
+      } else if (activeWorkspace.pages.length > 0) {
+        setActiveTarget({ type: 'page', id: activeWorkspace.pages[0].id });
       }
     }
     toast.success('Papan Kanban berhasil dihapus.');
@@ -1036,47 +1035,7 @@ export const App: React.FC = () => {
               onDropCard={() => {}}
             />
           </main>
-          <BoardTemplateModal
-        isOpen={isTemplateModalOpen}
-        onClose={() => setIsTemplateModalOpen(false)}
-        onSelectTemplate={handleCreateBoardFromTemplate}
-      />
-
-      <ShareModal
-        isOpen={isShareModalOpen}
-        onClose={() => setIsShareModalOpen(false)}
-        title={activeBoard.title}
-        shareToken={activeBoard.shareToken}
-        onToggleShare={(enable) => {
-          handleUpdateActiveBoard((prev) => ({
-            ...prev,
-            shareToken: enable ? prev.shareToken || crypto.randomUUID() : undefined,
-            updatedAt: Date.now()
-          }));
-        }}
-      />
-
-      <EntitySettingsModal
-        isOpen={entitySettings.open}
-        onClose={() => setEntitySettings((prev) => ({ ...prev, open: false }))}
-        entityType={entitySettings.type}
-        workspace={activeWorkspace}
-        board={activeBoard}
-        canDeleteBoard={(activeWorkspace?.boards?.length || 0) > 1}
-        onRenameWorkspace={(name) => {
-          handleUpdateActiveWorkspace({ ...activeWorkspace, name, updatedAt: Date.now() });
-          toast.success('Nama workspace diperbarui.');
-        }}
-        onDeleteWorkspace={handleDeleteWorkspace}
-        onRenameBoard={(title) => {
-          handleUpdateActiveBoard((prev) => ({ ...prev, title, updatedAt: Date.now() }));
-          toast.success('Nama papan diperbarui.');
-        }}
-        onUpdateColumnWip={handleUpdateWipLimit}
-        onDeleteBoard={handleDeleteBoard}
-      />
-
-      <ToastContainer />
+          <ToastContainer />
         </div>
       );
     }
@@ -1122,47 +1081,7 @@ export const App: React.FC = () => {
           onCreateWorkspace={handleCreateWorkspace}
           onNavigateLanding={() => goToRoute('landing')}
         />
-        <BoardTemplateModal
-        isOpen={isTemplateModalOpen}
-        onClose={() => setIsTemplateModalOpen(false)}
-        onSelectTemplate={handleCreateBoardFromTemplate}
-      />
-
-      <ShareModal
-        isOpen={isShareModalOpen}
-        onClose={() => setIsShareModalOpen(false)}
-        title={activeBoard.title}
-        shareToken={activeBoard.shareToken}
-        onToggleShare={(enable) => {
-          handleUpdateActiveBoard((prev) => ({
-            ...prev,
-            shareToken: enable ? prev.shareToken || crypto.randomUUID() : undefined,
-            updatedAt: Date.now()
-          }));
-        }}
-      />
-
-      <EntitySettingsModal
-        isOpen={entitySettings.open}
-        onClose={() => setEntitySettings((prev) => ({ ...prev, open: false }))}
-        entityType={entitySettings.type}
-        workspace={activeWorkspace}
-        board={activeBoard}
-        canDeleteBoard={(activeWorkspace?.boards?.length || 0) > 1}
-        onRenameWorkspace={(name) => {
-          handleUpdateActiveWorkspace({ ...activeWorkspace, name, updatedAt: Date.now() });
-          toast.success('Nama workspace diperbarui.');
-        }}
-        onDeleteWorkspace={handleDeleteWorkspace}
-        onRenameBoard={(title) => {
-          handleUpdateActiveBoard((prev) => ({ ...prev, title, updatedAt: Date.now() }));
-          toast.success('Nama papan diperbarui.');
-        }}
-        onUpdateColumnWip={handleUpdateWipLimit}
-        onDeleteBoard={handleDeleteBoard}
-      />
-
-      <ToastContainer />
+        <ToastContainer />
       </>
     );
   }
@@ -1175,6 +1094,10 @@ export const App: React.FC = () => {
         activeWorkspaceId={activeWorkspaceId}
         onSelectWorkspace={handleSelectWorkspace}
         onCreateWorkspace={handleCreateWorkspace}
+        onDeleteWorkspace={handleDeleteWorkspace}
+        onOpenWorkspaceSettings={() => setEntitySettings({ open: true, type: 'workspace' })}
+        isSidebarOpen={isSidebarOpen}
+        onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
         onOpenSettings={openSettingsTab}
         currentUser={currentUser}
       />
@@ -1190,6 +1113,17 @@ export const App: React.FC = () => {
         pages={activeWorkspace?.pages || []}
         onAddBoard={handleAddBoard}
         onDeleteBoard={handleDeleteBoard}
+        onOpenTemplates={() => setIsTemplateModalOpen(true)}
+        onOpenWorkspaceSettings={() => setEntitySettings({ open: true, type: 'workspace' })}
+        onDeleteWorkspace={() => setEntitySettings({ open: true, type: 'workspace' })}
+        onOpenBoardSettings={(boardId) => {
+          setActiveTarget({ type: 'board', id: boardId });
+          setEntitySettings({ open: true, type: 'board' });
+        }}
+        onShareBoard={(boardId) => {
+          setActiveTarget({ type: 'board', id: boardId });
+          setIsShareModalOpen(true);
+        }}
         onAddPage={handleAddPage}
         onDeletePage={handleDeletePage}
         currentUserRole={currentUserRole}
@@ -1243,7 +1177,15 @@ export const App: React.FC = () => {
         {/* Split-View Container for Main Canvas & Push Inspector */}
         <div className="flex flex-1 overflow-hidden min-w-0">
           <main className="flex-1 overflow-hidden min-w-0 flex flex-col">
-            {activeTarget.type === 'page' && activePage ? (
+            {activeWorkspace.boards.length === 0 && activeWorkspace.pages.length === 0 ? (
+              <EmptyWorkspaceContent
+                workspaceName={activeWorkspace.name}
+                canEdit={canEdit}
+                onCreateBoard={() => handleAddBoard('Papan Baru')}
+                onOpenTemplates={() => setIsTemplateModalOpen(true)}
+                onCreatePage={handleAddPage}
+              />
+            ) : activeTarget.type === 'page' && activePage ? (
               <StandalonePageDoc
                 page={activePage}
                 currentUserRole={currentUserRole}
@@ -1259,8 +1201,6 @@ export const App: React.FC = () => {
                   activeView={activeView}
                   onViewChange={setActiveView}
                   onOpenMembersModal={() => setIsMembersModalOpen(true)}
-                  onOpenTemplates={() => setIsTemplateModalOpen(true)}
-                  onOpenShare={() => setIsShareModalOpen(true)}
                   onOpenBoardSettings={() => setEntitySettings({ open: true, type: 'board' })}
                   canEdit={canEdit}
                   onQuickCreateTask={() => {
@@ -1489,17 +1429,24 @@ export const App: React.FC = () => {
         entityType={entitySettings.type}
         workspace={activeWorkspace}
         board={activeBoard}
-        canDeleteBoard={(activeWorkspace?.boards?.length || 0) > 1}
+        canDeleteBoard={true}
         onRenameWorkspace={(name) => {
           handleUpdateActiveWorkspace({ ...activeWorkspace, name, updatedAt: Date.now() });
           toast.success('Nama workspace diperbarui.');
         }}
+        onUpdateWorkspaceJoinPolicy={(joinPolicy) => {
+          handleUpdateActiveWorkspace({ ...activeWorkspace, joinPolicy, updatedAt: Date.now() });
+          toast.success('Kebijakan gabung workspace diperbarui.');
+        }}
+        onOpenMembersModal={() => setIsMembersModalOpen(true)}
         onDeleteWorkspace={handleDeleteWorkspace}
         onRenameBoard={(title) => {
           handleUpdateActiveBoard((prev) => ({ ...prev, title, updatedAt: Date.now() }));
           toast.success('Nama papan diperbarui.');
         }}
         onUpdateColumnWip={handleUpdateWipLimit}
+        onShareBoard={() => setIsShareModalOpen(true)}
+        onOpenTemplates={() => setIsTemplateModalOpen(true)}
         onDeleteBoard={handleDeleteBoard}
       />
 

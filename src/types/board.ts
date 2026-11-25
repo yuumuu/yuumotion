@@ -108,6 +108,7 @@ export interface Workspace {
   icon: string;
   ownerId: string;
   currentRole: UserRole;
+  joinPolicy?: 'invite' | 'link' | 'open';
   members: WorkspaceMember[];
   boards: Board[];
   pages: NotionPage[];

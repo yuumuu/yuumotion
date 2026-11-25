@@ -30,7 +30,8 @@ import {
   ArrowLeftIcon,
   Users,
   Lock,
-  ArrowsClockwise
+  ArrowsClockwise,
+  CaretDown
 } from '@phosphor-icons/react';
 import { usePreferences } from '../context/PreferencesContext';
 import { CardOpenMode } from '../types/preferences';
@@ -71,6 +72,9 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
   const [attachments, setAttachments] = useState<CardAttachment[]>(card.attachments || []);
   const [autoMoveDone, setAutoMoveDone] = useState<boolean>(card.autoMoveDone ?? true);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [isActivityOpen, setIsActivityOpen] = useState(false);
+  const [assigneeQuery, setAssigneeQuery] = useState('');
+  const [showAssigneeMenu, setShowAssigneeMenu] = useState(false);
   const [activities, setActivities] = useState<CardActivity[]>(() => {
     if (card.activities && card.activities.length > 0) return card.activities;
     return [
@@ -233,47 +237,32 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
   // Render Inner Content
   const renderDetailContent = () => (
     <div className="space-y-6">
-      {/* Quick Cover & Action Toolbar di Bagian Atas */}
-      <div className="flex flex-wrap items-center justify-between gap-2 -mt-1">
-        <div className="flex items-center gap-2">
-          <Button
-            size="xs"
-            variant="ghost"
-            leftIcon={<Image className="w-3.5 h-3.5" />}
-            onClick={() => coverInputRef.current?.click()}
-          >
-            {coverImage ? 'Ganti Cover' : 'Tambah Cover'}
-          </Button>
-          {coverImage && (
-            <Button
-              size="xs"
-              variant="ghost"
-              leftIcon={<Trash className="w-3.5 h-3.5 text-danger" />}
+      {/* Cover Image Banner */}
+      {coverImage && (
+        <div className="group/cover overflow-hidden relative w-full h-44 rounded-xl border border-border bg-bar">
+          <img src={coverImage} alt="Card Cover" className="object-cover w-full h-full" />
+          <div className="absolute right-2.5 top-2.5 flex items-center gap-1.5 opacity-0 group-hover/cover:opacity-100 transition-opacity">
+            <button
+              type="button"
+              onClick={() => coverInputRef.current?.click()}
+              className="flex h-7 items-center gap-1 rounded-lg bg-black/65 px-2.5 text-xs font-medium text-white backdrop-blur-xs hover:bg-black/85 cursor-pointer"
+            >
+              <Image className="h-3.5 w-3.5" />
+              <span>Ganti</span>
+            </button>
+            <button
+              type="button"
               onClick={() => {
                 setCoverImage('');
                 syncChanges({ coverImage: undefined });
                 addActivity('Menghapus cover gambar kartu');
               }}
+              className="flex h-7 items-center gap-1 rounded-lg bg-black/65 px-2.5 text-xs font-medium text-white backdrop-blur-xs hover:bg-danger cursor-pointer"
             >
-              Hapus Cover
-            </Button>
-          )}
-        </div>
-        <Button
-          size="xs"
-          variant="ghost"
-          className="text-danger hover:bg-status-urgent-bg"
-          leftIcon={<Trash className="w-3.5 h-3.5" />}
-          onClick={() => setConfirmDeleteOpen(true)}
-        >
-          Hapus Kartu
-        </Button>
-      </div>
-
-      {/* Cover Image Banner */}
-      {coverImage && (
-        <div className="overflow-hidden relative w-full h-44 rounded-xl border border-border bg-bar">
-          <img src={coverImage} alt="Card Cover" className="object-cover w-full h-full" />
+              <Trash className="h-3.5 w-3.5" />
+              <span>Hapus</span>
+            </button>
+          </div>
         </div>
       )}
 
@@ -398,45 +387,104 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
         />
       </div>
 
-      {/* Assignees Section */}
+      {/* Assignees Section (@mention / combobox) */}
       {members && members.length > 0 && (
-        <div>
+        <div className="relative">
           <label className="text-xs font-semibold uppercase tracking-wider text-muted flex items-center gap-1.5 mb-2">
             <Users className="h-3.5 w-3.5" />
             Ditugaskan Ke
           </label>
-          <div className="flex flex-wrap gap-2">
-            {members.map((m) => {
-              const isAssigned = (card.assignees || []).includes(m.id);
-              return (
-                <button
-                  key={m.id}
-                  type="button"
-                  onClick={() => {
-                    const current = card.assignees || [];
-                    const next = isAssigned ? current.filter((id) => id !== m.id) : [...current, m.id];
-                    syncChanges({ assignees: next });
-                    addActivity(isAssigned ? `Melepas tugas dari ${m.name}` : `Menugaskan ke ${m.name}`);
-                  }}
-                  title={m.name}
-                  className={cn(
-                    'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium border transition-all cursor-pointer',
-                    isAssigned
-                      ? 'border-project-accent bg-project-soft text-project-solid font-semibold shadow-2xs'
-                      : 'border-border bg-surface text-muted hover:text-text hover:bg-hover'
-                  )}
-                >
+
+          {(card.assignees || []).length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {(card.assignees || []).map((memberId) => {
+                const m = members.find((x) => x.id === memberId);
+                if (!m) return null;
+                return (
                   <span
-                    className="flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold text-white shrink-0"
-                    style={{ backgroundColor: m.color || '#6366F1' }}
+                    key={m.id}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-project-ring bg-project-soft px-2.5 py-1 text-xs font-semibold text-project-solid"
                   >
-                    {m.avatar || m.name.slice(0, 2).toUpperCase()}
+                    <span
+                      className="flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold text-white shrink-0"
+                      style={{ backgroundColor: m.color || '#6366F1' }}
+                    >
+                      {m.avatar || m.name.slice(0, 2).toUpperCase()}
+                    </span>
+                    <span>{m.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = (card.assignees || []).filter((id) => id !== m.id);
+                        syncChanges({ assignees: next });
+                        addActivity(`Melepas tugas dari ${m.name}`);
+                      }}
+                      className="ml-0.5 rounded-full hover:text-danger cursor-pointer"
+                      title={`Hapus ${m.name}`}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
                   </span>
-                  <span>{m.name}</span>
-                </button>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
+
+          <input
+            type="text"
+            value={assigneeQuery}
+            onFocus={() => setShowAssigneeMenu(true)}
+            onBlur={() => setTimeout(() => setShowAssigneeMenu(false), 150)}
+            onChange={(e) => {
+              setAssigneeQuery(e.target.value);
+              setShowAssigneeMenu(true);
+            }}
+            placeholder="Ketik @ atau cari nama anggota..."
+            className="w-full rounded-xl border border-border bg-surface px-3 py-1.5 text-xs text-text placeholder:text-muted focus:border-project-accent focus:outline-none"
+          />
+
+          {showAssigneeMenu && (
+            <div className="mt-1.5 max-h-40 overflow-y-auto rounded-xl border border-border bg-surface p-1 shadow-popover">
+              {members
+                .filter((m) => {
+                  const q = assigneeQuery.replace(/^@/, '').trim().toLowerCase();
+                  const already = (card.assignees || []).includes(m.id);
+                  return !already && (!q || m.name.toLowerCase().includes(q));
+                })
+                .map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      const next = [...(card.assignees || []), m.id];
+                      syncChanges({ assignees: next });
+                      addActivity(`Menugaskan ke ${m.name}`);
+                      setAssigneeQuery('');
+                      setShowAssigneeMenu(false);
+                    }}
+                    className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-text hover:bg-hover transition-colors cursor-pointer text-left"
+                  >
+                    <span
+                      className="flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold text-white shrink-0"
+                      style={{ backgroundColor: m.color || '#6366F1' }}
+                    >
+                      {m.avatar || m.name.slice(0, 2).toUpperCase()}
+                    </span>
+                    <span className="font-medium truncate">{m.name}</span>
+                    <span className="ml-auto text-[10px] text-muted uppercase">{m.role}</span>
+                  </button>
+                ))}
+              {members.filter((m) => {
+                const q = assigneeQuery.replace(/^@/, '').trim().toLowerCase();
+                return !(card.assignees || []).includes(m.id) && (!q || m.name.toLowerCase().includes(q));
+              }).length === 0 && (
+                <div className="px-2.5 py-2 text-[11px] text-muted text-center">
+                  Tidak ada anggota yang cocok.
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -702,32 +750,46 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
           />
         </div>
 
-        {/* Activity Log */}
-        <div>
-          <div className="flex justify-between items-center mb-2">
-            <span className="flex items-center gap-1.5 text-xs font-semibold text-muted">
+        {/* Collapsible Activity Log */}
+        <div className="rounded-xl border border-border bg-bar/60 overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setIsActivityOpen((prev) => !prev)}
+            className="flex w-full items-center justify-between px-3.5 py-2.5 text-xs font-semibold text-muted hover:text-text transition-colors cursor-pointer"
+          >
+            <span className="flex items-center gap-1.5">
               <ClockCounterClockwise className="h-3.5 w-3.5" />
-              Riwayat Aktivitas Kartu
+              <span>Riwayat Aktivitas Kartu</span>
+              <span className="font-mono text-[10px] rounded-md bg-hover px-1.5 py-0.5">
+                {activities.length}
+              </span>
             </span>
-            <span className="text-[11px] text-muted font-mono">{activities.length} catatan</span>
-          </div>
+            <CaretDown
+              className={cn(
+                'h-3.5 w-3.5 transition-transform duration-150',
+                isActivityOpen && 'rotate-180'
+              )}
+            />
+          </button>
 
-          <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
-            {activities.map((act) => (
-              <div
-                key={act.id}
-                className="flex items-start justify-between gap-2 rounded-lg border border-border/70 bg-bar/60 p-2 text-[11px]"
-              >
-                <div className="flex items-start gap-1.5">
-                  <span className="font-semibold text-project-accent">{act.userName}:</span>
-                  <span className="text-text">{act.action}</span>
+          {isActivityOpen && (
+            <div className="space-y-1.5 max-h-40 overflow-y-auto px-3 pb-3 pt-1 border-t border-border/60">
+              {activities.map((act) => (
+                <div
+                  key={act.id}
+                  className="flex items-start justify-between gap-2 rounded-lg border border-border/70 bg-surface p-2 text-[11px]"
+                >
+                  <div className="flex items-start gap-1.5">
+                    <span className="font-semibold text-project-accent">{act.userName}:</span>
+                    <span className="text-text">{act.action}</span>
+                  </div>
+                  <span className="text-[10px] text-muted whitespace-nowrap font-mono">
+                    {new Date(act.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
                 </div>
-                <span className="text-[10px] text-muted whitespace-nowrap font-mono">
-                  {new Date(act.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -746,51 +808,66 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
     </div>
   );
 
-  // Switcher Toolbar Buttons
-  const renderModeSwitcher = () => (
-    <div className="flex gap-1 items-center">
+  // Unified Header Actions (Cover, Delete, Mode Switcher)
+  const renderCardHeaderActions = (includeModeSwitcher: boolean) => (
+    <div className="flex items-center gap-1.5">
       <button
         type="button"
-        onClick={() => setOpenMode('drawer')}
-        className={cn(
-          'p-1.5 rounded-md text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer',
-          openMode === 'drawer' && 'bg-hover text-project-accent font-semibold'
-        )}
-        title="Mode Side Peek Drawer"
+        onClick={() => coverInputRef.current?.click()}
+        className="flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-medium text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer"
+        title={coverImage ? 'Ganti Cover Kartu' : 'Tambah Cover Kartu'}
       >
-        <SidebarSimple className="w-4 h-4" />
+        <Image className="w-3.5 h-3.5" />
+        <span className="hidden sm:inline">{coverImage ? 'Cover' : '+ Cover'}</span>
       </button>
-      <button
-        type="button"
-        onClick={() => setOpenMode('modal')}
-        className={cn(
-          'p-1.5 rounded-md text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer',
-          openMode === 'modal' && 'bg-hover text-project-accent font-semibold'
-        )}
-        title="Mode Center Modal"
-      >
-        <Square className="w-4 h-4" />
-      </button>
-      <button
-        type="button"
-        onClick={() => setOpenMode('fullpage')}
-        className={cn(
-          'p-1.5 rounded-md text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer',
-          openMode === 'fullpage' && 'bg-hover text-project-accent font-semibold'
-        )}
-        title="Mode Halaman Penuh"
-      >
-        <ArrowsOut className="w-4 h-4" />
-      </button>
-      <Separator orientation="vertical" className="mx-1 h-4" />
       <button
         type="button"
         onClick={() => setConfirmDeleteOpen(true)}
-        className="p-1.5 rounded-md text-danger hover:bg-status-urgent-bg transition-colors cursor-pointer"
+        className="p-1.5 rounded-lg text-muted hover:text-danger hover:bg-status-urgent-bg transition-colors cursor-pointer"
         title="Hapus Kartu Ini"
       >
-        <Trash className="w-4 h-4" />
+        <Trash className="w-3.5 h-3.5" />
       </button>
+      {includeModeSwitcher && (
+        <>
+          <Separator orientation="vertical" className="mx-0.5 h-4" />
+          <div className="flex items-center rounded-lg border border-border bg-surface p-0.5">
+            <button
+              type="button"
+              onClick={() => setOpenMode('drawer')}
+              className={cn(
+                'p-1 rounded-md text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer',
+                openMode === 'drawer' && 'bg-hover text-project-accent font-semibold'
+              )}
+              title="Mode Side Peek Drawer"
+            >
+              <SidebarSimple className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setOpenMode('modal')}
+              className={cn(
+                'p-1 rounded-md text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer',
+                openMode === 'modal' && 'bg-hover text-project-accent font-semibold'
+              )}
+              title="Mode Center Modal"
+            >
+              <Square className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setOpenMode('fullpage')}
+              className={cn(
+                'p-1 rounded-md text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer',
+                openMode === 'fullpage' && 'bg-hover text-project-accent font-semibold'
+              )}
+              title="Mode Halaman Penuh"
+            >
+              <ArrowsOut className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 
@@ -805,6 +882,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
         subtitle={title}
         currentMode="drawer"
         onChangeMode={(m) => setOpenMode(m)}
+        headerExtra={renderCardHeaderActions(false)}
         footer={
           <div className="flex justify-between items-center">
             <span className="text-[11px] text-muted font-medium">Tersimpan otomatis</span>
@@ -831,7 +909,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
             <span className="font-mono text-xs font-semibold text-project-accent bg-project-soft px-2 py-0.5 rounded-md">
               {formattedCode}
             </span>
-            {renderModeSwitcher()}
+            {renderCardHeaderActions(true)}
           </div>
         }
         footer={
@@ -869,7 +947,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
         </div>
 
         <div className="flex gap-2 items-center">
-          {renderModeSwitcher()}
+          {renderCardHeaderActions(true)}
           <Button variant="secondary" size="sm" onClick={onClose}>
             Tutup
           </Button>

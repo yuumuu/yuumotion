@@ -15,6 +15,17 @@ interface BoardTemplateModalProps {
   onSelectTemplate: (template: BoardTemplate) => void;
 }
 
+const CATEGORY_GRADIENT: Record<TemplateCategory, string> = {
+  Produk:
+    'bg-gradient-to-b from-violet-50/90 to-surface border-violet-200/80 dark:from-violet-950/35 dark:to-surface dark:border-violet-800/45',
+  Engineering:
+    'bg-gradient-to-b from-sky-50/90 to-surface border-sky-200/80 dark:from-sky-950/35 dark:to-surface dark:border-sky-800/45',
+  Marketing:
+    'bg-gradient-to-b from-amber-50/90 to-surface border-amber-200/80 dark:from-amber-950/35 dark:to-surface dark:border-amber-800/45',
+  Personal:
+    'bg-gradient-to-b from-emerald-50/90 to-surface border-emerald-200/80 dark:from-emerald-950/35 dark:to-surface dark:border-emerald-800/45'
+};
+
 export const BoardTemplateModal: React.FC<BoardTemplateModalProps> = ({
   isOpen,
   onClose,
@@ -77,7 +88,10 @@ export const BoardTemplateModal: React.FC<BoardTemplateModalProps> = ({
                 onSelectTemplate(tpl);
                 onClose();
               }}
-              className="group flex flex-col justify-between rounded-2xl border border-border bg-bar/50 p-4 text-left hover:border-project-accent hover:bg-project-soft/20 transition-all cursor-pointer"
+              className={cn(
+                'group flex flex-col justify-between rounded-2xl border p-4 text-left hover:border-project-accent hover:shadow-card-sm transition-all cursor-pointer',
+                CATEGORY_GRADIENT[tpl.category]
+              )}
             >
               <div>
                 <div className="flex items-center justify-between mb-2">

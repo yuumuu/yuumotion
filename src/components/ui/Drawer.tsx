@@ -10,6 +10,7 @@ export interface DrawerProps {
   subtitle?: React.ReactNode;
   currentMode?: CardOpenMode;
   onChangeMode?: (mode: CardOpenMode) => void;
+  headerExtra?: React.ReactNode;
   children: React.ReactNode;
   footer?: React.ReactNode;
   className?: string;
@@ -23,6 +24,7 @@ export const Drawer: React.FC<DrawerProps> = ({
   subtitle,
   currentMode = 'drawer',
   onChangeMode,
+  headerExtra,
   children,
   footer,
   className,
@@ -61,17 +63,18 @@ export const Drawer: React.FC<DrawerProps> = ({
             )}
           </div>
 
-          <div className="flex items-center gap-1 shrink-0">
+          <div className="flex items-center gap-1.5 shrink-0">
+            {headerExtra}
             {onChangeMode && (
-              <>
+              <div className="flex items-center rounded-lg border border-border bg-surface p-0.5">
                 <button
                   type="button"
                   onClick={() => onChangeMode('modal')}
                   className={cn(
-                    'p-1.5 rounded-lg text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer',
+                    'p-1 rounded-md text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer',
                     currentMode === 'modal' && 'bg-hover text-text font-semibold'
                   )}
-                  title="Ubah ke Center Modal"
+                  title="Mode Center Modal"
                 >
                   <Square className="h-3.5 w-3.5" />
                 </button>
@@ -79,14 +82,14 @@ export const Drawer: React.FC<DrawerProps> = ({
                   type="button"
                   onClick={() => onChangeMode('fullpage')}
                   className={cn(
-                    'p-1.5 rounded-lg text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer',
+                    'p-1 rounded-md text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer',
                     currentMode === 'fullpage' && 'bg-hover text-text font-semibold'
                   )}
-                  title="Buka Halaman Penuh"
+                  title="Mode Halaman Penuh"
                 >
                   <ArrowsOut className="h-3.5 w-3.5" />
                 </button>
-              </>
+              </div>
             )}
 
             <button

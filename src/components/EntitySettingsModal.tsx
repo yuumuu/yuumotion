@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Board, Workspace } from '../types/board';
 import { Dialog, Button, Input, ConfirmDialog } from './ui';
 import { cn } from '../lib/cn';
-import { Gear, Kanban, ClockCounterClockwise, Trash, Warning } from '@phosphor-icons/react';
+import { Gear, Kanban, ClockCounterClockwise, Trash, Warning, Users, Globe, Sparkle } from '@phosphor-icons/react';
 import { ActivityService, ActivityEvent } from '../services/activityService';
 
-export type EntitySettingsTab = 'general' | 'columns' | 'activity' | 'danger';
+export type EntitySettingsTab = 'general' | 'members' | 'columns' | 'activity' | 'danger';
 
 interface EntitySettingsModalProps {
   isOpen: boolean;
@@ -14,9 +14,13 @@ interface EntitySettingsModalProps {
   workspace: Workspace;
   board?: Board;
   onRenameWorkspace?: (name: string) => void;
+  onUpdateWorkspaceJoinPolicy?: (policy: 'invite' | 'link' | 'open') => void;
+  onOpenMembersModal?: () => void;
   onDeleteWorkspace?: (workspaceId: string) => void;
   onRenameBoard?: (title: string) => void;
   onUpdateColumnWip?: (columnId: string, wipLimit?: number) => void;
+  onShareBoard?: () => void;
+  onOpenTemplates?: () => void;
   onDeleteBoard?: (boardId: string) => void;
   canDeleteBoard?: boolean;
 }
@@ -28,9 +32,13 @@ export const EntitySettingsModal: React.FC<EntitySettingsModalProps> = ({
   workspace,
   board,
   onRenameWorkspace,
+  onUpdateWorkspaceJoinPolicy,
+  onOpenMembersModal,
   onDeleteWorkspace,
   onRenameBoard,
   onUpdateColumnWip,
+  onShareBoard,
+  onOpenTemplates,
   onDeleteBoard,
   canDeleteBoard = true
 }) => {
@@ -48,6 +56,9 @@ export const EntitySettingsModal: React.FC<EntitySettingsModalProps> = ({
 
   const tabs: { id: EntitySettingsTab; label: string; icon: React.ReactNode }[] = [
     { id: 'general', label: 'Umum', icon: <Gear className="h-4 w-4" /> },
+    ...(entityType === 'workspace'
+      ? [{ id: 'members' as const, label: 'Anggota & Akses', icon: <Users className="h-4 w-4" /> }]
+      : []),
     ...(entityType === 'board' && board
       ? [{ id: 'columns' as const, label: 'Kolom & WIP', icon: <Kanban className="h-4 w-4" /> }]
       : []),
@@ -113,12 +124,100 @@ export const EntitySettingsModal: React.FC<EntitySettingsModalProps> = ({
                     placeholder="Masukkan nama..."
                   />
                 </div>
+                {entityType === 'board' && (onShareBoard || onOpenTemplates) && (
+                  <div className="flex flex-wrap gap-2 pt-2 border-t border-border">
+                    {onShareBoard && (
+                      <Button
+                        type="button"
+                        size="xs"
+                        variant="secondary"
+                        leftIcon={<Globe className="h-3.5 w-3.5" />}
+                        onClick={() => {
+                          onClose();
+                          onShareBoard();
+                        }}
+                      >
+                        Bagikan Link Papan
+                      </Button>
+                    )}
+                    {onOpenTemplates && (
+                      <Button
+                        type="button"
+                        size="xs"
+                        variant="secondary"
+                        leftIcon={<Sparkle className="h-3.5 w-3.5" />}
+                        onClick={() => {
+                          onClose();
+                          onOpenTemplates();
+                        }}
+                      >
+                        Buat Papan dari Template
+                      </Button>
+                    )}
+                  </div>
+                )}
                 <div className="flex justify-end">
                   <Button type="submit" size="sm" variant="primary">
                     Simpan Perubahan
                   </Button>
                 </div>
               </form>
+            )}
+
+            {activeTab === 'members' && entityType === 'workspace' && (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-text mb-2">
+                    Siapa yang dapat bergabung ke workspace ini?
+                  </label>
+                  <div className="space-y-2">
+                    {(
+                      [
+                        { id: 'invite', title: 'Hanya Undangan', desc: 'Hanya anggota yang diundang admin atau owner.' },
+                        { id: 'link', title: 'Melalui Tautan Workspace', desc: 'Siapa pun yang memiliki tautan undangan dapat bergabung.' },
+                        { id: 'open', title: 'Terbuka (Tim Internal)', desc: 'Pengguna terdaftar dapat langsung meminta bergabung.' }
+                      ] as const
+                    ).map((opt) => {
+                      const active = (workspace.joinPolicy || 'invite') === opt.id;
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() => onUpdateWorkspaceJoinPolicy?.(opt.id)}
+                          className={cn(
+                            'w-full rounded-xl border p-3 text-left transition-colors cursor-pointer',
+                            active
+                              ? 'border-project-accent bg-project-soft/40'
+                              : 'border-border bg-bar hover:bg-hover'
+                          )}
+                        >
+                          <div className="text-xs font-semibold text-text">{opt.title}</div>
+                          <div className="text-[11px] text-muted mt-0.5">{opt.desc}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {onOpenMembersModal && (
+                  <div className="flex items-center justify-between pt-2 border-t border-border">
+                    <span className="text-xs text-muted">
+                      {workspace.members.length} anggota terdaftar
+                    </span>
+                    <Button
+                      size="xs"
+                      variant="secondary"
+                      leftIcon={<Users className="h-3.5 w-3.5" />}
+                      onClick={() => {
+                        onClose();
+                        onOpenMembersModal();
+                      }}
+                    >
+                      Kelola Daftar Anggota
+                    </Button>
+                  </div>
+                )}
+              </div>
             )}
 
             {activeTab === 'columns' && entityType === 'board' && board && (

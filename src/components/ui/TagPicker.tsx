@@ -55,9 +55,8 @@ export const TagPicker: React.FC<TagPickerProps> = ({
                 type="button"
                 disabled={readOnly}
                 onClick={() => onToggleTag(tag)}
-                className="inline-flex items-center gap-1.5 cursor-pointer"
+                className="inline-flex items-center gap-1 cursor-pointer"
               >
-                <span className={`h-1.5 w-1.5 rounded-full ${style.dot}`} />
                 <span>{tag.name}</span>
               </button>
               {!readOnly && onDeleteTag && (

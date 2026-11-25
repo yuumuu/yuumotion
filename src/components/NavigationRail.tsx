@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Workspace, AuthUser } from '../types/board';
-import { Moon, Sun, Gear, Plus } from '@phosphor-icons/react';
+import { Moon, Sun, Gear, Plus, SidebarSimple, Trash } from '@phosphor-icons/react';
 import { usePreferences } from '../context/PreferencesContext';
 import { cn } from '../lib/cn';
 import { ConfirmDialog } from './ui';
+import { ContextMenu } from './ui/ContextMenu';
 import { SettingsTab } from './SettingsHubModal';
 
 interface NavigationRailProps {
@@ -11,6 +12,10 @@ interface NavigationRailProps {
   activeWorkspaceId: string;
   onSelectWorkspace: (workspaceId: string) => void;
   onCreateWorkspace?: (name: string, icon: string) => void;
+  onDeleteWorkspace?: (workspaceId: string) => void;
+  onOpenWorkspaceSettings?: (workspaceId: string) => void;
+  isSidebarOpen?: boolean;
+  onToggleSidebar?: () => void;
   onOpenSettings?: (tab: SettingsTab) => void;
   currentUser: AuthUser;
 }
@@ -20,11 +25,22 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
   activeWorkspaceId,
   onSelectWorkspace,
   onCreateWorkspace,
+  onDeleteWorkspace,
+  onOpenWorkspaceSettings,
+  isSidebarOpen = true,
+  onToggleSidebar,
   onOpenSettings,
   currentUser
 }) => {
   const { preferences, updatePreferences } = usePreferences();
   const [isAddWsOpen, setIsAddWsOpen] = useState(false);
+  const [wsToDelete, setWsToDelete] = useState<Workspace | null>(null);
+  const [ctxMenu, setCtxMenu] = useState<{ open: boolean; x: number; y: number; ws: Workspace | null }>({
+    open: false,
+    x: 0,
+    y: 0,
+    ws: null
+  });
 
   const safeWorkspaces = workspaces || [];
 
@@ -32,18 +48,18 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
     <>
       <nav
         aria-label="Primary Navigation Rail"
-        className="hidden sm:flex h-full w-14 flex-col items-center justify-between border-r border-border bg-bar/90 py-3 select-none shrink-0 z-30"
+        className="hidden sm:flex h-full w-14 flex-col items-center justify-between border-r border-white/15 bg-gradient-to-b from-[#1D4ED8] via-[#2563EB] to-[#1E40AF] text-white py-3 select-none shrink-0 z-30"
       >
         {/* Top: Brand App Logo & Workspace Switcher */}
         <div className="flex flex-col items-center gap-3 w-full">
           <div
-            className="flex h-9 w-9 items-center justify-center rounded-xl shadow-2xs"
+            className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 p-0.5 shadow-2xs ring-1 ring-white/20"
             title="Yuumotion Workspace"
           >
             <img src="/icon.svg" alt="Yuumotion" className="h-8 w-8 rounded-xl" />
           </div>
 
-          <div className="w-8 border-t border-border" />
+          <div className="w-8 border-t border-white/20" />
 
           {/* Workspace Switcher List */}
           <div className="flex flex-col items-center gap-2 pt-1 w-full px-2">
@@ -53,19 +69,40 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
                 <button
                   key={ws.id}
                   type="button"
-                  onClick={() => onSelectWorkspace(ws.id)}
+                  onClick={() => {
+                    if (isActive && onToggleSidebar) {
+                      onToggleSidebar();
+                    } else {
+                      onSelectWorkspace(ws.id);
+                    }
+                  }}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    setCtxMenu({ open: true, x: e.clientX, y: e.clientY, ws });
+                  }}
                   className={cn(
                     'relative flex h-8 w-8 items-center justify-center rounded-xl text-xs font-semibold transition-[background-color,color,border-color,transform] duration-150 active:scale-[0.95] cursor-pointer',
                     isActive
-                      ? 'bg-project-soft text-project-solid border border-project-ring shadow-2xs'
-                      : 'text-muted hover:text-text hover:bg-hover'
+                      ? 'bg-white/25 text-white ring-1 ring-white/40 shadow-2xs'
+                      : 'text-white/75 hover:text-white hover:bg-white/15'
                   )}
-                  title={ws.name}
+                  title={
+                    isActive
+                      ? `${ws.name} (Klik untuk ${isSidebarOpen ? 'tutup' : 'buka'} sidebar)`
+                      : `${ws.name} (Klik kanan untuk opsi)`
+                  }
                 >
                   {isActive && (
-                    <span className="absolute -left-2 top-1.5 bottom-1.5 w-1 rounded-r-full bg-project-solid" />
+                    <span className="absolute -left-2 top-1.5 bottom-1.5 w-1 rounded-r-full bg-white" />
                   )}
-                  <span className="truncate">{ws.icon || 'W'}</span>
+                  {isActive && onToggleSidebar ? (
+                    <SidebarSimple
+                      className="h-4 w-4"
+                      weight={isSidebarOpen ? 'fill' : 'regular'}
+                    />
+                  ) : (
+                    <span className="truncate">{ws.icon || 'W'}</span>
+                  )}
                 </button>
               );
             })}
@@ -74,7 +111,7 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
               <button
                 type="button"
                 onClick={() => setIsAddWsOpen(true)}
-                className="flex h-8 w-8 items-center justify-center rounded-xl border border-dashed border-border text-muted hover:text-text hover:border-project-ring hover:bg-hover active:scale-[0.95] transition-[background-color,border-color,color,transform] duration-150 cursor-pointer"
+                className="flex h-8 w-8 items-center justify-center rounded-xl border border-dashed border-white/35 text-white/80 hover:text-white hover:border-white/70 hover:bg-white/15 active:scale-[0.95] transition-[background-color,border-color,color,transform] duration-150 cursor-pointer"
                 title="Buat Workspace Baru"
               >
                 <Plus className="h-3.5 w-3.5" />
@@ -90,7 +127,7 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
             onClick={() =>
               updatePreferences({ theme: preferences.theme === 'dark' ? 'light' : 'dark' })
             }
-            className="flex h-8 w-8 items-center justify-center rounded-xl text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer"
+            className="flex h-8 w-8 items-center justify-center rounded-xl text-white/80 hover:text-white hover:bg-white/15 transition-colors cursor-pointer"
             title="Ganti Tema (Gelap / Terang)"
           >
             {preferences.theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
@@ -99,25 +136,74 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
           <button
             type="button"
             onClick={() => onOpenSettings?.('appearance')}
-            className="flex h-8 w-8 items-center justify-center rounded-xl text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer"
+            className="flex h-8 w-8 items-center justify-center rounded-xl text-white/80 hover:text-white hover:bg-white/15 transition-colors cursor-pointer"
             title="Pengaturan Tampilan & Preferensi"
           >
             <Gear className="h-4 w-4" />
           </button>
 
-          <div className="w-8 border-t border-border my-0.5" />
+          <div className="w-8 border-t border-white/20 my-0.5" />
 
           <button
             type="button"
             onClick={() => onOpenSettings?.('profile')}
             style={{ backgroundColor: currentUser?.color || '#6366F1' }}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-white font-bold text-xs shadow-2xs hover:scale-105 active:scale-95 transition-transform cursor-pointer"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-white font-bold text-xs shadow-2xs ring-2 ring-white/30 hover:scale-105 active:scale-95 transition-transform cursor-pointer"
             title={`Profil: ${currentUser?.name || 'User'}`}
           >
             {currentUser?.name?.[0]?.toUpperCase() || 'U'}
           </button>
         </div>
       </nav>
+
+      <ContextMenu
+        isOpen={ctxMenu.open}
+        x={ctxMenu.x}
+        y={ctxMenu.y}
+        onClose={() => setCtxMenu((prev) => ({ ...prev, open: false }))}
+        items={
+          ctxMenu.ws
+            ? [
+                {
+                  id: 'ws-settings',
+                  label: 'Pengaturan Workspace',
+                  icon: <Gear className="h-3.5 w-3.5" />,
+                  onClick: () => {
+                    if (ctxMenu.ws) {
+                      onSelectWorkspace(ctxMenu.ws.id);
+                      onOpenWorkspaceSettings?.(ctxMenu.ws.id);
+                    }
+                  }
+                },
+                ...(onDeleteWorkspace
+                  ? [
+                      {
+                        id: 'ws-delete',
+                        label: 'Hapus Workspace',
+                        variant: 'danger' as const,
+                        icon: <Trash className="h-3.5 w-3.5" />,
+                        onClick: () => setWsToDelete(ctxMenu.ws)
+                      }
+                    ]
+                  : [])
+              ]
+            : []
+        }
+      />
+
+      <ConfirmDialog
+        isOpen={Boolean(wsToDelete)}
+        onClose={() => setWsToDelete(null)}
+        title="Hapus Workspace"
+        description={`Yakin ingin menghapus workspace "${wsToDelete?.name || ''}" beserta seluruh papan dan dokumen di dalamnya?`}
+        variant="danger"
+        confirmLabel="Hapus Workspace"
+        onConfirm={() => {
+          if (wsToDelete && onDeleteWorkspace) {
+            onDeleteWorkspace(wsToDelete.id);
+          }
+        }}
+      />
 
       <ConfirmDialog
         isOpen={isAddWsOpen}

@@ -163,7 +163,7 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({
             onQuickComplete(card);
           }}
           title="Tandai Selesai"
-          className="absolute right-2.5 top-2.5 z-10 flex h-7 w-7 items-center justify-center rounded-full border-2 border-border/50 bg-surface/90 text-muted opacity-40 shadow-sm transition-all duration-150 group-hover:opacity-100 group-hover:border-status-done group-hover:bg-status-done/15 group-hover:text-status-done hover:scale-110 active:scale-90 cursor-pointer"
+          className="absolute right-2.5 backdrop-blur-md top-2.5 z-10 flex h-7 w-7 items-center justify-center rounded-full border-2 border-border/50 bg-surface/90 text-muted opacity-20 shadow-sm transition-all duration-150 group-hover:opacity-100 group-hover:border-status-done group-hover:bg-status-done/15 group-hover:text-status-done hover:scale-110 active:scale-90 cursor-pointer"
         >
           <Check className="h-3.5 w-3.5" weight="bold" />
         </button>
@@ -176,7 +176,7 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({
             src={card.coverImage}
             alt={card.title}
             draggable={false}
-            className="h-full w-full object-cover"
+            className="object-cover w-full h-full"
           />
         </div>
       )}
@@ -194,7 +194,7 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({
 
         {isDoneColumn ? (
           <span className="inline-flex items-center gap-1 rounded-md bg-status-done-bg px-1.5 py-0.5 text-[10px] font-semibold text-status-done">
-            <svg className="h-3 w-3" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <svg className="w-3 h-3" viewBox="0 0 16 16" fill="none" aria-hidden="true">
               <path
                 d="M3.5 8.5L6.5 11.5L12.5 4.5"
                 stroke="currentColor"
@@ -239,7 +239,7 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({
               setIsEditingTitle(false);
             }
           }}
-          className="w-full bg-transparent text-xs font-semibold leading-snug text-text mb-2 focus:outline-none"
+          className="mb-2 w-full text-xs font-semibold leading-snug bg-transparent text-text focus:outline-none"
         />
       ) : (
         <h3
@@ -261,7 +261,7 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({
 
       {/* Minimal Tag Pills + Dependencies/Recurrence */}
       {(card.tags.length > 0 || (card.blockedBy && card.blockedBy.length > 0) || card.recurrence) && (
-        <div className="mb-2 flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-1 mb-2">
           {card.tags.slice(0, 2).map((tag) => (
             <span
               key={tag.id}
@@ -301,7 +301,7 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({
 
       {/* Clean Linear Progress Bar (Tanpa 10 Circle Dots) */}
       {totalChecklist > 0 && (
-        <div className="mb-2 h-1 w-full rounded-full bg-black/10 dark:bg-white/10 overflow-hidden">
+        <div className="overflow-hidden mb-2 w-full h-1 rounded-full bg-black/10 dark:bg-white/10">
           <div
             className={cn('h-full rounded-full transition-[width] duration-200', isAllDone ? 'bg-status-done' : pastel.bar)}
             style={{ width: `${progressPct}%` }}
@@ -314,21 +314,21 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({
         <div className="flex items-center gap-3 border-t border-border/40 pt-2 text-[10px] text-muted font-mono">
           {totalChecklist > 0 && (
             <span className={cn('inline-flex items-center gap-1', isAllDone && 'text-status-done font-semibold')}>
-              <CheckSquare className="h-3 w-3" />
+              <CheckSquare className="w-3 h-3" />
               <span>{completedChecklist}/{totalChecklist}</span>
             </span>
           )}
 
           {card.attachments && card.attachments.length > 0 && (
-            <span className="inline-flex items-center gap-1">
-              <Paperclip className="h-3 w-3" />
+            <span className="inline-flex gap-1 items-center">
+              <Paperclip className="w-3 h-3" />
               <span>{card.attachments.length}</span>
             </span>
           )}
 
           {card.dueDate && (
-            <span className="inline-flex items-center gap-1 ml-auto">
-              <CalendarBlank className="h-3 w-3" />
+            <span className="inline-flex gap-1 items-center ml-auto">
+              <CalendarBlank className="w-3 h-3" />
               <span>{card.dueDate.slice(5)}</span>
             </span>
           )}
