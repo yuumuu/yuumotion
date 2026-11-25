@@ -6,7 +6,6 @@ import {
   User,
   EnvelopeSimple,
   Lock,
-  Stack,
   Sparkle,
   Spinner,
   CheckCircle
@@ -118,9 +117,11 @@ export const AuthPage: React.FC<AuthPageProps> = ({
         </button>
 
         <div className="flex items-center justify-center gap-2.5">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-blue-500 text-white shadow-md shadow-purple-500/20">
-            <Stack className="h-5 w-5" />
-          </div>
+          <img
+            src="/icon.svg"
+            alt="Yuumotion Logo"
+            className="h-10 w-10 rounded-xl shadow-md"
+          />
           <h2 className="text-xl font-bold tracking-tight text-appflowy-text dark:text-appflowy-darkText">
             Yuumotion Auth
           </h2>

@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from '@phosphor-icons/react';
 
 export interface DialogProps {
@@ -43,11 +44,11 @@ export const Dialog: React.FC<DialogProps> = ({
     '3xl': 'max-w-3xl'
   };
 
-  return (
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs animate-in fade-in duration-150"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/45 p-4 backdrop-blur-xs animate-in fade-in duration-150"
     >
       <div
         className={`relative flex max-h-[90vh] w-full ${maxWidths[maxWidth]} flex-col overflow-hidden rounded-2xl border border-appflowy-border bg-appflowy-surface shadow-2xl dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface`}
@@ -84,6 +85,7 @@ export const Dialog: React.FC<DialogProps> = ({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

@@ -6,7 +6,6 @@ import {
   FileText,
   Plus,
   Trash,
-  SidebarSimple,
   FolderOpen,
   Stack
 } from '@phosphor-icons/react';
@@ -22,6 +21,7 @@ interface ProjectExplorerProps {
   boards: Board[];
   pages: NotionPage[];
   onAddBoard: (title: string) => void;
+  onDeleteBoard?: (boardId: string) => void;
   onAddPage: () => void;
   onDeletePage: (pageId: string) => void;
   currentUserRole: UserRole;
@@ -29,19 +29,21 @@ interface ProjectExplorerProps {
 
 export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
   isOpen,
-  onToggle,
+  onToggle: _onToggle,
   projectName,
   activeTarget,
   onSelectTarget,
   boards,
   pages,
   onAddBoard,
+  onDeleteBoard,
   onAddPage,
   onDeletePage,
   currentUserRole
 }) => {
   const canEdit = canEditContent(currentUserRole);
   const [isAddBoardOpen, setIsAddBoardOpen] = useState(false);
+  const [boardToDelete, setBoardToDelete] = useState<Board | null>(null);
   const [pageToDelete, setPageToDelete] = useState<NotionPage | null>(null);
 
   return (
@@ -55,41 +57,32 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
     >
       {/* Top Header: Project Name & Collapse button */}
       <div className="flex h-14 items-center justify-between border-b border-border px-3.5 shrink-0">
-        <div className="flex items-center gap-2 truncate">
+        <div className="flex gap-2 items-center truncate">
           <Stack className="h-3.5 w-3.5 text-project-solid shrink-0" />
-          <h2 className="font-display font-bold text-xs text-text truncate">
+          <h2 className="text-xs font-bold truncate font-display text-text">
             {projectName}
           </h2>
         </div>
-
-        <button
-          type="button"
-          onClick={onToggle}
-          className="flex h-6 w-6 items-center justify-center rounded-lg text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer"
-          title="Tutup Panel ([)"
-        >
-          <SidebarSimple className="h-3.5 w-3.5" />
-        </button>
       </div>
 
       {/* Navigation Tree */}
-      <div className="flex-1 overflow-y-auto px-2 py-3 space-y-4">
+      <div className="overflow-y-auto flex-1 px-2 py-3 space-y-4">
         
         {/* Section 1: Papan Kanban */}
         <div className="space-y-1">
           <div className="flex items-center justify-between px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-muted">
             <div className="flex items-center gap-1.5">
-              <Kanban className="h-3 w-3" />
+              <Kanban className="w-3 h-3" />
               <span>Papan Sprint</span>
             </div>
             {canEdit && (
               <button
                 type="button"
                 onClick={() => setIsAddBoardOpen(true)}
-                className="flex h-4 w-4 items-center justify-center rounded text-muted hover:text-text hover:bg-hover cursor-pointer"
+                className="flex justify-center items-center w-4 h-4 rounded cursor-pointer text-muted hover:text-text hover:bg-hover"
                 title="Tambah Papan"
               >
-                <Plus className="h-3 w-3" />
+                <Plus className="w-3 h-3" />
               </button>
             )}
           </div>
@@ -100,20 +93,34 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
               const cardCount = Object.keys(b.cards || {}).length;
 
               return (
-                <button
+                <div
                   key={b.id}
-                  type="button"
-                  onClick={() => onSelectTarget({ type: 'board', id: b.id })}
                   className={cn(
-                    'flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-xs transition-all cursor-pointer text-left',
+                    'group flex items-center justify-between rounded-xl px-2.5 py-1.5 text-xs transition-all cursor-pointer',
                     isActive
                       ? 'bg-project-soft text-project-solid font-semibold border border-project-ring shadow-2xs'
                       : 'text-text hover:bg-hover'
                   )}
+                  onClick={() => onSelectTarget({ type: 'board', id: b.id })}
                 >
-                  <span className="truncate">{b.title}</span>
-                  <span className="font-mono text-[10px] text-muted">{cardCount}</span>
-                </button>
+                  <div className="flex items-center gap-2 min-w-0 truncate">
+                    <Kanban className={cn('h-3.5 w-3.5 shrink-0', isActive ? 'text-project-solid' : 'text-muted')} />
+                    <span className="truncate">{b.title}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="font-mono text-[10px] text-muted">{cardCount}</span>
+                    {canEdit && onDeleteBoard && (boards || []).length > 1 && (
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setBoardToDelete(b); }}
+                        className="opacity-0 group-hover:opacity-100 p-0.5 text-muted hover:text-danger rounded hover:bg-surface transition-opacity cursor-pointer"
+                        title="Hapus Papan"
+                      >
+                        <Trash className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                </div>
               );
             })}
           </div>
@@ -123,17 +130,17 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
         <div className="space-y-1">
           <div className="flex items-center justify-between px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-muted">
             <div className="flex items-center gap-1.5">
-              <FolderOpen className="h-3 w-3" />
+              <FolderOpen className="w-3 h-3" />
               <span>Dokumen & PRD</span>
             </div>
             {canEdit && (
               <button
                 type="button"
                 onClick={onAddPage}
-                className="flex h-4 w-4 items-center justify-center rounded text-muted hover:text-text hover:bg-hover cursor-pointer"
+                className="flex justify-center items-center w-4 h-4 rounded cursor-pointer text-muted hover:text-text hover:bg-hover"
                 title="Tambah Dokumen"
               >
-                <Plus className="h-3 w-3" />
+                <Plus className="w-3 h-3" />
               </button>
             )}
           </div>
@@ -158,7 +165,7 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
                     )}
                     onClick={() => onSelectTarget({ type: 'page', id: p.id })}
                   >
-                    <div className="flex items-center gap-2 truncate min-w-0">
+                    <div className="flex gap-2 items-center min-w-0 truncate">
                       <FileText className="h-3.5 w-3.5 shrink-0 text-muted group-hover:text-text" />
                       <span className="truncate">{p.title || 'Untitled Document'}</span>
                     </div>
@@ -173,7 +180,7 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
                         className="opacity-0 group-hover:opacity-100 p-0.5 text-muted hover:text-danger rounded hover:bg-surface transition-opacity cursor-pointer"
                         title="Hapus Dokumen"
                       >
-                        <Trash className="h-3 w-3" />
+                        <Trash className="w-3 h-3" />
                       </button>
                     )}
                   </div>
@@ -194,6 +201,18 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
         confirmLabel="Buat Papan"
         onConfirm={(val) => {
           if (val) onAddBoard(val);
+        }}
+      />
+
+      <ConfirmDialog
+        isOpen={Boolean(boardToDelete)}
+        onClose={() => setBoardToDelete(null)}
+        title="Hapus Papan Kanban"
+        description={`Yakin ingin menghapus papan "${boardToDelete?.title || ''}" beserta seluruh kartunya?`}
+        variant="danger"
+        confirmLabel="Hapus Papan"
+        onConfirm={() => {
+          if (boardToDelete && onDeleteBoard) onDeleteBoard(boardToDelete.id);
         }}
       />
 

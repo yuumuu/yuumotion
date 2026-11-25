@@ -33,6 +33,7 @@ interface SidebarProps {
   onAddPage: () => void;
   onDeletePage: (pageId: string) => void;
   onAddBoard: (title: string) => void;
+  onDeleteBoard?: (boardId: string) => void;
   currentUser: AuthUser;
   currentUserRole: UserRole;
   onOpenAuthModal: () => void;
@@ -55,6 +56,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onAddPage,
   onDeletePage,
   onAddBoard,
+  onDeleteBoard,
   currentUser,
   currentUserRole: _currentUserRole,
   onOpenAuthModal: _onOpenAuthModal,
@@ -92,6 +94,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   const [isAddBoardOpen, setIsAddBoardOpen] = useState(false);
+  const [boardToDelete, setBoardToDelete] = useState<Board | null>(null);
   const [pageToDelete, setPageToDelete] = useState<NotionPage | null>(null);
 
   const handleCreateNewBoard = () => {
@@ -292,23 +295,34 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   const cardCount = Object.keys(b.cards || {}).length;
 
                   return (
-                    <button
+                    <div
                       key={b.id}
-                      type="button"
-                      onClick={() => onSelectTarget({ type: 'board', id: b.id })}
                       className={cn(
-                        'flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-xs transition-all cursor-pointer text-left',
+                        'group flex items-center justify-between rounded-xl px-2.5 py-1.5 text-xs transition-all cursor-pointer',
                         isActive
                           ? 'bg-project-soft text-project-solid font-semibold border border-project-ring shadow-2xs'
                           : 'text-text hover:bg-hover'
                       )}
+                      onClick={() => onSelectTarget({ type: 'board', id: b.id })}
                     >
-                      <div className="flex items-center gap-2 truncate">
+                      <div className="flex items-center gap-2 min-w-0 truncate">
                         <Kanban className={cn('h-3.5 w-3.5 shrink-0', isActive ? 'text-project-solid' : 'text-muted')} />
                         <span className="truncate">{b.title}</span>
                       </div>
-                      <span className="font-mono text-[10px] text-muted">{cardCount}</span>
-                    </button>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span className="font-mono text-[10px] text-muted">{cardCount}</span>
+                        {canEdit && onDeleteBoard && (boards || []).length > 1 && (
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); setBoardToDelete(b); }}
+                            className="opacity-0 group-hover:opacity-100 p-0.5 text-muted hover:text-danger rounded hover:bg-surface transition-opacity cursor-pointer"
+                            title="Hapus Papan"
+                          >
+                            <Trash className="h-3 w-3" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   );
                 })}
               </div>
@@ -459,6 +473,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
         confirmLabel="Buat Papan"
         onConfirm={(title) => {
           if (title) onAddBoard(title);
+        }}
+      />
+
+      <ConfirmDialog
+        isOpen={Boolean(boardToDelete)}
+        onClose={() => setBoardToDelete(null)}
+        title="Hapus Papan Kanban"
+        description={`Yakin ingin menghapus papan "${boardToDelete?.title || ''}" beserta seluruh kartunya?`}
+        variant="danger"
+        confirmLabel="Hapus Papan"
+        onConfirm={() => {
+          if (boardToDelete && onDeleteBoard) onDeleteBoard(boardToDelete.id);
         }}
       />
 

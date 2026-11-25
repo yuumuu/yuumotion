@@ -554,6 +554,28 @@ export const App: React.FC = () => {
     toast.success(`Board "${title}" berhasil dibuat.`);
   };
 
+  const handleDeleteBoard = (boardId: string) => {
+    if (!canEdit) return;
+    if ((activeWorkspace?.boards?.length || 0) <= 1) {
+      toast.info('Minimal harus ada 1 papan di dalam workspace.');
+      return;
+    }
+
+    const remainingBoards = activeWorkspace.boards.filter((b) => b.id !== boardId);
+    setWorkspaces((prev) =>
+      prev.map((ws) =>
+        ws.id === activeWorkspaceId ? { ...ws, boards: remainingBoards } : ws
+      )
+    );
+
+    if (activeTarget.type === 'board' && activeTarget.id === boardId) {
+      if (remainingBoards.length > 0) {
+        setActiveTarget({ type: 'board', id: remainingBoards[0].id });
+      }
+    }
+    toast.success('Papan Kanban berhasil dihapus.');
+  };
+
   const handleUpdateActiveBoard = (updater: (prevBoard: Board) => Board) => {
     if (!canEdit) return;
 
@@ -848,6 +870,7 @@ export const App: React.FC = () => {
         boards={activeWorkspace?.boards || []}
         pages={activeWorkspace?.pages || []}
         onAddBoard={handleAddBoard}
+        onDeleteBoard={handleDeleteBoard}
         onAddPage={handleAddPage}
         onDeletePage={handleDeletePage}
         currentUserRole={currentUserRole}
@@ -869,6 +892,7 @@ export const App: React.FC = () => {
           onAddPage={handleAddPage}
           onDeletePage={handleDeletePage}
           onAddBoard={handleAddBoard}
+          onDeleteBoard={handleDeleteBoard}
           currentUser={currentUser}
           currentUserRole={currentUserRole}
           onOpenAuthModal={() => openSettingsTab('profile')}

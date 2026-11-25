@@ -27,7 +27,6 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
   const [isAddWsOpen, setIsAddWsOpen] = useState(false);
 
   const safeWorkspaces = workspaces || [];
-  const activeWorkspace = safeWorkspaces.find((w) => w.id === activeWorkspaceId) || safeWorkspaces[0];
 
   return (
     <>
@@ -35,20 +34,14 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
         aria-label="Primary Navigation Rail"
         className="hidden sm:flex h-full w-14 flex-col items-center justify-between border-r border-border bg-bar/90 py-3 select-none shrink-0 z-30"
       >
-        {/* Top: Active Workspace & Switcher */}
+        {/* Top: Brand App Logo & Workspace Switcher */}
         <div className="flex flex-col items-center gap-3 w-full">
-          <button
-            type="button"
-            onClick={() => {
-              if (safeWorkspaces.length === 0) return;
-              const nextIdx = (safeWorkspaces.findIndex((w) => w.id === activeWorkspaceId) + 1) % safeWorkspaces.length;
-              if (safeWorkspaces[nextIdx]) onSelectWorkspace(safeWorkspaces[nextIdx].id);
-            }}
-            className="flex h-9 w-9 items-center justify-center rounded-xl bg-project-solid text-white font-display font-bold text-xs shadow-2xs hover:scale-105 active:scale-95 transition-transform duration-150 cursor-pointer"
-            title={`Workspace: ${activeWorkspace?.name || 'Workspace'}`}
+          <div
+            className="flex h-9 w-9 items-center justify-center rounded-xl shadow-2xs"
+            title="Yuumotion Workspace"
           >
-            <span>{activeWorkspace?.icon || 'Y'}</span>
-          </button>
+            <img src="/icon.svg" alt="Yuumotion" className="h-8 w-8 rounded-xl" />
+          </div>
 
           <div className="w-8 border-t border-border" />
 
