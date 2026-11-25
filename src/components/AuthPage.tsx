@@ -9,7 +9,9 @@ import {
   Lock,
   Sparkle,
   Spinner,
-  CheckCircle
+  CheckCircle,
+  GithubLogo,
+  GoogleLogo
 } from '@phosphor-icons/react';
 
 interface AuthPageProps {
@@ -91,6 +93,19 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     setTimeout(() => {
       onEnterApp();
     }, 600);
+  };
+
+  const handleOAuthLogin = async (provider: 'github' | 'google') => {
+    setErrorMsg(null);
+    try {
+      const res = await fetch('/api/health');
+      if (!res.ok) throw new Error('API offline');
+      window.location.href = `/api/auth/oauth/${provider}`;
+    } catch {
+      setErrorMsg(
+        `Backend OAuth (${provider === 'github' ? 'GitHub' : 'Google'}) belum aktif atau belum dikonfigurasi di server/. Jalankan server API terlebih dahulu atau gunakan Masuk sebagai Tamu.`
+      );
+    }
   };
 
   const handleGuestAccess = () => {
@@ -299,20 +314,39 @@ export const AuthPage: React.FC<AuthPageProps> = ({
               </div>
             </div>
 
+            <div className="grid grid-cols-2 gap-2.5 mt-4">
+              <button
+                type="button"
+                onClick={() => handleOAuthLogin('github')}
+                className="flex items-center justify-center gap-2 py-2 px-3 text-xs font-semibold rounded-xl border border-border bg-bg text-text hover:bg-hover transition-colors cursor-pointer"
+              >
+                <GithubLogo className="h-4 w-4" />
+                <span>GitHub</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleOAuthLogin('google')}
+                className="flex items-center justify-center gap-2 py-2 px-3 text-xs font-semibold rounded-xl border border-border bg-bg text-text hover:bg-hover transition-colors cursor-pointer"
+              >
+                <GoogleLogo className="h-4 w-4 text-blue-500" />
+                <span>Google</span>
+              </button>
+            </div>
+
             <button
               type="button"
               onClick={handleGuestAccess}
-              className="flex gap-2 justify-center items-center py-2 mt-4 w-full text-xs font-medium rounded-xl border cursor-pointer border-border bg-bg text-text hover:bg-hover"
+              className="flex gap-2 justify-center items-center py-2 mt-2.5 w-full text-xs font-medium rounded-xl border cursor-pointer border-border bg-bg text-text hover:bg-hover"
             >
               <Sparkle className="h-3.5 w-3.5 text-blue-400" />
-              <span>Masuk sebagai Guest</span>
+              <span>Masuk sebagai Tamu</span>
             </button>
           </div>
         </div>
       </div>
       </div>
 
-      <div className="bg-gradient-to-b from-bg via-[#3B82F6] via-25% to-[#0B45D6]">
+      <div className="bg-gradient-to-b from-bg via-[#3B82F6] via-25% to-[#0B45D6] pt-20">
         <PublicFooter onEnterApp={onEnterApp} />
       </div>
     </div>
