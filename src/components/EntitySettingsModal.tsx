@@ -13,7 +13,7 @@ interface EntitySettingsModalProps {
   entityType: 'workspace' | 'board';
   workspace: Workspace;
   board?: Board;
-  onRenameWorkspace?: (name: string) => void;
+  onRenameWorkspace?: (name: string, icon?: string) => void;
   onUpdateWorkspaceJoinPolicy?: (policy: 'invite' | 'link' | 'open') => void;
   onOpenMembersModal?: () => void;
   onDeleteWorkspace?: (workspaceId: string) => void;
@@ -24,6 +24,8 @@ interface EntitySettingsModalProps {
   onDeleteBoard?: (boardId: string) => void;
   canDeleteBoard?: boolean;
 }
+
+const WORKSPACE_ICONS = ['🚀', '✨', '📋', '💡', '🎯', '⚡', '🌿', '🎨'];
 
 export const EntitySettingsModal: React.FC<EntitySettingsModalProps> = ({
   isOpen,
@@ -44,6 +46,7 @@ export const EntitySettingsModal: React.FC<EntitySettingsModalProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<EntitySettingsTab>('general');
   const [nameInput, setNameInput] = useState('');
+  const [iconInput, setIconInput] = useState(workspace.icon || '🚀');
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [activities, setActivities] = useState<ActivityEvent[]>([]);
 
@@ -51,8 +54,9 @@ export const EntitySettingsModal: React.FC<EntitySettingsModalProps> = ({
     if (!isOpen) return;
     setActiveTab('general');
     setNameInput(entityType === 'board' ? board?.title || '' : workspace.name);
+    setIconInput(workspace.icon || '🚀');
     setActivities(ActivityService.getByWorkspace(workspace.id, 30));
-  }, [isOpen, entityType, board?.title, workspace.id, workspace.name]);
+  }, [isOpen, entityType, board?.title, workspace.id, workspace.name, workspace.icon]);
 
   const tabs: { id: EntitySettingsTab; label: string; icon: React.ReactNode }[] = [
     { id: 'general', label: 'Umum', icon: <Gear className="h-4 w-4" /> },
@@ -73,7 +77,7 @@ export const EntitySettingsModal: React.FC<EntitySettingsModalProps> = ({
     if (entityType === 'board') {
       onRenameBoard?.(trimmed);
     } else {
-      onRenameWorkspace?.(trimmed);
+      onRenameWorkspace?.(trimmed, iconInput);
     }
     onClose();
   };
@@ -113,6 +117,30 @@ export const EntitySettingsModal: React.FC<EntitySettingsModalProps> = ({
           <div className="flex-1 min-w-0">
             {activeTab === 'general' && (
               <form onSubmit={handleSaveName} className="space-y-4">
+                {entityType === 'workspace' && (
+                  <div>
+                    <label className="block text-xs font-semibold text-text mb-2">
+                      Ikon Workspace
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {WORKSPACE_ICONS.map((item) => (
+                        <button
+                          key={item}
+                          type="button"
+                          onClick={() => setIconInput(item)}
+                          className={cn(
+                            'flex h-9 w-9 items-center justify-center rounded-xl border text-base transition-transform cursor-pointer',
+                            iconInput === item
+                              ? 'border-project-accent bg-project-soft scale-105 shadow-2xs'
+                              : 'border-border bg-bg hover:bg-hover'
+                          )}
+                        >
+                          {item}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <div>
                   <label className="block text-xs font-semibold text-text mb-1.5">
                     {entityType === 'board' ? 'Nama Papan' : 'Nama Workspace'}

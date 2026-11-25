@@ -62,27 +62,10 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   });
 
   const getCardsForDate = (dateStr: string) => {
-    return filteredCards
-      .filter((card) => {
-        const start = card.startDate || card.dueDate;
-        const end = card.dueDate || card.startDate;
-        if (!start || !end) return false;
-        const min = start <= end ? start : end;
-        const max = start <= end ? end : start;
-        return dateStr >= min && dateStr <= max;
-      })
-      .map((card) => {
-        const start = card.startDate || card.dueDate || dateStr;
-        const end = card.dueDate || card.startDate || dateStr;
-        const min = start <= end ? start : end;
-        const max = start <= end ? end : start;
-        return {
-          card,
-          isMultiDay: min !== max,
-          isStart: dateStr === min,
-          isEnd: dateStr === max
-        };
-      });
+    return filteredCards.filter((card) => {
+      const targetDate = card.dueDate || card.startDate;
+      return targetDate === dateStr;
+    });
   };
 
   const handleDropOnDate = (targetDateStr: string) => {
@@ -138,15 +121,16 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-7 gap-px rounded-t-2xl border border-border bg-border text-center text-xs font-semibold uppercase tracking-wider text-muted">
-        {daysOfWeek.map((day) => (
-          <div key={day} className="bg-bar py-2.5">
-            {day}
-          </div>
-        ))}
-      </div>
+      <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-border bg-border">
+        <div className="grid grid-cols-7 gap-px text-center text-xs font-semibold uppercase tracking-wider text-muted shrink-0">
+          {daysOfWeek.map((day) => (
+            <div key={day} className="bg-bar py-2.5">
+              {day}
+            </div>
+          ))}
+        </div>
 
-      <div className="grid flex-1 grid-cols-7 gap-px overflow-y-auto rounded-b-2xl border border-t-0 border-border bg-border">
+        <div className="grid flex-1 grid-cols-7 gap-px overflow-y-auto">
         {Array.from({ length: firstDayOfMonth }).map((_, i) => (
           <div key={`pad-${i}`} className="min-h-24 bg-surface/30 p-2 opacity-40" />
         ))}
@@ -201,7 +185,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               </div>
 
               <div className="space-y-1">
-                {dayCards.map(({ card, isMultiDay, isStart, isEnd }) => {
+                {dayCards.map((card) => {
                   const tag = card.tags[0];
                   const style = tag ? TAG_COLORS[tag.color] || TAG_COLORS.neutral : TAG_COLORS.neutral;
 
@@ -222,17 +206,13 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                         onCardClick(card);
                       }}
                       className={cn(
-                        'truncate py-0.5 text-[10px] font-medium leading-normal cursor-grab active:cursor-grabbing transition-transform hover:scale-[1.01] border border-border/40',
+                        'truncate rounded-lg px-2 py-0.5 text-[10px] font-medium leading-normal cursor-grab active:cursor-grabbing transition-transform hover:scale-[1.01] border border-border/40',
                         style.bg,
-                        style.text,
-                        !isMultiDay && 'rounded-md px-1.5',
-                        isMultiDay && isStart && !isEnd && 'rounded-l-md rounded-r-none -mr-2 pr-2 pl-1.5 border-r-0',
-                        isMultiDay && !isStart && !isEnd && 'rounded-none -mx-2 px-2 border-x-0 opacity-90',
-                        isMultiDay && isEnd && !isStart && 'rounded-r-md rounded-l-none -ml-2 pl-2 pr-1.5 border-l-0'
+                        style.text
                       )}
-                      title={`${card.title}${isMultiDay ? ' (Multi-hari • Seret untuk pindah jadwal)' : ''}`}
+                      title={`${card.title} (Seret untuk pindah tanggal)`}
                     >
-                      {!isMultiDay || isStart ? card.title : `↳ ${card.title}`}
+                      {card.title}
                     </div>
                   );
                 })}
@@ -240,6 +220,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             </div>
           );
         })}
+        </div>
       </div>
 
       <ConfirmDialog

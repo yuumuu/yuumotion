@@ -77,7 +77,7 @@ export function getStoredWorkspaces(currentUser: AuthUser): Workspace[] {
       if (Array.isArray(parsed) && parsed.length > 0) {
         // Sanitasi agar aman terhadap cache versi lama
         const sanitized: Workspace[] = parsed.map((ws: Partial<Workspace>) => {
-          const boards = Array.isArray(ws.boards) && ws.boards.length > 0 ? ws.boards : [INITIAL_BOARD];
+          const boards = Array.isArray(ws.boards) ? ws.boards : [INITIAL_BOARD];
           const pages = Array.isArray(ws.pages) ? ws.pages : INITIAL_NOTION_PAGES;
           const members = Array.isArray(ws.members) && ws.members.length > 0
             ? ws.members

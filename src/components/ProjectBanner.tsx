@@ -6,8 +6,6 @@ import {
   Clock,
   Plus,
   UserPlus,
-  Calendar,
-  Tag,
   Gear
 } from '@phosphor-icons/react';
 import { Board, WorkspaceMember, WorkspaceView, UserRole } from '../types/board';
@@ -121,17 +119,6 @@ export const ProjectBanner: React.FC<ProjectBannerProps> = ({
               <span>Buat Tugas</span>
             </button>
           )}
-
-          <div className="hidden lg:flex items-center gap-3 pl-2 text-[11px] text-muted">
-            <span className="inline-flex gap-1 items-center">
-              <Calendar className="h-3.5 w-3.5" />
-              <span>Sprint Aktif</span>
-            </span>
-            <span className="inline-flex gap-1 items-center">
-              <Tag className="h-3.5 w-3.5" />
-              <span>Multi-View Sync</span>
-            </span>
-          </div>
         </div>
 
         {/* View Switcher Pill */}

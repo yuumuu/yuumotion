@@ -1514,9 +1514,14 @@ export const App: React.FC = () => {
         workspace={activeWorkspace}
         board={activeBoard}
         canDeleteBoard={true}
-        onRenameWorkspace={(name) => {
-          handleUpdateActiveWorkspace({ ...activeWorkspace, name, updatedAt: Date.now() });
-          toast.success('Nama workspace diperbarui.');
+        onRenameWorkspace={(name, icon) => {
+          handleUpdateActiveWorkspace({
+            ...activeWorkspace,
+            name,
+            icon: icon || activeWorkspace.icon,
+            updatedAt: Date.now()
+          });
+          toast.success('Pengaturan workspace diperbarui.');
         }}
         onUpdateWorkspaceJoinPolicy={(joinPolicy) => {
           handleUpdateActiveWorkspace({ ...activeWorkspace, joinPolicy, updatedAt: Date.now() });

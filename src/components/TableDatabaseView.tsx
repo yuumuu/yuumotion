@@ -128,7 +128,10 @@ export const TableDatabaseView: React.FC<TableDatabaseViewProps> = ({
         </table>
       </div>
 
-      <form onSubmit={handleCreate} className="mt-3 flex items-center gap-2 shrink-0">
+      <form
+        onSubmit={handleCreate}
+        className="mt-3 flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-surface p-2.5 pr-4 sm:mr-16 shrink-0"
+      >
         <div className="w-40 flex-shrink-0">
           <CustomSelect
             value={selectedColumn}
@@ -140,10 +143,10 @@ export const TableDatabaseView: React.FC<TableDatabaseViewProps> = ({
           placeholder="Tambah baris baru cepat..."
           value={newTitle}
           onChange={(e) => setNewTitle(e.target.value)}
-          className="max-w-md"
+          className="flex-1 min-w-[200px]"
         />
         <Button type="submit" variant="primary" size="sm" leftIcon={<Plus className="h-3.5 w-3.5" />}>
-          Tambah Baris
+          Tambah Data
         </Button>
       </form>
     </div>

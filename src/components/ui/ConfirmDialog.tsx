@@ -38,6 +38,21 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
     }
   }, [isOpen, initialValue]);
 
+  useEffect(() => {
+    if (!isOpen || mode !== 'confirm') return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        const tag = (e.target as HTMLElement | null)?.tagName;
+        if (tag === 'TEXTAREA' || tag === 'BUTTON') return;
+        e.preventDefault();
+        onConfirm(undefined);
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, mode, onConfirm, onClose]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (mode === 'prompt' && !inputValue.trim()) return;

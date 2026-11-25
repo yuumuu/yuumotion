@@ -24,6 +24,7 @@ export const Dialog: React.FC<DialogProps> = ({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        e.preventDefault();
         onClose();
       }
     };
