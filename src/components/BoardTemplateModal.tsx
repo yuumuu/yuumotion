@@ -89,7 +89,7 @@ export const BoardTemplateModal: React.FC<BoardTemplateModalProps> = ({
                 onClose();
               }}
               className={cn(
-                'group flex flex-col justify-between rounded-2xl border p-4 text-left hover:border-project-accent hover:shadow-card-sm transition-all cursor-pointer',
+                'group flex flex-col justify-between rounded-2xl border p-4 text-left hover:border-project-accent hover:shadow-card-sm transition-[border-color,box-shadow,transform] duration-150 cursor-pointer',
                 CATEGORY_GRADIENT[tpl.category]
               )}
             >

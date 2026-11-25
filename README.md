@@ -1,40 +1,28 @@
-# Yuumotion 🚀
+# Yuumotion
 
-AppFlowy-inspired collaborative Kanban workspace crafted for frictionless multi-user synchronization and zero-cost hosting on Wasmer Edge Free Tier.
+Workspace kolaboratif hibrida (**Kanban + Dokumen TipTap + Multi-View Sync**) dengan desain **Biru, Hitam, Putih (60/30/10)**, arsitektur **offline-first**, serta backend **Hono + Drizzle ORM (MySQL/TiDB)** siap **Wasmer Edge**.
 
-## ✨ Highlights
+## Fitur Utama
 
-- **AppFlowy Aesthetic**: Clean typography, pastel tags, responsive Kanban columns, and immersive card document modal.
-- **Multi-User Collaboration**: Live updates across clients with real-time broadcast channels and active presence indicators.
-- **Local-First & Offline**: Instant 0ms reads and writes persisted to browser storage with JSON export/import.
-- **Wasmer Edge Ready**: Configured out of the box with `wasmer.toml` and `wasmer/static-web-server`.
+- **Multi-View Workspace**: Kanban Board (pointer + keyboard DnD, inline edit, WIP limit, column reorder), Database Spreadsheet, Kalender Bulanan, dan Timeline Gantt (drag & resize durasi).
+- **Editor Dokumen TipTap**: Slash commands (`/`), auto-save indicator, daftar isi sticky, serta export ke Markdown (`.md`).
+- **Kolaborasi & Produktivitas**: 12 Board Templates (Produk, Engineering, Marketing, Personal), Card Dependencies (`blockedBy`), Recurring Tasks, Guest Link Sharing (`#share/:token`), dan `@mention` Assignee.
+- **Backend Monorepo (`server/`)**: Hono + TypeScript + Drizzle ORM untuk MySQL/TiDB (Wasmer Edge), autentikasi JWT cookie + OAuth, SSE realtime stream, dan endpoint upload ke Wasmer Storage.
 
-## 🛠️ Quick Start
+## Menjalankan Secara Lokal
 
 ```bash
-# Install dependencies
 npm install
-
-# Start development server
 npm run dev
 ```
 
-Visit `http://localhost:3000` in your browser. Open multiple tabs or windows to see instant real-time card and column synchronization.
-
-## 📦 Build & Deploy to Wasmer Edge
+Untuk menjalankan backend API (setelah menyalin `.env.example` ke `.env`):
 
 ```bash
-# Build production bundle
-npm run build
-
-# Deploy to Wasmer Edge
-wasmer deploy
+npm run db:push
+npm run dev:server
 ```
 
-## 📖 Documentation
+## Lisensi
 
-Explore the `/docs` directory for complete design and architecture specifications:
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): System architecture and data flow.
-- [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md): AppFlowy-style UI color palette and typography.
-- [`docs/DEPLOYMENT_WASMER.md`](docs/DEPLOYMENT_WASMER.md): Step-by-step Wasmer Edge deployment guide.
-- [`docs/MULTIUSER_SYNC.md`](docs/MULTIUSER_SYNC.md): Multi-user concurrency, broadcast protocol, and conflict resolution.
+Proyek ini dirilis di bawah lisensi [Apache License 2.0](LICENSE).

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { AuthUser } from '../types/board';
 import { saveStoredAuthUser, loginWithSupabaseAuth } from '../lib/auth';
+import { PublicFooter } from './PublicFooter';
 import {
   ArrowLeft,
   User,
@@ -106,11 +107,12 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-appflowy-bg text-appflowy-text dark:bg-appflowy-darkBg dark:text-appflowy-darkText flex flex-col justify-center px-4 py-12 sm:px-6 lg:px-8">
+    <div className="flex flex-col justify-between min-h-screen bg-bg text-text">
+      <div className="flex flex-col flex-1 justify-center px-4 py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <button
           onClick={onNavigateHome}
-          className="mb-6 inline-flex items-center gap-1.5 text-xs text-appflowy-muted hover:text-purple-600 dark:text-appflowy-darkMuted dark:hover:text-purple-400 cursor-pointer"
+          className="mb-6 inline-flex items-center gap-1.5 text-xs text-muted hover:text-project-solid cursor-pointer"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           <span>Kembali ke Beranda</span>
@@ -120,34 +122,34 @@ export const AuthPage: React.FC<AuthPageProps> = ({
           <img
             src="/icon.svg"
             alt="Yuumotion Logo"
-            className="h-10 w-10 rounded-xl shadow-md"
+            className="w-10 h-10 rounded-xl shadow-md"
           />
           <h2 className="text-xl font-bold tracking-tight text-appflowy-text dark:text-appflowy-darkText">
             Yuumotion Auth
           </h2>
         </div>
-        <p className="mt-2 text-center text-xs text-appflowy-muted dark:text-appflowy-darkMuted">
+        <p className="mt-2 text-xs text-center text-appflowy-muted dark:text-appflowy-darkMuted">
           Akses workspace kolaboratif dengan akun lokal atau cloud
         </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="rounded-2xl border border-appflowy-border bg-appflowy-surface p-6 shadow-xl dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface">
+        <div className="p-6 rounded-2xl border shadow-xl border-appflowy-border bg-appflowy-surface dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface">
           {/* Tab Switcher */}
-          <div className="flex rounded-xl border border-appflowy-border bg-appflowy-bg p-1 dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg mb-6">
+          <div className="flex p-1 mb-6 rounded-xl border border-appflowy-border bg-appflowy-bg dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg">
             <button
               type="button"
               onClick={() => {
                 setTab('login');
                 setErrorMsg(null);
               }}
-              className={`flex-1 rounded-lg py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex-1 rounded-lg py-1.5 text-xs font-semibold transition-[background-color,color] duration-150 cursor-pointer ${
                 tab === 'login'
-                  ? 'bg-appflowy-surface text-purple-600 shadow-2xs dark:bg-appflowy-darkSurface dark:text-purple-400'
-                  : 'text-appflowy-muted hover:text-appflowy-text dark:text-appflowy-darkMuted'
+                  ? 'bg-surface text-project-solid shadow-2xs'
+                  : 'text-muted hover:text-text'
               }`}
             >
-              Masuk (Login)
+              Masuk
             </button>
             <button
               type="button"
@@ -155,10 +157,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 setTab('register');
                 setErrorMsg(null);
               }}
-              className={`flex-1 rounded-lg py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex-1 rounded-lg py-1.5 text-xs font-semibold transition-[background-color,color] duration-150 cursor-pointer ${
                 tab === 'register'
-                  ? 'bg-appflowy-surface text-purple-600 shadow-2xs dark:bg-appflowy-darkSurface dark:text-purple-400'
-                  : 'text-appflowy-muted hover:text-appflowy-text dark:text-appflowy-darkMuted'
+                  ? 'bg-surface text-project-solid shadow-2xs'
+                  : 'text-muted hover:text-text'
               }`}
             >
               Daftar Akun Baru
@@ -166,14 +168,14 @@ export const AuthPage: React.FC<AuthPageProps> = ({
           </div>
 
           {errorMsg && (
-            <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50/70 p-3 text-xs text-rose-600 dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-400">
+            <div className="p-3 mb-4 text-xs text-rose-600 rounded-xl border border-rose-200 bg-rose-50/70 dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-400">
               {errorMsg}
             </div>
           )}
 
           {successMsg && (
             <div className="mb-4 flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50/70 p-3 text-xs text-emerald-600 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-400">
-              <CheckCircle className="h-4 w-4" />
+              <CheckCircle className="w-4 h-4" />
               <span>{successMsg}</span>
             </div>
           )}
@@ -192,7 +194,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     placeholder="nama@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full rounded-xl border border-appflowy-border bg-appflowy-bg pl-9 pr-3 py-2 text-xs text-appflowy-text placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-purple-500 dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg dark:text-appflowy-darkText"
+                    className="py-2 pr-3 pl-9 w-full text-xs rounded-xl border border-appflowy-border bg-appflowy-bg text-appflowy-text placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-purple-500 dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg dark:text-appflowy-darkText"
                   />
                 </div>
               </div>
@@ -209,7 +211,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full rounded-xl border border-appflowy-border bg-appflowy-bg pl-9 pr-3 py-2 text-xs text-appflowy-text placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-purple-500 dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg dark:text-appflowy-darkText"
+                    className="py-2 pr-3 pl-9 w-full text-xs rounded-xl border border-appflowy-border bg-appflowy-bg text-appflowy-text placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-purple-500 dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg dark:text-appflowy-darkText"
                   />
                 </div>
               </div>
@@ -217,9 +219,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-purple-600 py-2.5 text-xs font-semibold text-white shadow-sm transition-all hover:bg-purple-700 disabled:opacity-50 cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-project-solid py-2.5 text-xs font-semibold text-white shadow-sm transition-[opacity,transform] duration-150 hover:opacity-95 active:scale-[0.98] disabled:opacity-50 cursor-pointer"
               >
-                {loading ? <Spinner className="h-4 w-4 animate-spin" /> : <span>Masuk ke Workspace</span>}
+                {loading ? <Spinner className="w-4 h-4 animate-spin" /> : <span>Masuk ke Workspace</span>}
               </button>
             </form>
           ) : (
@@ -236,7 +238,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     placeholder="Contoh: Yuu Designer"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full rounded-xl border border-appflowy-border bg-appflowy-bg pl-9 pr-3 py-2 text-xs text-appflowy-text placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-purple-500 dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg dark:text-appflowy-darkText"
+                    className="py-2 pr-3 pl-9 w-full text-xs rounded-xl border border-appflowy-border bg-appflowy-bg text-appflowy-text placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-purple-500 dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg dark:text-appflowy-darkText"
                   />
                 </div>
               </div>
@@ -252,7 +254,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     placeholder="nama@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full rounded-xl border border-appflowy-border bg-appflowy-bg pl-9 pr-3 py-2 text-xs text-appflowy-text placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-purple-500 dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg dark:text-appflowy-darkText"
+                    className="py-2 pr-3 pl-9 w-full text-xs rounded-xl border border-appflowy-border bg-appflowy-bg text-appflowy-text placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-purple-500 dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg dark:text-appflowy-darkText"
                   />
                 </div>
               </div>
@@ -261,15 +263,15 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 <label className="block text-xs font-medium text-appflowy-text dark:text-appflowy-darkText mb-1.5">
                   Warna Avatar
                 </label>
-                <div className="flex items-center gap-2">
+                <div className="flex gap-2 items-center">
                   {AVATAR_COLORS.map((color) => (
                     <button
                       key={color}
                       type="button"
                       onClick={() => setSelectedColor(color)}
                       style={{ backgroundColor: color }}
-                      className={`h-6 w-6 rounded-full transition-all cursor-pointer ${
-                        selectedColor === color ? 'scale-125 ring-2 ring-purple-400 ring-offset-2' : 'opacity-80 hover:opacity-100'
+                      className={`h-6 w-6 rounded-full transition-[transform,opacity] duration-150 cursor-pointer ${
+                        selectedColor === color ? 'scale-125 ring-2 ring-project-ring ring-offset-2' : 'opacity-80 hover:opacity-100'
                       }`}
                     />
                   ))}
@@ -278,7 +280,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
               <button
                 type="submit"
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-purple-600 py-2.5 text-xs font-semibold text-white shadow-sm transition-all hover:bg-purple-700 cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-project-solid py-2.5 text-xs font-semibold text-white shadow-sm transition-[opacity,transform] duration-150 hover:opacity-95 active:scale-[0.98] cursor-pointer"
               >
                 <span>Simpan & Buka Workspace</span>
               </button>
@@ -287,11 +289,11 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
           <div className="mt-6">
             <div className="relative">
-              <div className="absolute inset-0 flex items-center">
+              <div className="flex absolute inset-0 items-center">
                 <div className="w-full border-t border-appflowy-border dark:border-appflowy-darkBorder" />
               </div>
               <div className="relative flex justify-center text-[11px] uppercase">
-                <span className="bg-appflowy-surface px-2 text-appflowy-muted dark:bg-appflowy-darkSurface dark:text-appflowy-darkMuted">
+                <span className="px-2 bg-appflowy-surface text-appflowy-muted dark:bg-appflowy-darkSurface dark:text-appflowy-darkMuted">
                   Akses Cepat
                 </span>
               </div>
@@ -300,13 +302,18 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             <button
               type="button"
               onClick={handleGuestAccess}
-              className="mt-4 w-full flex items-center justify-center gap-2 rounded-xl border border-appflowy-border bg-appflowy-bg py-2 text-xs font-medium text-appflowy-text hover:bg-neutral-100 dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg dark:text-appflowy-darkText dark:hover:bg-neutral-800 cursor-pointer"
+              className="flex gap-2 justify-center items-center py-2 mt-4 w-full text-xs font-medium rounded-xl border cursor-pointer border-border bg-bg text-text hover:bg-hover"
             >
-              <Sparkle className="h-3.5 w-3.5 text-emerald-500" />
-              <span>Masuk sebagai Guest (Tanpa Sandi)</span>
+              <Sparkle className="h-3.5 w-3.5 text-blue-400" />
+              <span>Masuk sebagai Guest</span>
             </button>
           </div>
         </div>
+      </div>
+      </div>
+
+      <div className="bg-gradient-to-b from-bg via-[#3B82F6] via-25% to-[#0B45D6]">
+        <PublicFooter onEnterApp={onEnterApp} />
       </div>
     </div>
   );

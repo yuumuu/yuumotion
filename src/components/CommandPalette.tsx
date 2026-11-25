@@ -195,11 +195,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black/25 dark:bg-black/60 backdrop-blur-[2px] animate-in fade-in duration-150 p-4"
+      className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black/25 dark:bg-black/60 backdrop-blur-[2px] animate-in fade-in duration-100 motion-reduce:animate-none p-4"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg overflow-hidden rounded-2xl border border-border bg-surface shadow-card-drag animate-in zoom-in-95 duration-150"
+        className="w-full max-w-lg overflow-hidden rounded-2xl border border-border bg-surface shadow-card-drag animate-in fade-in duration-100 motion-reduce:animate-none"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-3 border-b border-border px-4 py-3 bg-bar">

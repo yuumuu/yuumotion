@@ -2,10 +2,10 @@ import { Hono } from 'hono';
 import { eq } from 'drizzle-orm';
 import { db } from '../db';
 import { boards, columns, cards } from '../db/schema';
-import { requireAuth } from '../middleware/auth';
+import { requireAuth, AuthPayload, AppEnv, checkWorkspaceRole } from '../middleware/auth';
 import { broadcastWorkspaceEvent } from './events';
 
-export const boardRoutes = new Hono();
+export const boardRoutes = new Hono<AppEnv>();
 
 // Public guest link endpoint (tanpa auth)
 boardRoutes.get('/share/:token', async (c) => {
@@ -21,7 +21,10 @@ boardRoutes.get('/share/:token', async (c) => {
 boardRoutes.use('*', requireAuth);
 
 boardRoutes.post('/', async (c) => {
+  const auth = c.get('user') as AuthPayload;
   const body = await c.req.json<{ workspaceId: string; title: string }>();
+  const allowed = await checkWorkspaceRole(auth.sub, body.workspaceId, 'member');
+  if (!allowed) return c.json({ error: 'Forbidden' }, 403);
   const now = Date.now();
   const boardId = `board-${crypto.randomUUID()}`;
 

@@ -1,8 +1,8 @@
 import { Hono } from 'hono';
 import { streamSSE } from 'hono/streaming';
-import { requireAuth } from '../middleware/auth';
+import { requireAuth, AuthPayload, AppEnv, checkWorkspaceRole } from '../middleware/auth';
 
-export const eventRoutes = new Hono();
+export const eventRoutes = new Hono<AppEnv>();
 
 type Listener = (data: string) => void;
 const listenersByWorkspace = new Map<string, Set<Listener>>();
@@ -14,8 +14,11 @@ export function broadcastWorkspaceEvent(workspaceId: string, payload: Record<str
   listeners.forEach((fn) => fn(serialized));
 }
 
-eventRoutes.get('/stream', requireAuth, (c) => {
+eventRoutes.get('/stream', requireAuth, async (c) => {
+  const auth = c.get('user') as AuthPayload;
   const workspaceId = c.req.query('workspaceId') || 'default';
+  const allowed = await checkWorkspaceRole(auth.sub, workspaceId, 'viewer');
+  if (!allowed) return c.json({ error: 'Forbidden' }, 403);
 
   return streamSSE(c, async (stream) => {
     const send: Listener = (data) => {

@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { eq, and } from 'drizzle-orm';
 import { db } from '../db';
 import { workspaces, workspaceMembers, boards, pages } from '../db/schema';
-import { requireAuth, AuthPayload, AppEnv } from '../middleware/auth';
+import { requireAuth, AuthPayload, AppEnv, checkWorkspaceRole } from '../middleware/auth';
 import { broadcastWorkspaceEvent } from './events';
 
 export const workspaceRoutes = new Hono<AppEnv>();
@@ -65,7 +65,12 @@ workspaceRoutes.post('/', async (c) => {
 });
 
 workspaceRoutes.patch('/:id', async (c) => {
+  const auth = c.get('user') as AuthPayload;
   const wsId = c.req.param('id');
+  const allowed = await checkWorkspaceRole(auth.sub, wsId, 'admin');
+  if (!allowed) {
+    return c.json({ error: 'Forbidden: hanya admin atau owner yang dapat mengubah workspace.' }, 403);
+  }
   const body = await c.req.json<{ name?: string; icon?: string; joinPolicy?: string }>();
   const now = Date.now();
 

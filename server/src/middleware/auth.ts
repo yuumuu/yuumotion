@@ -1,9 +1,20 @@
 import { Context, Next } from 'hono';
 import { getCookie } from 'hono/cookie';
 import { jwtVerify, SignJWT } from 'jose';
+import { and, eq } from 'drizzle-orm';
+import { db } from '../db';
+import { workspaceMembers } from '../db/schema';
 
-const getJwtSecret = () =>
-  new TextEncoder().encode(process.env.JWT_SECRET || 'yuumotion-dev-secret-change-in-prod');
+const getJwtSecret = () => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('JWT_SECRET environment variable is required in production.');
+    }
+    return new TextEncoder().encode('yuumotion-dev-only-secret');
+  }
+  return new TextEncoder().encode(secret);
+};
 
 export const SESSION_COOKIE_NAME = 'yuumotion_session';
 
@@ -43,4 +54,43 @@ export async function requireAuth(c: Context, next: Next) {
   } catch {
     return c.json({ error: 'Invalid or expired session' }, 401);
   }
+}
+
+const ROLE_WEIGHT: Record<string, number> = {
+  viewer: 1,
+  member: 2,
+  admin: 3,
+  owner: 4
+};
+
+export async function checkWorkspaceRole(
+  userId: string,
+  workspaceId: string,
+  minRole: 'viewer' | 'member' | 'admin' | 'owner' = 'viewer'
+): Promise<boolean> {
+  const rows = await db
+    .select()
+    .from(workspaceMembers)
+    .where(and(eq(workspaceMembers.workspaceId, workspaceId), eq(workspaceMembers.userId, userId)))
+    .limit(1);
+
+  const member = rows[0];
+  if (!member) return false;
+  return (ROLE_WEIGHT[member.role] || 0) >= ROLE_WEIGHT[minRole];
+}
+
+const rateHits = new Map<string, number[]>();
+
+export function rateLimitAuth(maxAttempts = 15, windowMs = 60_000) {
+  return async (c: Context, next: Next) => {
+    const ip = c.req.header('x-forwarded-for') || c.req.header('cf-connecting-ip') || 'local';
+    const now = Date.now();
+    const recent = (rateHits.get(ip) || []).filter((ts) => now - ts < windowMs);
+    if (recent.length >= maxAttempts) {
+      return c.json({ error: 'Terlalu banyak percobaan. Coba lagi sebentar.' }, 429);
+    }
+    recent.push(now);
+    rateHits.set(ip, recent);
+    await next();
+  };
 }

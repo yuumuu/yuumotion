@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import {
   Kanban,
   FileText,
   Lightning,
   ShieldCheck,
-  Globe,
   ArrowRight,
   ArrowUpRight,
   Sun,
@@ -14,18 +13,20 @@ import {
   Table as TableIcon,
   CalendarBlank,
   Clock,
-  CheckCircle,
   Compass,
   Code,
   CheckSquare,
   Info,
   Radio,
-  Users,
   Sparkle,
-  PaperPlaneTilt
+  Users,
+  GithubLogo
 } from '@phosphor-icons/react';
 import { AuthUser } from '../types/board';
 import { cn } from '../lib/cn';
+import { PublicFooter, GITHUB_REPO_URL } from './PublicFooter';
+
+const Landing3DCanvas = React.lazy(() => import('./Landing3DCanvas'));
 
 interface LandingPageProps {
   currentUser: AuthUser | null;
@@ -75,20 +76,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 }) => {
   const [personaTab, setPersonaTab] = useState<PersonaTab>('product');
   const [previewView, setPreviewView] = useState<PreviewViewMode>('board');
-  const [emailInput, setEmailInput] = useState('');
-  const [subscribed, setSubscribed] = useState(false);
 
   const sec1 = useRevealOnScroll();
   const sec2 = useRevealOnScroll();
   const sec3 = useRevealOnScroll();
   const sec4 = useRevealOnScroll();
-
-  const handleSubscribe = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!emailInput.trim()) return;
-    setSubscribed(true);
-    setEmailInput('');
-  };
 
   return (
     <div className="min-h-screen bg-[#FAF9F6] dark:bg-[#111113] text-text flex flex-col font-sans selection:bg-blue-500/20 selection:text-blue-600">
@@ -106,28 +98,32 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
         {/* Floating Glassmorphism Navbar */}
         <header className="relative z-30 px-4 pt-5 mx-auto max-w-6xl sm:px-6">
-          <div className="flex justify-between items-center px-4 h-14 rounded-2xl border shadow-lg backdrop-blur-md border-white/25 bg-white/15">
-            <div className="flex items-center gap-2.5">
-              <div className="flex justify-center items-center p-1 w-8 h-8 bg-white rounded-xl shadow-xs">
-                <img src="/icon.svg" alt="Yuumotion" className="w-full h-full" />
-              </div>
+          <div className="flex justify-between items-center px-4 h-14 rounded-2xl border shadow-lg backdrop-blur-md border-white/25 bg-slate-950/25">
+            <a href="#top" className="flex items-center gap-2.5">
+              <img src="/icon.svg" alt="Yuumotion" className="h-8 w-8 rounded-xl shadow-xs ring-1 ring-white/25" />
               <span className="text-base font-bold tracking-tight text-white font-display">
                 Yuumotion
               </span>
-            </div>
+            </a>
 
-            <nav className="hidden gap-7 items-center text-xs font-medium md:flex text-white/85">
-              <a href="#personas" className="transition-colors duration-150 hover:text-white">
+            <nav className="hidden gap-7 items-center text-xs font-semibold md:flex text-white/95">
+              <a href="#personas" className="transition-colors duration-150 hover:text-blue-200">
                 Solusi Tim
               </a>
-              <a href="#docs" className="transition-colors duration-150 hover:text-white">
+              <a href="#docs" className="transition-colors duration-150 hover:text-blue-200">
                 Dokumen PRD
               </a>
-              <a href="#sync" className="transition-colors duration-150 hover:text-white">
-                Realtime Sync
-              </a>
-              <a href="#views" className="transition-colors duration-150 hover:text-white">
+              <a href="#views" className="transition-colors duration-150 hover:text-blue-200">
                 Multi-View
+              </a>
+              <a
+                href={GITHUB_REPO_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 transition-colors duration-150 hover:text-blue-200"
+              >
+                <GithubLogo className="h-3.5 w-3.5" />
+                <span>GitHub</span>
               </a>
             </nav>
 
@@ -198,69 +194,69 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </button>
           </div>
 
-          {/* 3 Floating Product UI Cards (ala Gambar 1) */}
+          {/* 3 Floating Product UI Cards (mendukung Light & Dark mode) */}
           <div
             className="grid relative grid-cols-1 gap-4 items-end mx-auto mt-20 max-w-5xl text-left animate-yuu-enter sm:grid-cols-3"
             style={{ animationDelay: '240ms' }}
           >
             {/* Floating Left Card: TipTap Doc */}
-            <div className="hidden sm:block rounded-t-2xl border border-white/40 bg-white/95 p-5 text-slate-800 shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]">
+            <div className="hidden sm:block rounded-t-2xl border border-white/40 dark:border-white/15 bg-white/95 dark:bg-[#141720]/95 p-5 text-slate-800 dark:text-slate-100 shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]">
               <div className="flex gap-2 items-center mb-3">
-                <div className="flex justify-center items-center w-7 h-7 text-blue-600 bg-blue-100 rounded-lg">
+                <div className="flex justify-center items-center w-7 h-7 text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-500/20 rounded-lg">
                   <FileText className="w-4 h-4" />
                 </div>
                 <span className="text-xs font-bold font-display">Dokumen PRD</span>
               </div>
-              <div className="space-y-2 text-[11px] text-slate-600">
-                <div className="rounded-lg bg-slate-100 px-2.5 py-1.5 font-medium text-slate-800">
+              <div className="space-y-2 text-[11px] text-slate-600 dark:text-slate-300">
+                <div className="rounded-lg bg-slate-100 dark:bg-white/10 px-2.5 py-1.5 font-medium text-slate-800 dark:text-slate-100">
                   /callout Tips Arsitektur
                 </div>
                 <div className="flex gap-2 items-center">
-                  <CheckSquare className="h-3.5 w-3.5 text-emerald-600" />
+                  <CheckSquare className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
                   <span>Sinkronisasi Offline PWA</span>
                 </div>
                 <div className="flex gap-2 items-center">
-                  <CheckSquare className="h-3.5 w-3.5 text-blue-600" />
+                  <CheckSquare className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
                   <span>Outline Daftar Isi Sticky</span>
                 </div>
               </div>
             </div>
 
             {/* Floating Center Hero Card: Elevated Roadmap Board */}
-            <div className="rounded-t-2xl border border-white/60 bg-white p-6 text-slate-900 shadow-[0_24px_60px_-15px_rgba(15,23,42,0.35)] sm:-mt-6 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]">
+            <div className="rounded-t-2xl border border-white/60 dark:border-white/15 bg-white dark:bg-[#141720] p-6 text-slate-900 dark:text-slate-100 shadow-[0_24px_60px_-15px_rgba(15,23,42,0.35)] sm:-mt-6 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]">
               <div className="flex justify-between items-center mb-4">
                 <div className="flex gap-2 items-center">
-                  <Kanban className="h-4 w-4 text-blue-600" />
+                  <Kanban className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                   <span className="text-sm font-bold font-display">Roadmap Q4</span>
                 </div>
-                <span className="rounded-full bg-blue-50 px-2 py-0.5 font-mono text-[10px] font-semibold text-blue-600">
+                <span className="rounded-full bg-blue-50 dark:bg-blue-500/20 px-2 py-0.5 font-mono text-[10px] font-semibold text-blue-600 dark:text-blue-300">
                   YUU-108
                 </span>
               </div>
-              <p className="mb-3 text-xs font-semibold text-slate-800">
+              <p className="mb-3 text-xs font-semibold text-slate-800 dark:text-slate-100">
                 Peluncuran Multi-View Engine &amp; ClickUp Drag Physics
               </p>
               <div className="flex items-center gap-1.5 mb-4">
-                <span className="rounded-md bg-sky-100 px-2 py-0.5 text-[10px] font-semibold text-sky-700">
+                <span className="rounded-md bg-sky-100 dark:bg-sky-500/20 px-2 py-0.5 text-[10px] font-semibold text-sky-700 dark:text-sky-300">
                   #frontend
                 </span>
-                <span className="rounded-md bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-700">
+                <span className="rounded-md bg-blue-100 dark:bg-blue-500/20 px-2 py-0.5 text-[10px] font-semibold text-blue-700 dark:text-blue-300">
                   #design
                 </span>
               </div>
-              <div className="space-y-1.5 pt-3 border-t border-slate-100">
-                <div className="flex justify-between text-[10px] font-mono text-slate-500">
+              <div className="space-y-1.5 pt-3 border-t border-slate-100 dark:border-white/10">
+                <div className="flex justify-between text-[10px] font-mono text-slate-500 dark:text-slate-400">
                   <span>Progres</span>
                   <span>80%</span>
                 </div>
-                <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
-                  <div className="h-full w-4/5 rounded-full bg-blue-600" />
+                <div className="h-1.5 w-full rounded-full bg-slate-100 dark:bg-white/10 overflow-hidden">
+                  <div className="h-full w-4/5 rounded-full bg-blue-600 dark:bg-blue-400" />
                 </div>
               </div>
             </div>
 
             {/* Floating Right Card: Realtime Sync */}
-            <div className="hidden sm:block rounded-t-2xl border border-white/40 bg-white/95 p-5 text-slate-800 shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]">
+            <div className="hidden sm:block rounded-t-2xl border border-white/40 dark:border-white/15 bg-white/95 dark:bg-[#141720]/95 p-5 text-slate-800 dark:text-slate-100 shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]">
               <div className="flex justify-between items-center mb-3">
                 <span className="text-xs font-bold font-display">Realtime Presence</span>
                 <Radio className="h-3.5 w-3.5 text-emerald-500" />
@@ -270,7 +266,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <div
                     key={ch}
                     className={cn(
-                      'flex h-7 w-7 items-center justify-center rounded-full border-2 border-white text-[10px] font-bold text-white',
+                      'flex h-7 w-7 items-center justify-center rounded-full border-2 border-white dark:border-[#141720] text-[10px] font-bold text-white',
                       idx === 0 ? 'bg-blue-600' : idx === 1 ? 'bg-emerald-500' : 'bg-amber-500'
                     )}
                   >
@@ -278,7 +274,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   </div>
                 ))}
               </div>
-              <div className="rounded-lg bg-emerald-50 px-2.5 py-1.5 font-mono text-[10px] font-medium text-emerald-700">
+              <div className="rounded-lg bg-emerald-50 dark:bg-emerald-500/15 px-2.5 py-1.5 font-mono text-[10px] font-medium text-emerald-700 dark:text-emerald-300">
                 0ms BroadcastChannel Active
               </div>
             </div>
@@ -773,6 +769,55 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </section>
       </main>
 
+      {/* 3D Interactive Visual & Open-Source Repo CTA */}
+      <section className="py-16 border-b border-border bg-bg">
+        <div className="px-4 mx-auto max-w-6xl sm:px-6 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+          <div className="space-y-4">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1 font-mono text-[11px] font-semibold text-project-solid">
+              <Code className="h-3.5 w-3.5" />
+              <span>Open-Source • Apache 2.0</span>
+            </span>
+            <h2 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-text leading-tight">
+              Arsitektur Terbuka, <span className="font-serif italic font-normal">Dibangun untuk Diperluas</span>
+            </h2>
+            <p className="text-xs sm:text-sm text-muted leading-relaxed">
+              Yuumotion tersedia sebagai proyek open-source dengan frontend React + Vite dan backend Hono + Drizzle MySQL/TiDB siap Wasmer Edge. Jelajahi kode sumber, fork, atau kontribusi fitur langsung di GitHub.
+            </p>
+            <div className="flex flex-wrap gap-3 pt-2">
+              <a
+                href={GITHUB_REPO_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-xl bg-project-solid px-5 py-2.5 text-xs font-semibold text-white shadow-tactile-btn transition-[transform,opacity] duration-150 hover:opacity-95 active:scale-[0.97]"
+              >
+                <GithubLogo className="h-4 w-4" />
+                <span>Beri Bintang &amp; Lihat Repo</span>
+                <ArrowUpRight className="h-3.5 w-3.5" />
+              </a>
+              <button
+                type="button"
+                onClick={onEnterApp}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-surface px-4 py-2.5 text-xs font-semibold text-text hover:bg-hover transition-colors cursor-pointer"
+              >
+                <span>Coba Demo Langsung</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="rounded-3xl border border-border bg-surface/80 p-4 shadow-card-sm overflow-hidden">
+            <Suspense
+              fallback={
+                <div className="flex h-[280px] sm:h-[320px] items-center justify-center text-xs text-muted font-mono">
+                  Memuat kanvas 3D...
+                </div>
+              }
+            >
+              <Landing3DCanvas isDark={isDark} />
+            </Suspense>
+          </div>
+        </div>
+      </section>
+
       {/* 7. Pre-Footer CTA & Minimalist Krafft-Style Electric Blue Footer (Mengacu Gambar 2) */}
       <div className="relative overflow-hidden bg-gradient-to-b from-[#FAF9F6] via-[#86B6FF] via-35% to-[#0B45D6] dark:from-[#111113] dark:via-[#1D4ED8] dark:via-40% dark:to-[#0B3AB5]">
         {/* Pre-Footer CTA Section */}
@@ -790,7 +835,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             Dari catatan cepat hingga roadmap peluncuran berskala besar, mulai tata ruang kerja Yuumotion dalam hitungan detik.
           </p>
 
-          <div className="mt-7">
+          <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
             <button
               type="button"
               onClick={onEnterApp}
@@ -799,102 +844,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <span>Buka Dashboard</span>
               <ArrowUpRight className="w-4 h-4" />
             </button>
+            <a
+              href={GITHUB_REPO_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-xl border border-white/40 bg-white/20 backdrop-blur-sm px-5 py-3 text-xs font-semibold text-white hover:bg-white/30 transition-colors"
+            >
+              <GithubLogo className="w-4 h-4" />
+              <span>GitHub Repo</span>
+            </a>
           </div>
         </section>
 
-        {/* Minimalist Krafft-Style Electric Blue Footer (Tanpa 3 Kolom Navigasi) */}
-        <footer className="px-4 pt-8 pb-8 mx-auto max-w-6xl text-white sm:px-6">
-          <div className="flex flex-col gap-10 justify-between pb-12 md:flex-row md:items-start">
-            {/* Left: Brand Identity & Social Pill Icons */}
-            <div className="space-y-4 max-w-xs">
-              <div className="flex items-center gap-2.5">
-                <div className="flex justify-center items-center p-1 w-7 h-7 bg-white rounded-lg">
-                  <img src="/icon.svg" alt="Yuumotion" className="w-full h-full" />
-                </div>
-                <span className="text-lg font-bold tracking-tight font-display">Yuumotion</span>
-              </div>
-              <p className="text-xs leading-relaxed text-white/85">
-                Partner ruang kerja hibrida untuk ketenangan dokumen dan ketajaman alur tugas tim.
-              </p>
-              <div className="flex items-center gap-2.5 pt-1">
-                <button
-                  type="button"
-                  onClick={onEnterApp}
-                  className="flex justify-center items-center w-8 h-8 text-white rounded-full border transition-colors cursor-pointer border-white/25 bg-white/10 hover:bg-white/20"
-                  title="Buka Kanban"
-                >
-                  <Kanban className="h-3.5 w-3.5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={onOpenAuth}
-                  className="flex justify-center items-center w-8 h-8 text-white rounded-full border transition-colors cursor-pointer border-white/25 bg-white/10 hover:bg-white/20"
-                  title="Kelola Akun"
-                >
-                  <Users className="h-3.5 w-3.5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={onToggleTheme}
-                  className="flex justify-center items-center w-8 h-8 text-white rounded-full border transition-colors cursor-pointer border-white/25 bg-white/10 hover:bg-white/20"
-                  title="Ganti Tema"
-                >
-                  {isDark ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
-                </button>
-                <a
-                  href="#architecture"
-                  className="flex justify-center items-center w-8 h-8 text-white rounded-full border transition-colors border-white/25 bg-white/10 hover:bg-white/20"
-                  title="Arsitektur Edge"
-                >
-                  <Globe className="h-3.5 w-3.5" />
-                </a>
-              </div>
-            </div>
-
-            {/* Right: Minimalist Release Newsletter Widget (ala Gambar 2) */}
-            <div className="w-full max-w-xs space-y-2.5">
-              <div className="text-xs font-semibold text-white">
-                Berlangganan pembaruan rilis
-              </div>
-              {subscribed ? (
-                <div className="flex gap-2 items-center px-4 py-3 text-xs font-medium text-white rounded-xl border backdrop-blur-sm border-white/30 bg-white/15">
-                  <CheckCircle className="w-4 h-4 text-emerald-300 shrink-0" />
-                  <span>Terima kasih! Email kamu telah tercatat.</span>
-                </div>
-              ) : (
-                <form onSubmit={handleSubscribe} className="space-y-2">
-                  <input
-                    type="email"
-                    required
-                    value={emailInput}
-                    onChange={(e) => setEmailInput(e.target.value)}
-                    placeholder="Alamat Email"
-                    className="w-full rounded-xl border border-white/25 bg-white/15 px-3.5 py-2.5 text-xs text-white placeholder:text-white/70 focus:border-white focus:outline-none backdrop-blur-sm"
-                  />
-                  <button
-                    type="submit"
-                    className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-white py-2.5 text-xs font-semibold text-[#0B45D6] shadow-md transition-[transform,opacity] duration-150 hover:opacity-95 active:scale-[0.98] cursor-pointer"
-                  >
-                    <PaperPlaneTilt className="h-3.5 w-3.5" />
-                    <span>Langganan</span>
-                  </button>
-                </form>
-              )}
-            </div>
-          </div>
-
-          {/* Giant Brand Wordmark (ala Krafft Footer Gambar 2) */}
-          <div className="flex overflow-hidden gap-4 justify-center items-center pt-4 mt-4 select-none sm:gap-7">
-            <div className="flex justify-center items-center p-2 w-16 h-16 rounded-2xl border shadow-2xl backdrop-blur-md sm:h-28 sm:w-28 sm:rounded-3xl bg-white/20 sm:p-3 border-white/30 shrink-0">
-              <div className="flex justify-center items-center p-2 w-full h-full bg-white rounded-xl sm:rounded-2xl sm:p-3">
-                <img src="/icon.svg" alt="Yuumotion Wordmark Icon" className="w-full h-full" />
-              </div>
-            </div>
-            <span className="font-display text-[clamp(3.25rem,11vw,8.5rem)] font-extrabold leading-none tracking-tight text-white">
-              Yuumotion
-            </span>
-          </div>
-        </footer>
+        <PublicFooter
+          isDark={isDark}
+          onToggleTheme={onToggleTheme}
+          onEnterApp={onEnterApp}
+          onOpenAuth={onOpenAuth}
+        />
       </div>
     </div>
   );

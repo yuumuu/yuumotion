@@ -47,8 +47,9 @@ export default {
       },
       fontFamily: {
         display: ['"Plus Jakarta Sans"', '"Bricolage Grotesque"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
-        sans: ['"Plus Jakarta Sans"', '"Onest"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
-        mono: ['"JetBrains Mono"', '"Commit Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+        sans: ['"Plus Jakarta Sans"', '"Bricolage Grotesque"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        serif: ['"Playfair Display"', 'Georgia', 'serif'],
+        mono: ['"Google Sans Code"', '"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
       boxShadow: {
         'card-sm': '0 1px 2px rgba(0, 0, 0, 0.04), 0 0 0 1px var(--border)',

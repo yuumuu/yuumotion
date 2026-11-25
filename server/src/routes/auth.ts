@@ -4,9 +4,12 @@ import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import { db } from '../db';
 import { users } from '../db/schema';
-import { requireAuth, SESSION_COOKIE_NAME, signSessionToken, AuthPayload, AppEnv } from '../middleware/auth';
+import { requireAuth, SESSION_COOKIE_NAME, signSessionToken, AuthPayload, AppEnv, rateLimitAuth } from '../middleware/auth';
 
 export const authRoutes = new Hono<AppEnv>();
+
+authRoutes.use('/login', rateLimitAuth(15, 60_000));
+authRoutes.use('/register', rateLimitAuth(10, 60_000));
 
 const cookieOpts = {
   httpOnly: true,
