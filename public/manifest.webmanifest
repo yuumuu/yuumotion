@@ -8,7 +8,7 @@
   "description": "Hybrid Notion + Trello workspace with offline-first sync and Wasmer Edge deployment.",
   "icons": [
     {
-      "src": "/vite.svg",
+      "src": "/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
