@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { NotionPage, UserRole } from '../types/board';
 import { canEditContent } from '../lib/auth';
 import { TipTapEditor } from './TipTapEditor';
@@ -14,9 +14,13 @@ import {
   Image,
   Trash,
   Lock,
-  Clock
+  Clock,
+  ArrowsOut,
+  ArrowsIn,
+  ListBullets
 } from '@phosphor-icons/react';
 import { cn } from '../lib/cn';
+import { Button } from './ui';
 
 interface StandalonePageDocProps {
   page: NotionPage;
@@ -72,9 +76,35 @@ export const StandalonePageDoc: React.FC<StandalonePageDocProps> = ({
   const [selectedIconId, setSelectedIconId] = useState(page.icon || 'doc');
   const [showIconPicker, setShowIconPicker] = useState(false);
   const [showCoverPicker, setShowCoverPicker] = useState(false);
+  const [isFullWidth, setIsFullWidth] = useState(false);
+  const [showOutline, setShowOutline] = useState(true);
   const coverInputRef = useRef<HTMLInputElement>(null);
+  const editorWrapperRef = useRef<HTMLDivElement>(null);
 
   const canEdit = canEditContent(currentUserRole);
+
+  const tocHeadings = useMemo(() => {
+    if (!page.contentHtml || typeof DOMParser === 'undefined') return [];
+    const doc = new DOMParser().parseFromString(page.contentHtml, 'text/html');
+    const nodes = Array.from(doc.querySelectorAll('h1, h2, h3'));
+    return nodes
+      .map((el, idx) => ({
+        idx,
+        level: Number(el.tagName.replace('H', '')) as 1 | 2 | 3,
+        text: (el.textContent || '').trim()
+      }))
+      .filter((item) => item.text.length > 0);
+  }, [page.contentHtml]);
+
+  const scrollToHeading = (headingIndex: number) => {
+    const container = editorWrapperRef.current;
+    if (!container) return;
+    const targets = container.querySelectorAll('h1, h2, h3');
+    const target = targets[headingIndex];
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   const currentIconObj = PRESET_ICONS.find((i) => i.id === selectedIconId) || PRESET_ICONS[0];
 
@@ -151,8 +181,14 @@ export const StandalonePageDoc: React.FC<StandalonePageDocProps> = ({
         </div>
       )}
 
-      {/* Main Canvas Container (Max-width 740px) */}
-      <div className="mx-auto w-full max-w-[740px] px-6 sm:px-8 py-8">
+      {/* Main Canvas + Sticky Outline TOC Layout */}
+      <div className="flex flex-1 items-start justify-center gap-6 px-4 sm:px-8 py-8">
+        <div
+          className={cn(
+            'w-full transition-[max-width] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]',
+            isFullWidth ? 'max-w-none' : 'max-w-[740px]'
+          )}
+        >
         {/* Role Viewer Lockout Banner */}
         {!canEdit && (
           <div className="mb-6 flex items-center gap-2.5 rounded-xl border border-border bg-bar p-3.5 text-xs text-muted">
@@ -195,17 +231,41 @@ export const StandalonePageDoc: React.FC<StandalonePageDocProps> = ({
             )}
           </div>
 
-          <div className="relative flex items-center gap-2">
+          <div className="relative flex items-center gap-1.5">
             {!coverImage && canEdit && (
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="xs"
                 onClick={() => setShowCoverPicker(!showCoverPicker)}
-                className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer"
+                leftIcon={<Image className="h-3.5 w-3.5" />}
               >
-                <Image className="h-3.5 w-3.5" />
-                <span>Pilih Cover</span>
-              </button>
+                Pilih Cover
+              </Button>
             )}
+
+            <Button
+              type="button"
+              variant="ghost"
+              size="xs"
+              onClick={() => setIsFullWidth(!isFullWidth)}
+              leftIcon={isFullWidth ? <ArrowsIn className="h-3.5 w-3.5" /> : <ArrowsOut className="h-3.5 w-3.5" />}
+              title={isFullWidth ? 'Lebar Standar (740px)' : 'Lebar Penuh'}
+            >
+              <span className="hidden sm:inline">{isFullWidth ? 'Standar' : 'Lebar Penuh'}</span>
+            </Button>
+
+            <Button
+              type="button"
+              variant={showOutline ? 'secondary' : 'ghost'}
+              size="xs"
+              onClick={() => setShowOutline(!showOutline)}
+              leftIcon={<ListBullets className="h-3.5 w-3.5" />}
+              title="Tampilkan / Sembunyikan Daftar Isi"
+              className="hidden xl:inline-flex"
+            >
+              Daftar Isi
+            </Button>
 
             {showCoverPicker && canEdit && (
               <div className="absolute right-0 top-9 z-50 w-72 rounded-2xl border border-border bg-surface p-3 shadow-card-hover animate-in fade-in zoom-in-95 duration-100">
@@ -296,7 +356,7 @@ export const StandalonePageDoc: React.FC<StandalonePageDocProps> = ({
         )}
 
         {/* TipTap Rich Editor */}
-        <div className="min-h-[400px]">
+        <div ref={editorWrapperRef} className="min-h-[400px]">
           <TipTapEditor
             content={page.contentHtml}
             editable={canEdit}
@@ -305,6 +365,45 @@ export const StandalonePageDoc: React.FC<StandalonePageDocProps> = ({
             }}
           />
         </div>
+      </div>
+
+      {/* Sticky Outline Table of Contents Panel */}
+      {showOutline && (
+        <aside
+          aria-label="Daftar Isi Dokumen"
+          className="hidden xl:block sticky top-6 w-56 shrink-0 rounded-2xl border border-border bg-surface/70 p-4 shadow-2xs select-none"
+        >
+          <div className="flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-muted pb-2.5 mb-2.5 border-b border-border">
+            <ListBullets className="h-3.5 w-3.5 text-project-solid" />
+            <span>Daftar Isi</span>
+          </div>
+
+          {tocHeadings.length === 0 ? (
+            <p className="text-[11px] text-muted italic leading-relaxed">
+              Tambahkan Heading (H1–H3) untuk membuat navigasi otomatis.
+            </p>
+          ) : (
+            <nav className="space-y-1 max-h-[60vh] overflow-y-auto pr-1">
+              {tocHeadings.map((h) => (
+                <button
+                  key={`${h.idx}-${h.text}`}
+                  type="button"
+                  onClick={() => scrollToHeading(h.idx)}
+                  className={cn(
+                    'block w-full truncate rounded-lg py-1 pr-2 text-left text-xs transition-colors hover:bg-hover hover:text-text cursor-pointer',
+                    h.level === 1 && 'pl-2 font-semibold text-text',
+                    h.level === 2 && 'pl-4 font-medium text-muted',
+                    h.level === 3 && 'pl-6 text-[11px] text-muted'
+                  )}
+                  title={h.text}
+                >
+                  {h.text}
+                </button>
+              ))}
+            </nav>
+          )}
+        </aside>
+      )}
       </div>
     </div>
   );
