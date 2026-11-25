@@ -124,6 +124,26 @@
   }
 }
 
+@keyframes yuu-hero-orbit {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@keyframes yuu-hero-float {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.35;
+  }
+  50% {
+    transform: translate3d(8px, -18px, 0) scale(1.25);
+    opacity: 0.9;
+  }
+}
+
 .animate-yuu-hero-drift {
   animation: yuu-hero-drift 10s ease-in-out infinite;
 }
@@ -132,9 +152,19 @@
   animation: yuu-hero-beam 12s ease-in-out infinite;
 }
 
+.animate-yuu-hero-orbit {
+  animation: yuu-hero-orbit 42s linear infinite;
+}
+
+.animate-yuu-hero-float {
+  animation: yuu-hero-float 6s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-yuu-hero-drift,
-  .animate-yuu-hero-beam {
+  .animate-yuu-hero-beam,
+  .animate-yuu-hero-orbit,
+  .animate-yuu-hero-float {
     animation: none;
   }
 }

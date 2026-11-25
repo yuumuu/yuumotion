@@ -249,7 +249,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       </header>
 
-      {/* 1. Sky-Blue Volumetric Hero + Animated Background */}
+      {/* 1. Sky-Blue Volumetric Hero + Rich Animated Background (GPU-composited) */}
       <div className="relative overflow-hidden bg-gradient-to-b from-[#6BB5FF] via-[#2563EB] to-[#1D4ED8] text-white">
         <div
           aria-hidden="true"
@@ -262,8 +262,47 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -inset-x-24 top-0 h-[440px] opacity-50 bg-[linear-gradient(115deg,transparent_25%,rgba(255,255,255,0.28)_45%,transparent_65%)] animate-yuu-hero-beam"
+          className="pointer-events-none absolute bottom-12 left-1/3 h-[380px] w-[380px] rounded-full bg-blue-300/25 blur-3xl animate-yuu-hero-drift"
+          style={{ animationDelay: '-2.5s', animationDuration: '14s' }}
         />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -inset-x-24 top-0 h-[440px] opacity-55 bg-[linear-gradient(115deg,transparent_25%,rgba(255,255,255,0.32)_45%,transparent_65%)] animate-yuu-hero-beam"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -inset-x-24 top-24 h-[380px] opacity-35 bg-[linear-gradient(130deg,transparent_30%,rgba(191,219,254,0.3)_50%,transparent_70%)] animate-yuu-hero-beam"
+          style={{ animationDelay: '-6s', animationDuration: '16s', animationDirection: 'reverse' }}
+        />
+        {/* Rotating Orbital Rings */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute left-1/2 top-[42%] h-[680px] w-[680px] rounded-full border border-dashed border-white/20 animate-yuu-hero-orbit"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute left-1/2 top-[42%] h-[460px] w-[460px] rounded-full border border-white/15 animate-yuu-hero-orbit"
+          style={{ animationDuration: '28s', animationDirection: 'reverse' }}
+        />
+        {/* Floating Spark Particles */}
+        {[
+          { top: '18%', left: '14%', size: 'h-2 w-2', delay: '0s', dur: '5.5s' },
+          { top: '28%', left: '84%', size: 'h-2.5 w-2.5', delay: '-1.8s', dur: '6.5s' },
+          { top: '48%', left: '9%', size: 'h-1.5 w-1.5', delay: '-3.1s', dur: '5s' },
+          { top: '54%', left: '89%', size: 'h-2 w-2', delay: '-2.4s', dur: '7s' },
+          { top: '22%', left: '68%', size: 'h-1.5 w-1.5', delay: '-4.2s', dur: '6s' },
+          { top: '38%', left: '24%', size: 'h-2 w-2', delay: '-0.9s', dur: '6.8s' }
+        ].map((p, idx) => (
+          <span
+            key={idx}
+            aria-hidden="true"
+            style={{ top: p.top, left: p.left, animationDelay: p.delay, animationDuration: p.dur }}
+            className={cn(
+              'pointer-events-none absolute rounded-full bg-white/75 shadow-[0_0_12px_rgba(255,255,255,0.8)] animate-yuu-hero-float',
+              p.size
+            )}
+          />
+        ))}
 
         <section className="relative z-20 px-4 pt-28 mx-auto max-w-5xl text-center sm:px-6 sm:pt-32">
           <h1 className="animate-yuu-enter mx-auto max-w-3xl font-display text-3xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-[54px] lg:leading-[1.08] text-balance">
