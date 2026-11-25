@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { CaretDown, Check } from '@phosphor-icons/react';
 
 export interface SelectOption<T extends string | number = string> {
@@ -29,13 +30,20 @@ export function CustomSelect<T extends string | number = string>({
   size = 'sm'
 }: CustomSelectProps<T>) {
   const [isOpen, setIsOpen] = useState(false);
+  const [coords, setCoords] = useState({ top: 0, left: 0, width: 140 });
   const containerRef = useRef<HTMLDivElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
 
   const selectedOption = options.find((opt) => opt.value === value);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(target) &&
+        (!popoverRef.current || !popoverRef.current.contains(target))
+      ) {
         setIsOpen(false);
       }
     };
@@ -69,7 +77,18 @@ export function CustomSelect<T extends string | number = string>({
       <button
         type="button"
         disabled={disabled}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          if (!isOpen && containerRef.current) {
+            const rect = containerRef.current.getBoundingClientRect();
+            const menuH = Math.min(224, options.length * 32 + 12);
+            const menuW = Math.max(140, rect.width);
+            const spaceBelow = window.innerHeight - rect.bottom;
+            const top = spaceBelow < menuH + 12 ? Math.max(12, rect.top - menuH - 4) : rect.bottom + 4;
+            const left = Math.max(12, Math.min(rect.left, window.innerWidth - menuW - 12));
+            setCoords({ top, left, width: menuW });
+          }
+          setIsOpen(!isOpen);
+        }}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         className={`flex w-full items-center justify-between gap-2 rounded-lg border border-appflowy-border bg-appflowy-surface font-medium text-appflowy-text transition-colors hover:border-neutral-300 disabled:opacity-50 dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface dark:text-appflowy-darkText dark:hover:border-neutral-600 ${sizeClasses}`}
@@ -91,10 +110,18 @@ export function CustomSelect<T extends string | number = string>({
         />
       </button>
 
-      {isOpen && (
+      {isOpen && createPortal(
         <div
+          ref={popoverRef}
           role="listbox"
-          className="absolute left-0 top-full z-50 mt-1 max-h-56 min-w-[140px] w-full overflow-y-auto rounded-xl border border-appflowy-border bg-appflowy-surface p-1 shadow-lg dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface"
+          style={{
+            position: 'fixed',
+            top: `${coords.top}px`,
+            left: `${coords.left}px`,
+            minWidth: `${coords.width}px`,
+            zIndex: 9999
+          }}
+          className="max-h-56 overflow-y-auto rounded-xl border border-border bg-surface p-1 shadow-lg"
         >
           {options.map((opt) => {
             const isSelected = opt.value === value;
@@ -125,7 +152,8 @@ export function CustomSelect<T extends string | number = string>({
               </button>
             );
           })}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

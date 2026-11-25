@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NotionPage, Board, UserRole } from '../types/board';
 import { canEditContent } from '../lib/auth';
 import {
@@ -7,9 +7,11 @@ import {
   Plus,
   Trash,
   SidebarSimple,
-  FolderOpen
+  FolderOpen,
+  Stack
 } from '@phosphor-icons/react';
 import { cn } from '../lib/cn';
+import { ConfirmDialog } from './ui';
 
 interface ProjectExplorerProps {
   isOpen: boolean;
@@ -39,11 +41,8 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
   currentUserRole
 }) => {
   const canEdit = canEditContent(currentUserRole);
-
-  const handleCreateBoard = () => {
-    const title = prompt('Judul Papan Baru:');
-    if (title?.trim()) onAddBoard(title.trim());
-  };
+  const [isAddBoardOpen, setIsAddBoardOpen] = useState(false);
+  const [pageToDelete, setPageToDelete] = useState<NotionPage | null>(null);
 
   return (
     <aside
@@ -57,7 +56,7 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
       {/* Top Header: Project Name & Collapse button */}
       <div className="flex h-14 items-center justify-between border-b border-border px-3.5 shrink-0">
         <div className="flex items-center gap-2 truncate">
-          <span className="h-2 w-2 rounded-full bg-project-solid shrink-0" />
+          <Stack className="h-3.5 w-3.5 text-project-solid shrink-0" />
           <h2 className="font-display font-bold text-xs text-text truncate">
             {projectName}
           </h2>
@@ -86,7 +85,7 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
             {canEdit && (
               <button
                 type="button"
-                onClick={handleCreateBoard}
+                onClick={() => setIsAddBoardOpen(true)}
                 className="flex h-4 w-4 items-center justify-center rounded text-muted hover:text-text hover:bg-hover cursor-pointer"
                 title="Tambah Papan"
               >
@@ -169,11 +168,9 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (confirm(`Hapus dokumen "${p.title}"?`)) {
-                            onDeletePage(p.id);
-                          }
+                          setPageToDelete(p);
                         }}
-                        className="opacity-0 group-hover:opacity-100 p-0.5 text-muted hover:text-danger rounded hover:bg-surface transition-opacity"
+                        className="opacity-0 group-hover:opacity-100 p-0.5 text-muted hover:text-danger rounded hover:bg-surface transition-opacity cursor-pointer"
                         title="Hapus Dokumen"
                       >
                         <Trash className="h-3 w-3" />
@@ -187,6 +184,30 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
         </div>
 
       </div>
+
+      <ConfirmDialog
+        isOpen={isAddBoardOpen}
+        onClose={() => setIsAddBoardOpen(false)}
+        title="Buat Papan Kanban Baru"
+        mode="prompt"
+        placeholder="Misal: Roadmap Q1..."
+        confirmLabel="Buat Papan"
+        onConfirm={(val) => {
+          if (val) onAddBoard(val);
+        }}
+      />
+
+      <ConfirmDialog
+        isOpen={Boolean(pageToDelete)}
+        onClose={() => setPageToDelete(null)}
+        title="Hapus Dokumen"
+        description={`Yakin ingin menghapus dokumen "${pageToDelete?.title || ''}"? Tindakan ini tidak dapat dibatalkan.`}
+        variant="danger"
+        confirmLabel="Hapus"
+        onConfirm={() => {
+          if (pageToDelete) onDeletePage(pageToDelete.id);
+        }}
+      />
     </aside>
   );
 };

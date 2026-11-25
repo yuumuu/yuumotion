@@ -207,3 +207,47 @@ export async function loginWithSupabaseAuth(email: string, password: string):Pro
     return { success: false, message: errorMsg };
   }
 }
+
+export type AppRoute = 'app' | 'landing' | 'auth';
+const SESSION_ACTIVE_KEY = 'yuumotion_session_active';
+
+export function hasActiveSession(): boolean {
+  const val = localStorage.getItem(SESSION_ACTIVE_KEY);
+  return val !== 'false';
+}
+
+export function setActiveSession(active: boolean) {
+  localStorage.setItem(SESSION_ACTIVE_KEY, active ? 'true' : 'false');
+}
+
+export function resolveRouteWithAuthGuard(): AppRoute {
+  const rawHash = window.location.hash.replace(/^#\/?/, '').toLowerCase();
+  const isAuthed = hasActiveSession();
+
+  if (rawHash === 'landing') {
+    return 'landing';
+  }
+  if (rawHash === 'auth') {
+    return 'auth';
+  }
+  if (rawHash === 'app') {
+    if (!isAuthed) {
+      window.location.hash = '#/auth';
+      return 'auth';
+    }
+    return 'app';
+  }
+
+  const defaultRoute: AppRoute = isAuthed ? 'app' : 'landing';
+  window.location.hash = `#/${defaultRoute}`;
+  return defaultRoute;
+}
+
+export function navigateWithGuard(target: AppRoute): AppRoute {
+  if (target === 'app' && !hasActiveSession()) {
+    window.location.hash = '#/auth';
+    return 'auth';
+  }
+  window.location.hash = `#/${target}`;
+  return target;
+}

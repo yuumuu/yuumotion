@@ -15,7 +15,7 @@ import {
   Moon,
   Sun
 } from '@phosphor-icons/react';
-import { Button, Kbd } from './ui';
+import { Button, Kbd, ConfirmDialog } from './ui';
 import { usePreferences } from '../context/PreferencesContext';
 import { cn } from '../lib/cn';
 
@@ -91,11 +91,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
     setShowWorkspaceMenu(false);
   };
 
+  const [isAddBoardOpen, setIsAddBoardOpen] = useState(false);
+  const [pageToDelete, setPageToDelete] = useState<NotionPage | null>(null);
+
   const handleCreateNewBoard = () => {
-    const title = prompt('Judul Kanban Board Baru:');
-    if (title?.trim()) {
-      onAddBoard(title.trim());
-    }
+    setIsAddBoardOpen(true);
   };
 
   return (
@@ -360,9 +360,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
-                              if (confirm(`Hapus dokumen "${p.title}"?`)) {
-                                onDeletePage(p.id);
-                              }
+                              setPageToDelete(p);
                             }}
                             className="opacity-0 group-hover:opacity-100 p-0.5 text-muted hover:text-danger rounded hover:bg-surface transition-opacity"
                             title="Hapus Dokumen"
@@ -451,6 +449,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
       </aside>
+
+      <ConfirmDialog
+        isOpen={isAddBoardOpen}
+        onClose={() => setIsAddBoardOpen(false)}
+        title="Buat Papan Kanban Baru"
+        mode="prompt"
+        placeholder="Misal: Sprint Q1..."
+        confirmLabel="Buat Papan"
+        onConfirm={(title) => {
+          if (title) onAddBoard(title);
+        }}
+      />
+
+      <ConfirmDialog
+        isOpen={Boolean(pageToDelete)}
+        onClose={() => setPageToDelete(null)}
+        title="Hapus Dokumen"
+        description={`Yakin ingin menghapus dokumen "${pageToDelete?.title || ''}"?`}
+        variant="danger"
+        confirmLabel="Hapus"
+        onConfirm={() => {
+          if (pageToDelete) onDeletePage(pageToDelete.id);
+        }}
+      />
     </>
   );
 };

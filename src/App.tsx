@@ -21,7 +21,11 @@ import {
   saveStoredWorkspaces,
   getActiveWorkspaceId,
   setActiveWorkspaceId,
-  canEditContent
+  canEditContent,
+  resolveRouteWithAuthGuard,
+  navigateWithGuard,
+  setActiveSession,
+  AppRoute
 } from './lib/auth';
 import { createSyncManager, getStoredCloudConfig } from './lib/sync';
 import { getStoredDbConfig, saveStoredDbConfig } from './lib/dbBridge';
@@ -36,24 +40,40 @@ import { TimelineGanttView } from './components/TimelineGanttView';
 import { TableDatabaseView } from './components/TableDatabaseView';
 import { StandalonePageDoc } from './components/StandalonePageDoc';
 import { CardDetailModal } from './components/CardDetailModal';
-import { CloudSyncModal } from './components/CloudSyncModal';
 import { DatabaseBridgeModal } from './components/DatabaseBridgeModal';
-import { AuthModal } from './components/AuthModal';
 import { WorkspaceMembersModal } from './components/WorkspaceMembersModal';
 import { LandingPage } from './components/LandingPage';
 import { AuthPage } from './components/AuthPage';
-import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
 import { CommandPalette } from './components/CommandPalette';
-import { PreferencesModal } from './components/PreferencesModal';
-import { ToastContainer, toast } from './components/ui';
+import { SettingsHubModal, SettingsTab } from './components/SettingsHubModal';
+import { ToastContainer, ConfirmDialog, toast } from './components/ui';
 import { Plus, Kanban, FileText, UserPlus } from '@phosphor-icons/react';
 
 export const App: React.FC = () => {
-  const [appRoute, setAppRoute] = useState<'app' | 'landing' | 'auth'>('app');
+  const [appRoute, setAppRoute] = useState<AppRoute>(() => resolveRouteWithAuthGuard());
   const [isFabOpen, setIsFabOpen] = useState(false);
-  const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
-  const [isPreferencesModalOpen, setIsPreferencesModalOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [settingsTab, setSettingsTab] = useState<SettingsTab>('profile');
+  const [isQuickTaskPromptOpen, setIsQuickTaskPromptOpen] = useState(false);
+
+  const openSettingsTab = (tab: SettingsTab) => {
+    setSettingsTab(tab);
+    setIsSettingsOpen(true);
+  };
+
+  const goToRoute = (target: AppRoute) => {
+    const resolved = navigateWithGuard(target);
+    setAppRoute(resolved);
+  };
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      setAppRoute(resolveRouteWithAuthGuard());
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
   const [currentUser, setCurrentUser] = useState<AuthUser>(() => getStoredAuthUser());
   const [workspaces, setWorkspaces] = useState<Workspace[]>(() => getStoredWorkspaces(currentUser));
   const [activeWorkspaceId, setActiveWorkspaceIdState] = useState<string>(() =>
@@ -92,15 +112,13 @@ export const App: React.FC = () => {
   });
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [roomId, setRoomId] = useState('general');
+  const [roomId] = useState('general');
   const [activeView, setActiveView] = useState<WorkspaceView>('board');
   const [isDark, setIsDark] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery] = useState('');
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
 
-  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
   const [isDbModalOpen, setIsDbModalOpen] = useState(false);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
 
   const [syncStatus, setSyncStatus] = useState<SyncConnectionStatus>('local');
@@ -139,29 +157,35 @@ export const App: React.FC = () => {
         activeEl instanceof HTMLTextAreaElement ||
         activeEl?.getAttribute('contenteditable') === 'true';
 
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsCommandPaletteOpen((prev) => !prev);
+        return;
+      }
+
       if (e.key === 'Escape') {
-        if (isShortcutsModalOpen) {
-          setIsShortcutsModalOpen(false);
+        if (isCommandPaletteOpen) {
+          setIsCommandPaletteOpen(false);
+          return;
+        }
+        if (isSettingsOpen) {
+          setIsSettingsOpen(false);
           return;
         }
         if (selectedCardId) {
           setSelectedCardId(null);
           return;
         }
-        if (isSyncModalOpen) {
-          setIsSyncModalOpen(false);
-          return;
-        }
         if (isDbModalOpen) {
           setIsDbModalOpen(false);
           return;
         }
-        if (isAuthModalOpen) {
-          setIsAuthModalOpen(false);
-          return;
-        }
         if (isMembersModalOpen) {
           setIsMembersModalOpen(false);
+          return;
+        }
+        if (isFabOpen) {
+          setIsFabOpen(false);
           return;
         }
       }
@@ -170,13 +194,19 @@ export const App: React.FC = () => {
 
       if (e.key === '/') {
         e.preventDefault();
-        document.getElementById('search-input-field')?.focus();
+        setIsCommandPaletteOpen(true);
         return;
       }
 
-      if (e.key === '?' || (e.key === '/' && e.shiftKey)) {
+      if (e.key === '[') {
         e.preventDefault();
-        setIsShortcutsModalOpen((prev) => !prev);
+        setIsSidebarOpen((prev) => !prev);
+        return;
+      }
+
+      if (e.key === '?') {
+        e.preventDefault();
+        openSettingsTab('shortcuts');
         return;
       }
 
@@ -194,12 +224,12 @@ export const App: React.FC = () => {
     window.addEventListener('keydown', handleGlobalKeyDown);
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
   }, [
-    isShortcutsModalOpen,
+    isCommandPaletteOpen,
+    isSettingsOpen,
     selectedCardId,
-    isSyncModalOpen,
     isDbModalOpen,
-    isAuthModalOpen,
-    isMembersModalOpen
+    isMembersModalOpen,
+    isFabOpen
   ]);
 
   const currentUserPresence: UserPresence = useMemo(() => ({
@@ -760,15 +790,19 @@ export const App: React.FC = () => {
     };
     saveStoredAuthUser(guestUser);
     setCurrentUser(guestUser);
-    setAppRoute('landing');
+    setActiveSession(false);
+    goToRoute('landing');
   };
 
   if (appRoute === 'landing') {
     return (
       <LandingPage
         currentUser={currentUser}
-        onEnterApp={() => setAppRoute('app')}
-        onOpenAuth={() => setAppRoute('auth')}
+        onEnterApp={() => {
+          setActiveSession(true);
+          goToRoute('app');
+        }}
+        onOpenAuth={() => goToRoute('auth')}
         isDark={isDark}
         onToggleTheme={toggleTheme}
       />
@@ -781,9 +815,13 @@ export const App: React.FC = () => {
         currentUser={currentUser}
         onUserChange={(user) => {
           setCurrentUser(user);
+          setActiveSession(true);
         }}
-        onNavigateHome={() => setAppRoute('landing')}
-        onEnterApp={() => setAppRoute('app')}
+        onNavigateHome={() => goToRoute('landing')}
+        onEnterApp={() => {
+          setActiveSession(true);
+          goToRoute('app');
+        }}
       />
     );
   }
@@ -796,8 +834,7 @@ export const App: React.FC = () => {
         activeWorkspaceId={activeWorkspaceId}
         onSelectWorkspace={handleSelectWorkspace}
         onCreateWorkspace={handleCreateWorkspace}
-        onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
-        onOpenPreferences={() => setIsPreferencesModalOpen(true)}
+        onOpenSettings={openSettingsTab}
         currentUser={currentUser}
       />
 
@@ -834,10 +871,10 @@ export const App: React.FC = () => {
           onAddBoard={handleAddBoard}
           currentUser={currentUser}
           currentUserRole={currentUserRole}
-          onOpenAuthModal={() => setIsAuthModalOpen(true)}
+          onOpenAuthModal={() => openSettingsTab('profile')}
           onOpenMembersModal={() => setIsMembersModalOpen(true)}
           onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
-          onOpenPreferences={() => setIsPreferencesModalOpen(true)}
+          onOpenPreferences={() => openSettingsTab('appearance')}
         />
       </div>
 
@@ -851,28 +888,13 @@ export const App: React.FC = () => {
           currentUserRole={currentUserRole}
           isSidebarOpen={isSidebarOpen}
           onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
-          currentRoom={roomId}
-          onRoomChange={setRoomId}
           onlineUsers={activeUsersList}
           currentUser={currentUserPresence}
           syncStatus={syncStatus}
-          activeView={activeView}
-          onViewChange={setActiveView}
-          onOpenSyncSettings={() => setIsSyncModalOpen(true)}
-          onOpenDbBridge={() => setIsDbModalOpen(true)}
-          onOpenMembersModal={() => setIsMembersModalOpen(true)}
-          isDark={isDark}
-          onToggleTheme={toggleTheme}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          onExport={handleExport}
-          onImport={handleImport}
           onLogout={handleLogout}
-          onNavigateToLanding={() => setAppRoute('landing')}
-          onOpenAuthModal={() => setIsAuthModalOpen(true)}
-          onOpenShortcutsModal={() => setIsShortcutsModalOpen(true)}
+          onNavigateToLanding={() => goToRoute('landing')}
           onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
-          onOpenPreferences={() => setIsPreferencesModalOpen(true)}
+          onOpenSettings={openSettingsTab}
         />
 
         {/* Split-View Container for Main Canvas & Push Inspector */}
@@ -927,6 +949,7 @@ export const App: React.FC = () => {
                     board={activeBoard}
                     searchQuery={searchQuery}
                     onCardClick={(card) => setSelectedCardId(card.id)}
+                    onUpdateCard={handleUpdateCard}
                   />
                 )}
 
@@ -1014,18 +1037,6 @@ export const App: React.FC = () => {
         </div>
       </div>
 
-      {isSyncModalOpen && (
-        <CloudSyncModal
-          config={cloudConfig}
-          status={syncStatus}
-          onSave={(next) => {
-            setCloudConfig(next);
-            syncManagerRef.current?.updateCloudConfig(next);
-          }}
-          onClose={() => setIsSyncModalOpen(false)}
-        />
-      )}
-
       {isDbModalOpen && (
         <DatabaseBridgeModal
           board={activeBoard}
@@ -1035,14 +1046,6 @@ export const App: React.FC = () => {
             saveStoredDbConfig(next);
           }}
           onClose={() => setIsDbModalOpen(false)}
-        />
-      )}
-
-      {isAuthModalOpen && (
-        <AuthModal
-          currentUser={currentUser}
-          onUserChange={setCurrentUser}
-          onClose={() => setIsAuthModalOpen(false)}
         />
       )}
 
@@ -1056,27 +1059,43 @@ export const App: React.FC = () => {
         />
       )}
 
-      <KeyboardShortcutsModal
-        isOpen={isShortcutsModalOpen}
-        onClose={() => setIsShortcutsModalOpen(false)}
+      <SettingsHubModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        initialTab={settingsTab}
+        currentUser={currentUser}
+        onUserChange={setCurrentUser}
+        cloudConfig={cloudConfig}
+        syncStatus={syncStatus}
+        onSaveCloudConfig={(next) => {
+          setCloudConfig(next);
+          syncManagerRef.current?.updateCloudConfig(next);
+        }}
+        onOpenDbBridge={() => setIsDbModalOpen(true)}
+        onExportBackup={handleExport}
+        onImportBackup={handleImport}
       />
 
       <CommandPalette
         isOpen={isCommandPaletteOpen}
         onClose={() => setIsCommandPaletteOpen(false)}
         onNavigateView={(v) => setActiveView(v as WorkspaceView)}
-        onQuickCreateTask={() => {
-          const title = prompt('Judul Tugas Baru:');
-          if (title?.trim() && activeBoard.columns[0]) {
-            handleAddCard(activeBoard.columns[0].id, title.trim());
-          }
-        }}
-        onOpenPreferences={() => setIsPreferencesModalOpen(true)}
+        onQuickCreateTask={() => setIsQuickTaskPromptOpen(true)}
+        onOpenPreferences={() => openSettingsTab('appearance')}
       />
 
-      <PreferencesModal
-        isOpen={isPreferencesModalOpen}
-        onClose={() => setIsPreferencesModalOpen(false)}
+      <ConfirmDialog
+        isOpen={isQuickTaskPromptOpen}
+        onClose={() => setIsQuickTaskPromptOpen(false)}
+        title="Buat Tugas Baru"
+        mode="prompt"
+        placeholder="Tulis judul tugas..."
+        confirmLabel="Buat Tugas"
+        onConfirm={(title) => {
+          if (title && activeBoard.columns[0]) {
+            handleAddCard(activeBoard.columns[0].id, title);
+          }
+        }}
       />
 
       <ToastContainer />

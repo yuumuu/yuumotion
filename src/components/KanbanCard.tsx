@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card } from '../types/board';
-import { CalendarBlank, Paperclip, Check } from '@phosphor-icons/react';
+import { CalendarBlank, Paperclip, Check, CheckSquare } from '@phosphor-icons/react';
 import { cn } from '../lib/cn';
 
 interface KanbanCardProps {
@@ -18,44 +18,44 @@ interface KanbanCardProps {
   onKeyboardCancel?: () => void;
 }
 
-const priorityConfig: Record<string, { label: string; dot: string }> = {
-  urgent: { label: 'Urgent', dot: 'bg-rose-500' },
-  high: { label: 'Tinggi', dot: 'bg-amber-500' },
-  medium: { label: 'Sedang', dot: 'bg-sky-500' },
-  low: { label: 'Rendah', dot: 'bg-neutral-400' }
+const priorityConfig: Record<string, { label: string; badge: string }> = {
+  urgent: { label: 'Urgent', badge: 'text-rose-600 dark:text-rose-400 bg-rose-500/10' },
+  high: { label: 'Tinggi', badge: 'text-amber-600 dark:text-amber-400 bg-amber-500/10' },
+  medium: { label: 'Sedang', badge: 'text-sky-600 dark:text-sky-400 bg-sky-500/10' },
+  low: { label: 'Rendah', badge: 'text-muted bg-hover' }
 };
 
-function getCardPastelStyle(card: Card): { container: string; dot: string } {
+function getCardPastelGradient(card: Card): { container: string; bar: string } {
   const firstTag = (card.tags?.[0]?.name || '').toLowerCase();
 
   if (firstTag.includes('design') || firstTag.includes('ui') || firstTag.includes('ux')) {
     return {
-      container: 'bg-violet-50/90 border-violet-200/80 dark:bg-violet-950/35 dark:border-violet-800/50',
-      dot: 'bg-violet-600 dark:bg-violet-400'
+      container: 'bg-gradient-to-b from-violet-50/90 to-surface border-violet-200/75 dark:from-violet-950/35 dark:to-surface dark:border-violet-800/45',
+      bar: 'bg-violet-500'
     };
   }
   if (firstTag.includes('frontend') || firstTag.includes('web') || firstTag.includes('react')) {
     return {
-      container: 'bg-sky-50/90 border-sky-200/80 dark:bg-sky-950/35 dark:border-sky-800/50',
-      dot: 'bg-sky-600 dark:bg-sky-400'
+      container: 'bg-gradient-to-b from-sky-50/90 to-surface border-sky-200/75 dark:from-sky-950/35 dark:to-surface dark:border-sky-800/45',
+      bar: 'bg-sky-500'
     };
   }
   if (firstTag.includes('backend') || firstTag.includes('infra') || firstTag.includes('api')) {
     return {
-      container: 'bg-emerald-50/90 border-emerald-200/80 dark:bg-emerald-950/35 dark:border-emerald-800/50',
-      dot: 'bg-emerald-600 dark:bg-emerald-400'
+      container: 'bg-gradient-to-b from-emerald-50/90 to-surface border-emerald-200/75 dark:from-emerald-950/35 dark:to-surface dark:border-emerald-800/45',
+      bar: 'bg-emerald-500'
     };
   }
   if (card.priority === 'urgent' || firstTag.includes('bug')) {
     return {
-      container: 'bg-amber-50/90 border-amber-200/80 dark:bg-amber-950/35 dark:border-amber-800/50',
-      dot: 'bg-amber-600 dark:bg-amber-400'
+      container: 'bg-gradient-to-b from-amber-50/90 to-surface border-amber-200/75 dark:from-amber-950/35 dark:to-surface dark:border-amber-800/45',
+      bar: 'bg-amber-500'
     };
   }
 
   return {
     container: 'bg-surface border-border',
-    dot: 'bg-project-solid'
+    bar: 'bg-project-solid'
   };
 }
 
@@ -77,8 +77,8 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({
     return (
       <div
         aria-hidden="true"
-        style={{ height: placeholderHeight ? `${placeholderHeight}px` : '108px' }}
-        className="w-full rounded-2xl border-2 border-dashed border-project-solid/50 bg-project-soft/25 transition-[height,opacity] duration-150"
+        style={{ height: placeholderHeight ? `${placeholderHeight}px` : '104px' }}
+        className="w-full rounded-2xl border-2 border-dashed border-project-solid/50 bg-project-soft/20 transition-[height,opacity] duration-150"
       />
     );
   }
@@ -86,18 +86,19 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({
   const completedChecklist = card.checklist.filter((item) => item.completed).length;
   const totalChecklist = card.checklist.length;
   const progressPct = totalChecklist > 0 ? Math.round((completedChecklist / totalChecklist) * 100) : 0;
-  const filledDots = totalChecklist > 0 ? Math.round((completedChecklist / totalChecklist) * 10) : 0;
   const isAllDone = isDoneColumn || (totalChecklist > 0 && completedChecklist === totalChecklist);
 
   const formattedCode = `YUU-${card.id.replace(/\D/g, '').slice(-3) || '101'}`;
   const priority = priorityConfig[card.priority] || priorityConfig.low;
-  const pastel = getCardPastelStyle(card);
+  const pastel = getCardPastelGradient(card);
+
+  const hasFooter = totalChecklist > 0 || (card.attachments && card.attachments.length > 0) || Boolean(card.dueDate);
 
   return (
     <article
       role="button"
       tabIndex={isFloatingClone ? -1 : 0}
-      aria-label={`Kartu ${formattedCode}: ${card.title}. Prioritas: ${card.priority}. Tekan Spasi untuk mengangkat kartu.`}
+      aria-label={`Kartu ${formattedCode}: ${card.title}. Prioritas: ${card.priority}.`}
       aria-grabbed={isKeyboardDragging || isFloatingClone || undefined}
       onPointerDown={onPointerDown}
       onClick={onClick}
@@ -161,7 +162,7 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({
         </button>
       )}
 
-      {/* Optional Card Cover Image (proporsional 72px) */}
+      {/* Optional Card Cover Image */}
       {card.coverImage && (
         <div className="h-[72px] w-full overflow-hidden rounded-xl border border-border/70 -mt-0.5 mb-2.5 bg-bar">
           <img
@@ -173,7 +174,7 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({
         </div>
       )}
 
-      {/* Top Meta: Monospaced ID & Priority / Done Micro-Delight */}
+      {/* Top Meta: Monospaced ID & Priority Badge */}
       <div className="mb-1.5 flex items-center justify-between gap-2 pr-6">
         <span
           className={cn(
@@ -199,10 +200,9 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({
             <span>Selesai</span>
           </span>
         ) : (
-          <div className="flex items-center gap-1.5" title={`Prioritas: ${priority.label}`}>
-            <span className={cn('h-1.5 w-1.5 rounded-full', priority.dot)} />
-            <span className="text-[10px] font-medium text-muted">{priority.label}</span>
-          </div>
+          <span className={cn('rounded-md px-1.5 py-0.5 text-[10px] font-semibold', priority.badge)}>
+            {priority.label}
+          </span>
         )}
       </div>
 
@@ -216,10 +216,10 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({
         {card.title}
       </h3>
 
-      {/* Progressive Tag Pills (ala Weihu #tag) */}
+      {/* Minimal Tag Pills (maks 2) */}
       {card.tags.length > 0 && (
-        <div className="mb-2.5 flex flex-wrap gap-1">
-          {card.tags.slice(0, 3).map((tag) => (
+        <div className="mb-2 flex flex-wrap gap-1">
+          {card.tags.slice(0, 2).map((tag) => (
             <span
               key={tag.id}
               className="rounded-md bg-surface/80 dark:bg-bg/60 px-1.5 py-0.5 text-[10px] font-medium text-muted border border-border/70"
@@ -230,34 +230,26 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({
         </div>
       )}
 
-      {/* Segmented Dot Progress Bar (ala Weihu Gambar 1) */}
+      {/* Clean Linear Progress Bar (Tanpa 10 Circle Dots) */}
       {totalChecklist > 0 && (
-        <div className="mb-2.5 space-y-1">
-          <div className="flex items-center justify-between text-[10px] font-mono text-muted">
-            <span>Progres</span>
-            <span className={cn(isAllDone && 'text-status-done font-semibold')}>{progressPct}%</span>
-          </div>
-          <div className="flex items-center gap-1">
-            {[...Array(10)].map((_, i) => (
-              <span
-                key={i}
-                className={cn(
-                  'h-1.5 flex-1 rounded-full transition-colors duration-200',
-                  i < filledDots
-                    ? isAllDone
-                      ? 'bg-status-done'
-                      : pastel.dot
-                    : 'bg-black/10 dark:bg-white/10'
-                )}
-              />
-            ))}
-          </div>
+        <div className="mb-2 h-1 w-full rounded-full bg-black/10 dark:bg-white/10 overflow-hidden">
+          <div
+            className={cn('h-full rounded-full transition-[width] duration-200', isAllDone ? 'bg-status-done' : pastel.bar)}
+            style={{ width: `${progressPct}%` }}
+          />
         </div>
       )}
 
-      {/* Bottom Row: Attachments / Date & Assignee Avatar */}
-      <div className="flex items-center justify-between gap-2 border-t border-border/50 pt-2 text-[10px] text-muted font-mono">
-        <div className="flex items-center gap-2.5">
+      {/* Minimal Footer */}
+      {hasFooter && (
+        <div className="flex items-center gap-3 border-t border-border/40 pt-2 text-[10px] text-muted font-mono">
+          {totalChecklist > 0 && (
+            <span className={cn('inline-flex items-center gap-1', isAllDone && 'text-status-done font-semibold')}>
+              <CheckSquare className="h-3 w-3" />
+              <span>{completedChecklist}/{totalChecklist}</span>
+            </span>
+          )}
+
           {card.attachments && card.attachments.length > 0 && (
             <span className="inline-flex items-center gap-1">
               <Paperclip className="h-3 w-3" />
@@ -266,17 +258,13 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({
           )}
 
           {card.dueDate && (
-            <span className="inline-flex items-center gap-1">
+            <span className="inline-flex items-center gap-1 ml-auto">
               <CalendarBlank className="h-3 w-3" />
               <span>{card.dueDate.slice(5)}</span>
             </span>
           )}
         </div>
-
-        <div className="flex h-5 w-5 items-center justify-center rounded-full bg-project-solid text-white text-[9px] font-bold shrink-0 shadow-2xs">
-          H
-        </div>
-      </div>
+      )}
     </article>
   );
 };

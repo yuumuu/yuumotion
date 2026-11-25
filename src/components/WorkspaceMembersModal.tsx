@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Workspace, WorkspaceMember, UserRole, AuthUser } from '../types/board';
 import { canManageMembers, canDeleteWorkspace } from '../lib/auth';
 import { CustomSelect } from './ui/CustomSelect';
+import { ConfirmDialog } from './ui';
 import { X, Users, UserPlus, Shield, Trash, Crown, Warning } from '@phosphor-icons/react';
 
 interface WorkspaceMembersModalProps {
@@ -30,6 +31,7 @@ export const WorkspaceMembersModal: React.FC<WorkspaceMembersModalProps> = ({
   const [newMemberEmail, setNewMemberEmail] = useState('');
   const [newMemberRole, setNewMemberRole] = useState<UserRole>('member');
   const [isAddingMember, setIsAddingMember] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   const currentUserRole = workspace.members.find((m) => m.id === currentUser.id)?.role || workspace.currentRole;
   const isManager = canManageMembers(currentUserRole);
@@ -260,19 +262,29 @@ export const WorkspaceMembersModal: React.FC<WorkspaceMembersModalProps> = ({
               </p>
               <button
                 type="button"
-                onClick={() => {
-                  if (confirm(`Are you sure you want to delete workspace "${workspace.name}"?`)) {
-                    onDeleteWorkspace(workspace.id);
-                    onClose();
-                  }
-                }}
-                className="mt-2.5 rounded bg-rose-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-rose-700"
+                onClick={() => setConfirmDeleteOpen(true)}
+                className="mt-2.5 rounded bg-rose-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-rose-700 cursor-pointer"
               >
                 Delete Workspace
               </button>
             </div>
           )}
         </div>
+
+        <ConfirmDialog
+          isOpen={confirmDeleteOpen}
+          onClose={() => setConfirmDeleteOpen(false)}
+          title="Hapus Workspace"
+          description={`Yakin ingin menghapus workspace "${workspace.name}" beserta seluruh papan dan dokumen di dalamnya?`}
+          variant="danger"
+          confirmLabel="Hapus Workspace"
+          onConfirm={() => {
+            if (onDeleteWorkspace) {
+              onDeleteWorkspace(workspace.id);
+              onClose();
+            }
+          }}
+        />
 
         <div className="flex items-center justify-end border-t border-appflowy-border pt-3 dark:border-appflowy-darkBorder">
           <button

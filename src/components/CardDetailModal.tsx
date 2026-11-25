@@ -11,7 +11,8 @@ import {
   AttachmentCard,
   Separator,
   Drawer,
-  Dialog
+  Dialog,
+  ConfirmDialog
 } from './ui';
 import {
   X,
@@ -25,7 +26,8 @@ import {
   ClockCounterClockwise,
   ArrowsOut,
   Square,
-  SidebarSimple
+  SidebarSimple,
+  ArrowLeftIcon
 } from '@phosphor-icons/react';
 import { usePreferences } from '../context/PreferencesContext';
 import { CardOpenMode } from '../types/preferences';
@@ -61,6 +63,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
   const [newChecklistText, setNewChecklistText] = useState('');
   const [attachments, setAttachments] = useState<CardAttachment[]>(card.attachments || []);
   const [autoMoveDone, setAutoMoveDone] = useState<boolean>(card.autoMoveDone ?? true);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [activities, setActivities] = useState<CardActivity[]>(() => {
     if (card.activities && card.activities.length > 0) return card.activities;
     return [
@@ -223,8 +226,8 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
     <div className="space-y-6">
       {/* Cover Image Banner */}
       {coverImage && (
-        <div className="relative h-44 w-full overflow-hidden rounded-xl border border-border bg-bar">
-          <img src={coverImage} alt="Card Cover" className="h-full w-full object-cover" />
+        <div className="overflow-hidden relative w-full h-44 rounded-xl border border-border bg-bar">
+          <img src={coverImage} alt="Card Cover" className="object-cover w-full h-full" />
           <button
             type="button"
             onClick={() => {
@@ -242,7 +245,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
 
       {/* Title & Metadata Topbar */}
       <div>
-        <div className="flex items-center gap-2 mb-2">
+        <div className="flex gap-2 items-center mb-2">
           <span className="font-mono text-xs font-semibold text-project-accent bg-project-soft px-2 py-0.5 rounded-md">
             {formattedCode}
           </span>
@@ -372,12 +375,12 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
 
       {/* Checklist Task Section */}
       <div>
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex justify-between items-center mb-2">
           <label className="text-xs font-semibold uppercase tracking-wider text-muted flex items-center gap-1.5">
             <CheckSquare className="h-3.5 w-3.5" />
             Checklist Tugas
           </label>
-          <span className="text-xs font-mono text-muted">
+          <span className="font-mono text-xs text-muted">
             {card.checklist.filter((i) => i.completed).length}/{card.checklist.length} Selesai
           </span>
         </div>
@@ -386,9 +389,9 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
           {card.checklist.map((item) => (
             <div
               key={item.id}
-              className="flex items-center justify-between gap-2 rounded-lg border border-border bg-surface p-2 text-xs"
+              className="flex gap-2 justify-between items-center p-2 text-xs rounded-lg border border-border bg-surface"
             >
-              <label className="flex items-center gap-2 cursor-pointer flex-1 min-w-0">
+              <label className="flex flex-1 gap-2 items-center min-w-0 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={item.completed}
@@ -402,9 +405,9 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
               <button
                 type="button"
                 onClick={() => handleDeleteChecklistItem(item.id)}
-                className="text-muted hover:text-danger p-1 rounded"
+                className="p-1 rounded text-muted hover:text-danger"
               >
-                <X className="h-3 w-3" />
+                <X className="w-3 h-3" />
               </button>
             </div>
           ))}
@@ -426,16 +429,16 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
 
       {/* Lampiran Dokumen */}
       <div>
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex justify-between items-center mb-2">
           <label className="text-xs font-semibold uppercase tracking-wider text-muted flex items-center gap-1.5">
             <Paperclip className="h-3.5 w-3.5" />
             Lampiran Dokumen & Gambar
           </label>
-          <div className="flex items-center gap-2">
+          <div className="flex gap-2 items-center">
             <Button
               size="xs"
               variant="secondary"
-              leftIcon={<Image className="h-3 w-3" />}
+              leftIcon={<Image className="w-3 h-3" />}
               onClick={() => coverInputRef.current?.click()}
             >
               Ganti Cover
@@ -443,7 +446,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
             <Button
               size="xs"
               variant="secondary"
-              leftIcon={<Paperclip className="h-3 w-3" />}
+              leftIcon={<Paperclip className="w-3 h-3" />}
               onClick={() => fileInputRef.current?.click()}
             >
               Unggah File
@@ -466,7 +469,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
         </div>
 
         {attachments.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+          <div className="grid grid-cols-1 gap-2 mt-2 sm:grid-cols-2">
             {attachments.map((att) => (
               <AttachmentCard
                 key={att.id}
@@ -485,9 +488,9 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
 
       {/* Automasi & Audit Trail */}
       <div className="pt-2">
-        <div className="flex items-center justify-between p-3 rounded-xl border border-border bg-bar mb-4">
+        <div className="flex justify-between items-center p-3 mb-4 rounded-xl border border-border bg-bar">
           <div>
-            <span className="text-xs font-semibold text-text block">Automasi Selesai (Auto-Move)</span>
+            <span className="block text-xs font-semibold text-text">Automasi Selesai (Auto-Move)</span>
             <span className="text-[11px] text-muted block">
               Pindahkan otomatis ke kolom Done saat seluruh checklist tercentang
             </span>
@@ -503,7 +506,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
 
         {/* Activity Log */}
         <div>
-          <div className="mb-2 flex items-center justify-between">
+          <div className="flex justify-between items-center mb-2">
             <span className="flex items-center gap-1.5 text-xs font-semibold text-muted">
               <ClockCounterClockwise className="h-3.5 w-3.5" />
               Riwayat Aktivitas Kartu
@@ -529,12 +532,25 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={confirmDeleteOpen}
+        onClose={() => setConfirmDeleteOpen(false)}
+        title="Hapus Kartu"
+        description={`Yakin ingin menghapus kartu "${card.title}"?`}
+        variant="danger"
+        confirmLabel="Hapus"
+        onConfirm={() => {
+          onDelete(card.id);
+          onClose();
+        }}
+      />
     </div>
   );
 
   // Switcher Toolbar Buttons
   const renderModeSwitcher = () => (
-    <div className="flex items-center gap-1">
+    <div className="flex gap-1 items-center">
       <button
         type="button"
         onClick={() => setOpenMode('drawer')}
@@ -544,7 +560,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
         )}
         title="Mode Side Peek Drawer"
       >
-        <SidebarSimple className="h-4 w-4" />
+        <SidebarSimple className="w-4 h-4" />
       </button>
       <button
         type="button"
@@ -555,7 +571,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
         )}
         title="Mode Center Modal"
       >
-        <Square className="h-4 w-4" />
+        <Square className="w-4 h-4" />
       </button>
       <button
         type="button"
@@ -566,21 +582,16 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
         )}
         title="Mode Halaman Penuh"
       >
-        <ArrowsOut className="h-4 w-4" />
+        <ArrowsOut className="w-4 h-4" />
       </button>
-      <Separator orientation="vertical" className="h-4 mx-1" />
+      <Separator orientation="vertical" className="mx-1 h-4" />
       <button
         type="button"
-        onClick={() => {
-          if (confirm(`Hapus kartu "${card.title}"?`)) {
-            onDelete(card.id);
-            onClose();
-          }
-        }}
+        onClick={() => setConfirmDeleteOpen(true)}
         className="p-1.5 rounded-md text-danger hover:bg-status-urgent-bg transition-colors cursor-pointer"
         title="Hapus Kartu Ini"
       >
-        <Trash className="h-4 w-4" />
+        <Trash className="w-4 h-4" />
       </button>
     </div>
   );
@@ -597,7 +608,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
         currentMode="drawer"
         onChangeMode={(m) => setOpenMode(m)}
         footer={
-          <div className="flex items-center justify-between">
+          <div className="flex justify-between items-center">
             <span className="text-[11px] text-muted font-medium">Tersimpan otomatis</span>
             <Button variant="secondary" size="xs" onClick={onClose}>
               Selesai
@@ -618,7 +629,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
         onClose={onClose}
         maxWidth="2xl"
         title={
-          <div className="flex items-center justify-between w-full pr-6">
+          <div className="flex justify-between items-center pr-6 w-full">
             <span className="font-mono text-xs font-semibold text-project-accent bg-project-soft px-2 py-0.5 rounded-md">
               {formattedCode}
             </span>
@@ -626,7 +637,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
           </div>
         }
         footer={
-          <div className="flex items-center justify-between w-full">
+          <div className="flex justify-between items-center w-full">
             <span className="text-xs text-muted">Tersinkronisasi secara realtime</span>
             <Button variant="secondary" size="sm" onClick={onClose}>
               Tutup
@@ -644,21 +655,22 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 overflow-y-auto bg-bg animate-in fade-in duration-200"
+      className="overflow-y-auto fixed inset-0 z-50 duration-200 bg-bg animate-in fade-in"
     >
-      <div className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-border bg-bar/95 backdrop-blur-md px-6">
-        <div className="flex items-center gap-3">
+      <div className="flex sticky top-0 z-20 justify-between items-center px-6 h-14 border-b backdrop-blur-md border-border bg-bar/95">
+        <div className="flex gap-3 items-center">
           <Button variant="ghost" size="sm" onClick={onClose}>
-            ← Kembali ke Papan
+            <ArrowLeftIcon className="w-4 h-4" />
+            Kembali ke Papan
           </Button>
           <Separator orientation="vertical" className="h-4" />
           <span className="font-mono text-xs font-semibold text-project-accent bg-project-soft px-2 py-0.5 rounded-md">
             {formattedCode}
           </span>
-          <span className="text-sm font-semibold text-text truncate max-w-md">{title}</span>
+          <span className="max-w-md text-sm font-semibold truncate text-text">{title}</span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex gap-2 items-center">
           {renderModeSwitcher()}
           <Button variant="secondary" size="sm" onClick={onClose}>
             Tutup
@@ -666,7 +678,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
         </div>
       </div>
 
-      <div className="mx-auto max-w-4xl px-8 py-8">{renderDetailContent()}</div>
+      <div className="px-8 py-8 mx-auto max-w-4xl">{renderDetailContent()}</div>
     </div>
   );
 };

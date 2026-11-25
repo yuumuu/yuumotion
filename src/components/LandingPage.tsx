@@ -105,18 +105,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         />
 
         {/* Floating Glassmorphism Navbar */}
-        <header className="relative z-30 mx-auto max-w-6xl px-4 pt-5 sm:px-6">
-          <div className="flex h-14 items-center justify-between rounded-2xl border border-white/25 bg-white/15 px-4 backdrop-blur-md shadow-lg">
+        <header className="relative z-30 px-4 pt-5 mx-auto max-w-6xl sm:px-6">
+          <div className="flex justify-between items-center px-4 h-14 rounded-2xl border shadow-lg backdrop-blur-md border-white/25 bg-white/15">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-white p-1 shadow-xs">
-                <img src="/icon.svg" alt="Yuumotion" className="h-full w-full" />
+              <div className="flex justify-center items-center p-1 w-8 h-8 bg-white rounded-xl shadow-xs">
+                <img src="/icon.svg" alt="Yuumotion" className="w-full h-full" />
               </div>
-              <span className="font-display text-base font-bold tracking-tight text-white">
+              <span className="text-base font-bold tracking-tight text-white font-display">
                 Yuumotion
               </span>
             </div>
 
-            <nav className="hidden md:flex items-center gap-7 text-xs font-medium text-white/85">
+            <nav className="hidden gap-7 items-center text-xs font-medium md:flex text-white/85">
               <a href="#personas" className="transition-colors duration-150 hover:text-white">
                 Solusi Tim
               </a>
@@ -131,14 +131,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </a>
             </nav>
 
-            <div className="flex items-center gap-2">
+            <div className="flex gap-2 items-center">
               <button
                 type="button"
                 onClick={onToggleTheme}
                 className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/20 bg-white/10 text-white transition-[background-color,transform] duration-150 hover:bg-white/20 active:scale-[0.95] cursor-pointer"
                 title="Ganti Tema Aplikasi"
               >
-                {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               </button>
               <button
                 type="button"
@@ -153,12 +153,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </header>
 
         {/* Hero Copy & Inline Pill CTA */}
-        <section className="relative z-20 mx-auto max-w-5xl px-4 pt-14 pb-8 text-center sm:px-6 sm:pt-20">
+        <section className="relative z-20 px-4 pt-14 mx-auto max-w-5xl text-center sm:px-6 sm:pt-20">
           <div
             className="animate-yuu-enter inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/15 px-3.5 py-1 font-mono text-[11px] font-medium text-white backdrop-blur-sm"
             style={{ animationDelay: '0ms' }}
           >
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />
+            <Sparkle className="h-3.5 w-3.5 text-white" />
             <span>Workspace Hibrida Offline-First • v0.2 Edge</span>
           </div>
 
@@ -170,7 +170,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </h1>
 
           <p
-            className="animate-yuu-enter mx-auto mt-4 max-w-xl text-sm leading-relaxed text-white/85 sm:text-base"
+            className="mx-auto mt-4 max-w-xl text-sm leading-relaxed animate-yuu-enter text-white/85 sm:text-base"
             style={{ animationDelay: '120ms' }}
           >
             Satukan ketajaman papan Kanban dengan ketenangan editor dokumen TipTap. Sinkron instan antar perangkat tanpa biaya server bulanan.
@@ -200,26 +200,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
           {/* 3 Floating Product UI Cards (ala Gambar 1) */}
           <div
-            className="animate-yuu-enter relative mx-auto mt-14 grid max-w-5xl grid-cols-1 items-end gap-4 sm:grid-cols-3 text-left"
+            className="grid relative grid-cols-1 gap-4 items-end mx-auto mt-20 max-w-5xl text-left animate-yuu-enter sm:grid-cols-3"
             style={{ animationDelay: '240ms' }}
           >
             {/* Floating Left Card: TipTap Doc */}
-            <div className="hidden sm:block rounded-t-2xl border border-white/40 bg-white/95 p-5 text-slate-800 shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
-                  <FileText className="h-4 w-4" />
+            <div className="hidden sm:block rounded-t-2xl border border-white/40 bg-white/95 p-5 text-slate-800 shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]">
+              <div className="flex gap-2 items-center mb-3">
+                <div className="flex justify-center items-center w-7 h-7 text-blue-600 bg-blue-100 rounded-lg">
+                  <FileText className="w-4 h-4" />
                 </div>
-                <span className="font-display text-xs font-bold">Dokumen PRD</span>
+                <span className="text-xs font-bold font-display">Dokumen PRD</span>
               </div>
               <div className="space-y-2 text-[11px] text-slate-600">
                 <div className="rounded-lg bg-slate-100 px-2.5 py-1.5 font-medium text-slate-800">
                   /callout Tips Arsitektur
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex gap-2 items-center">
                   <CheckSquare className="h-3.5 w-3.5 text-emerald-600" />
                   <span>Sinkronisasi Offline PWA</span>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex gap-2 items-center">
                   <CheckSquare className="h-3.5 w-3.5 text-blue-600" />
                   <span>Outline Daftar Isi Sticky</span>
                 </div>
@@ -227,17 +227,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
 
             {/* Floating Center Hero Card: Elevated Roadmap Board */}
-            <div className="rounded-t-2xl border border-white/60 bg-white p-6 text-slate-900 shadow-[0_24px_60px_-15px_rgba(15,23,42,0.35)] sm:-mt-6 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1.5">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-full bg-blue-600" />
-                  <span className="font-display text-sm font-bold">Roadmap Q4</span>
+            <div className="rounded-t-2xl border border-white/60 bg-white p-6 text-slate-900 shadow-[0_24px_60px_-15px_rgba(15,23,42,0.35)] sm:-mt-6 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]">
+              <div className="flex justify-between items-center mb-4">
+                <div className="flex gap-2 items-center">
+                  <Kanban className="h-4 w-4 text-blue-600" />
+                  <span className="text-sm font-bold font-display">Roadmap Q4</span>
                 </div>
                 <span className="rounded-full bg-blue-50 px-2 py-0.5 font-mono text-[10px] font-semibold text-blue-600">
                   YUU-108
                 </span>
               </div>
-              <p className="text-xs font-semibold text-slate-800 mb-3">
+              <p className="mb-3 text-xs font-semibold text-slate-800">
                 Peluncuran Multi-View Engine &amp; ClickUp Drag Physics
               </p>
               <div className="flex items-center gap-1.5 mb-4">
@@ -253,27 +253,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <span>Progres</span>
                   <span>80%</span>
                 </div>
-                <div className="flex gap-1">
-                  {[...Array(10)].map((_, i) => (
-                    <span
-                      key={i}
-                      className={cn(
-                        'h-2 flex-1 rounded-full',
-                        i < 8 ? 'bg-blue-600' : 'bg-slate-200'
-                      )}
-                    />
-                  ))}
+                <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
+                  <div className="h-full w-4/5 rounded-full bg-blue-600" />
                 </div>
               </div>
             </div>
 
             {/* Floating Right Card: Realtime Sync */}
-            <div className="hidden sm:block rounded-t-2xl border border-white/40 bg-white/95 p-5 text-slate-800 shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1">
-              <div className="flex items-center justify-between mb-3">
-                <span className="font-display text-xs font-bold">Realtime Presence</span>
-                <span className="flex h-2 w-2 rounded-full bg-emerald-500" />
+            <div className="hidden sm:block rounded-t-2xl border border-white/40 bg-white/95 p-5 text-slate-800 shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]">
+              <div className="flex justify-between items-center mb-3">
+                <span className="text-xs font-bold font-display">Realtime Presence</span>
+                <Radio className="h-3.5 w-3.5 text-emerald-500" />
               </div>
-              <div className="flex -space-x-2 mb-3">
+              <div className="flex mb-3 -space-x-2">
                 {['Y', 'A', 'C'].map((ch, idx) => (
                   <div
                     key={ch}
@@ -294,28 +286,44 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </section>
       </div>
 
-      {/* 2. Social Proof / Tech Stack Strip (ala Gambar 1) */}
-      <section className="border-b border-border bg-surface py-10">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 text-center">
-          <p className="font-display text-sm font-semibold text-text">
-            Dibangun di atas Ekosistem Modern untuk{' '}
-            <span className="text-[#1D63FF]">Kecepatan Maksimal</span>
-          </p>
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-3 sm:gap-5">
+      {/* 2. 4 Highlight Nilai Produk Ringkas */}
+      <section className="py-10 border-b border-border bg-surface">
+        <div className="px-4 mx-auto max-w-6xl sm:px-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              'React 18',
-              'TypeScript',
-              'TipTap Editor',
-              'Supabase Realtime',
-              'Wasmer Edge',
-              'Tailwind CSS'
-            ].map((tech) => (
-              <span
-                key={tech}
-                className="rounded-xl border border-border bg-bg px-4 py-2 font-mono text-xs font-medium text-muted shadow-2xs"
+              {
+                icon: <Database className="h-4 w-4 text-[#1D63FF]" />,
+                title: 'Offline-First Lokal',
+                desc: 'Tetap produktif tanpa internet, seluruh perubahan tersimpan aman di perangkat.'
+              },
+              {
+                icon: <Lightning className="h-4 w-4 text-emerald-500" />,
+                title: 'Sinkron Instan 0ms',
+                desc: 'Pembaruan seketika antar tab dan perangkat tim secara real-time.'
+              },
+              {
+                icon: <Stack className="h-4 w-4 text-violet-500" />,
+                title: 'Multi-View 4-in-1',
+                desc: 'Kanban, Tabel, Kalender, dan Gantt Timeline dari satu sumber data.'
+              },
+              {
+                icon: <ShieldCheck className="h-4 w-4 text-amber-500" />,
+                title: 'Kontrol Akses RBAC',
+                desc: 'Atur hak akses Owner, Admin, Member, hingga Viewer read-only.'
+              }
+            ].map((item) => (
+              <div
+                key={item.title}
+                className="flex items-start gap-3 rounded-xl border border-border bg-bg p-4 shadow-2xs"
               >
-                {tech}
-              </span>
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-surface border border-border shrink-0">
+                  {item.icon}
+                </div>
+                <div className="min-w-0">
+                  <div className="font-display text-xs font-bold text-text">{item.title}</div>
+                  <p className="mt-0.5 text-[11px] leading-snug text-muted">{item.desc}</p>
+                </div>
+              </div>
             ))}
           </div>
         </div>
@@ -331,18 +339,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               sec1.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
             )}
           >
-            <div className="text-center max-w-2xl mx-auto">
+            <div className="mx-auto max-w-2xl text-center">
               <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-[#1D63FF]">
-                <Sparkle className="h-3 w-3" />
+                <Sparkle className="w-3 h-3" />
                 <span>Dirancang Fleksibel</span>
               </span>
-              <h2 className="mt-4 font-display text-2xl font-bold tracking-tight text-text sm:text-4xl text-balance">
+              <h2 className="mt-4 text-2xl font-bold tracking-tight font-display text-text sm:text-4xl text-balance">
                 Ruang Kerja Paling Andal untuk{' '}
                 <span className="text-[#1D63FF]">Semua Skala Tim</span>
               </h2>
 
               {/* 3 Persona Tabs */}
-              <div className="mt-6 inline-flex rounded-xl border border-border bg-surface p-1 shadow-2xs">
+              <div className="inline-flex p-1 mt-6 rounded-xl border border-border bg-surface shadow-2xs">
                 {(
                   [
                     { id: 'personal', label: 'Kreator Mandiri' },
@@ -367,74 +375,94 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </div>
             </div>
 
-            {/* 3 Cards Grid (Center Elevated Blue Gradient Card) */}
-            <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
-              <div className="rounded-2xl border border-border bg-surface p-7 shadow-card-sm transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-card-hover">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/50 text-[#1D63FF] mb-5">
-                  <Compass className="h-5 w-5" />
-                </div>
-                <h3 className="font-display text-lg font-bold text-text mb-2">
-                  Kreator &amp; Freelancer
-                </h3>
-                <p className="text-xs leading-relaxed text-muted mb-6">
-                  Kelola daftar proyek klien, catatan ide, dan tenggat waktu dalam satu papan lokal tanpa perlu koneksi internet terus-menerus.
-                </p>
-                <button
-                  type="button"
-                  onClick={onEnterApp}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#1D63FF] hover:underline cursor-pointer"
-                >
-                  <span>Coba Sekarang</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </button>
-              </div>
-
-              {/* Highlighted Center Blue Card */}
-              <div className="rounded-2xl bg-gradient-to-br from-[#3B82F6] via-[#2563EB] to-[#1D4ED8] p-8 text-white shadow-[0_20px_50px_-12px_rgba(37,99,235,0.45)] md:-my-3 transition-[transform,box-shadow] duration-200 hover:-translate-y-1">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/20 text-white mb-5 backdrop-blur-sm">
-                  <Kanban className="h-5 w-5" />
-                </div>
-                <h3 className="font-display text-xl font-bold mb-2">
-                  Tim Produk &amp; Desain
-                </h3>
-                <p className="text-xs leading-relaxed text-white/85 mb-6">
-                  Gabungkan spesifikasi PRD TipTap dengan alur sprint Kanban taktil. Beralih ke Kalender atau Gantt Timeline dalam sekali klik.
-                </p>
-                <button
-                  type="button"
-                  onClick={onEnterApp}
-                  className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs font-semibold text-[#1D4ED8] shadow-md transition-transform duration-150 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
-                >
-                  <span>Buka Workspace Tim</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </button>
-              </div>
-
-              <div className="rounded-2xl border border-border bg-surface p-7 shadow-card-sm transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-card-hover">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/50 text-[#1D63FF] mb-5">
-                  <Code className="h-5 w-5" />
-                </div>
-                <h3 className="font-display text-lg font-bold text-text mb-2">
-                  Tim Engineering
-                </h3>
-                <p className="text-xs leading-relaxed text-muted mb-6">
-                  Blok kode syntax, ekspor SQL ke MySQL/SQLite lokal, serta deployment instan di Wasmer Edge CDN tanpa setup backend rumit.
-                </p>
-                <button
-                  type="button"
-                  onClick={onEnterApp}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#1D63FF] hover:underline cursor-pointer"
-                >
-                  <span>Lihat Arsitektur</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </button>
-              </div>
+            {/* 3 Cards Grid (Active Card Changes Dynamically Based on Selected Tab) */}
+            <div className="grid grid-cols-1 gap-6 items-center mt-12 md:grid-cols-3">
+              {[
+                {
+                  id: 'personal' as PersonaTab,
+                  icon: <Compass className="w-5 h-5" />,
+                  title: 'Kreator & Freelancer',
+                  desc: 'Kelola daftar proyek klien, catatan ide, dan tenggat waktu dalam satu papan lokal tanpa perlu koneksi internet terus-menerus.',
+                  cta: 'Mulai Mandiri'
+                },
+                {
+                  id: 'product' as PersonaTab,
+                  icon: <Kanban className="w-5 h-5" />,
+                  title: 'Tim Produk & Desain',
+                  desc: 'Gabungkan spesifikasi PRD TipTap dengan alur sprint Kanban taktil. Beralih ke Kalender atau Gantt Timeline dalam sekali klik.',
+                  cta: 'Buka Workspace Tim'
+                },
+                {
+                  id: 'engineering' as PersonaTab,
+                  icon: <Code className="w-5 h-5" />,
+                  title: 'Tim Engineering',
+                  desc: 'Blok kode syntax, ekspor SQL ke MySQL/SQLite lokal, serta deployment instan di Wasmer Edge CDN tanpa setup backend rumit.',
+                  cta: 'Lihat Arsitektur'
+                }
+              ].map((card) => {
+                const isSelected = personaTab === card.id;
+                return (
+                  <div
+                    key={card.id}
+                    onClick={() => setPersonaTab(card.id)}
+                    className={cn(
+                      'rounded-2xl transition-[transform,box-shadow,background-color,border-color] duration-200 cursor-pointer',
+                      isSelected
+                        ? 'bg-gradient-to-br from-[#3B82F6] via-[#2563EB] to-[#1D4ED8] p-8 text-white shadow-[0_20px_50px_-12px_rgba(37,99,235,0.45)] md:-my-3 hover:-translate-y-1'
+                        : 'border border-border bg-surface p-7 shadow-card-sm hover:-translate-y-0.5 hover:shadow-card-hover'
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        'flex items-center justify-center rounded-xl mb-5',
+                        isSelected
+                          ? 'w-11 h-11 bg-white/20 text-white backdrop-blur-sm'
+                          : 'w-10 h-10 bg-blue-50 dark:bg-blue-950/50 text-[#1D63FF]'
+                      )}
+                    >
+                      {card.icon}
+                    </div>
+                    <h3
+                      className={cn(
+                        'mb-2 font-display font-bold',
+                        isSelected ? 'text-xl text-white' : 'text-lg text-text'
+                      )}
+                    >
+                      {card.title}
+                    </h3>
+                    <p
+                      className={cn(
+                        'mb-6 text-xs leading-relaxed',
+                        isSelected ? 'text-white/85' : 'text-muted'
+                      )}
+                    >
+                      {card.desc}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEnterApp();
+                      }}
+                      className={cn(
+                        'inline-flex items-center gap-1.5 text-xs font-semibold cursor-pointer transition-transform duration-150',
+                        isSelected
+                          ? 'rounded-xl bg-white px-4 py-2.5 text-[#1D4ED8] shadow-md hover:scale-[1.02] active:scale-[0.98]'
+                          : 'text-[#1D63FF] hover:underline'
+                      )}
+                    >
+                      <span>{card.cta}</span>
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </section>
 
         {/* 4. Section 2: Centered TipTap Docs Showcase (ala Gambar 1) */}
-        <section id="docs" className="border-t border-border bg-surface/50 py-20 sm:py-24">
+        <section id="docs" className="py-20 border-t border-border bg-surface/50 sm:py-24">
           <div
             ref={sec2.ref}
             className={cn(
@@ -443,10 +471,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             )}
           >
             <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-[#1D63FF]">
-              <FileText className="h-3 w-3" />
+              <FileText className="w-3 h-3" />
               <span>Ekosistem Dokumen TipTap</span>
             </span>
-            <h2 className="mt-4 font-display text-2xl font-bold tracking-tight text-text sm:text-4xl text-balance">
+            <h2 className="mt-4 text-2xl font-bold tracking-tight font-display text-text sm:text-4xl text-balance">
               Catatan Terstruktur yang{' '}
               <span className="text-[#1D63FF]">Selalu Terhubung</span> dengan Tugas
             </h2>
@@ -455,14 +483,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </p>
 
             {/* Centered Large Showcase Card */}
-            <div className="mx-auto mt-10 max-w-2xl rounded-2xl border border-border bg-surface p-6 shadow-xl text-left">
-              <div className="flex items-center justify-between border-b border-border pb-4 mb-4">
-                <div className="flex items-center gap-3">
+            <div className="p-6 mx-auto mt-10 max-w-2xl text-left rounded-2xl border shadow-xl border-border bg-surface">
+              <div className="flex justify-between items-center pb-4 mb-4 border-b border-border">
+                <div className="flex gap-3 items-center">
                   <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#1D63FF] text-white">
-                    <FileText className="h-4 w-4" />
+                    <FileText className="w-4 h-4" />
                   </div>
                   <div>
-                    <div className="font-display text-sm font-bold text-text">
+                    <div className="text-sm font-bold font-display text-text">
                       Spesifikasi Produk &amp; Edge Sync
                     </div>
                     <div className="font-mono text-[10px] text-muted">
@@ -475,12 +503,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-                <div className="rounded-xl border border-border bg-bg p-3 text-xs">
+              <div className="grid grid-cols-1 gap-3 mb-4 sm:grid-cols-2">
+                <div className="p-3 text-xs rounded-xl border border-border bg-bg">
                   <div className="font-mono text-[10px] text-muted mb-1">Perintah Cepat</div>
                   <div className="font-semibold text-text">/todo, /code, /callout</div>
                 </div>
-                <div className="rounded-xl border border-border bg-bg p-3 text-xs">
+                <div className="p-3 text-xs rounded-xl border border-border bg-bg">
                   <div className="font-mono text-[10px] text-muted mb-1">Kontrol Akses</div>
                   <div className="font-semibold text-text">Owner, Member, Viewer Lock</div>
                 </div>
@@ -497,7 +525,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </section>
 
         {/* 5. Section 3: Hub-and-Spoke Realtime Sync Diagram (ala Gambar 1) */}
-        <section id="sync" className="border-t border-border py-20 sm:py-24">
+        <section id="sync" className="py-20 border-t border-border sm:py-24">
           <div
             ref={sec3.ref}
             className={cn(
@@ -506,10 +534,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             )}
           >
             <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-[#1D63FF]">
-              <Radio className="h-3 w-3" />
+              <Radio className="w-3 h-3" />
               <span>Keamanan &amp; Sinkronisasi</span>
             </span>
-            <h2 className="mt-4 font-display text-2xl font-bold tracking-tight text-text sm:text-4xl text-balance">
+            <h2 className="mt-4 text-2xl font-bold tracking-tight font-display text-text sm:text-4xl text-balance">
               Data Aman di Perangkat,{' '}
               <span className="text-[#1D63FF]">Sinkron Setiap Saat</span>
             </h2>
@@ -518,20 +546,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </p>
 
             {/* Hub-and-Spoke Layout */}
-            <div className="mt-12 grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-              <div className="md:col-span-3 space-y-4">
-                <div className="rounded-2xl border border-border bg-surface p-4 shadow-card-sm text-left flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-600 font-bold text-xs">
-                    <Lightning className="h-4 w-4" />
+            <div className="grid grid-cols-1 gap-6 items-center mt-12 md:grid-cols-12">
+              <div className="space-y-4 md:col-span-3">
+                <div className="flex gap-3 items-center p-4 text-left rounded-2xl border border-border bg-surface shadow-card-sm">
+                  <div className="flex justify-center items-center w-8 h-8 text-xs font-bold text-emerald-600 rounded-full bg-emerald-500/15">
+                    <Lightning className="w-4 h-4" />
                   </div>
                   <div>
                     <div className="text-xs font-bold text-text">Tab Lokal 0ms</div>
                     <div className="font-mono text-[10px] text-muted">BroadcastChannel</div>
                   </div>
                 </div>
-                <div className="rounded-2xl border border-border bg-surface p-4 shadow-card-sm text-left flex items-center gap-3">
+                <div className="flex gap-3 items-center p-4 text-left rounded-2xl border border-border bg-surface shadow-card-sm">
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-500/15 text-[#1D63FF] font-bold text-xs">
-                    <ShieldCheck className="h-4 w-4" />
+                    <ShieldCheck className="w-4 h-4" />
                   </div>
                   <div>
                     <div className="text-xs font-bold text-text">RBAC Guardrails</div>
@@ -543,10 +571,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               {/* Center Hub Card */}
               <div className="md:col-span-6">
                 <div className="rounded-2xl border-2 border-[#1D63FF]/30 bg-surface p-6 shadow-xl">
-                  <div className="flex items-center justify-between border-b border-border pb-3 mb-4">
-                    <div className="flex items-center gap-2">
-                      <img src="/icon.svg" alt="Yuumotion" className="h-6 w-6 rounded-md" />
-                      <span className="font-display text-sm font-bold text-text">
+                  <div className="flex justify-between items-center pb-3 mb-4 border-b border-border">
+                    <div className="flex gap-2 items-center">
+                      <img src="/icon.svg" alt="Yuumotion" className="w-6 h-6 rounded-md" />
+                      <span className="text-sm font-bold font-display text-text">
                         Yuumotion Sync Engine
                       </span>
                     </div>
@@ -554,18 +582,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                       Online
                     </span>
                   </div>
-                  <div className="font-display text-2xl font-extrabold text-text mb-1">
+                  <div className="mb-1 text-2xl font-extrabold font-display text-text">
                     100% Offline-First
                   </div>
-                  <p className="text-xs text-muted mb-4">
+                  <p className="mb-4 text-xs text-muted">
                     Tetap bekerja tanpa internet; perubahan otomatis dikirim saat koneksi kembali tersambung.
                   </p>
                   <div className="grid grid-cols-2 gap-3 text-left">
-                    <div className="rounded-xl bg-bg p-3 border border-border">
+                    <div className="p-3 rounded-xl border bg-bg border-border">
                       <div className="font-mono text-[10px] text-muted">Cadangan</div>
                       <div className="text-xs font-semibold text-text">JSON &amp; SQL Dump</div>
                     </div>
-                    <div className="rounded-xl bg-bg p-3 border border-border">
+                    <div className="p-3 rounded-xl border bg-bg border-border">
                       <div className="font-mono text-[10px] text-muted">Hosting</div>
                       <div className="text-xs font-semibold text-text">Wasmer Edge CDN</div>
                     </div>
@@ -573,19 +601,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </div>
               </div>
 
-              <div className="md:col-span-3 space-y-4">
-                <div className="rounded-2xl border border-border bg-surface p-4 shadow-card-sm text-left flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-violet-500/15 text-violet-600 font-bold text-xs">
-                    <Users className="h-4 w-4" />
+              <div className="space-y-4 md:col-span-3">
+                <div className="flex gap-3 items-center p-4 text-left rounded-2xl border border-border bg-surface shadow-card-sm">
+                  <div className="flex justify-center items-center w-8 h-8 text-xs font-bold text-violet-600 rounded-full bg-violet-500/15">
+                    <Users className="w-4 h-4" />
                   </div>
                   <div>
                     <div className="text-xs font-bold text-text">Kolaborasi Live</div>
                     <div className="font-mono text-[10px] text-muted">Supabase Realtime</div>
                   </div>
                 </div>
-                <div className="rounded-2xl border border-border bg-surface p-4 shadow-card-sm text-left flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500/15 text-amber-600 font-bold text-xs">
-                    <Database className="h-4 w-4" />
+                <div className="flex gap-3 items-center p-4 text-left rounded-2xl border border-border bg-surface shadow-card-sm">
+                  <div className="flex justify-center items-center w-8 h-8 text-xs font-bold text-amber-600 rounded-full bg-amber-500/15">
+                    <Database className="w-4 h-4" />
                   </div>
                   <div>
                     <div className="text-xs font-bold text-text">Database Bridge</div>
@@ -598,7 +626,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </section>
 
         {/* 6. Section 4: Split Layout Multi-View Engine (ala Gambar 1) */}
-        <section id="views" className="border-t border-border bg-surface/50 py-20 sm:py-24">
+        <section id="views" className="py-20 border-t border-border bg-surface/50 sm:py-24">
           <div
             ref={sec4.ref}
             className={cn(
@@ -606,13 +634,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               sec4.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
             )}
           >
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
-              <div className="lg:col-span-5 space-y-5">
+            <div className="grid grid-cols-1 gap-10 items-center lg:grid-cols-12 lg:gap-12">
+              <div className="space-y-5 lg:col-span-5">
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-[#1D63FF]">
-                  <Stack className="h-3 w-3" />
+                  <Stack className="w-3 h-3" />
                   <span>Multi-View Engine</span>
                 </span>
-                <h2 className="font-display text-2xl font-bold tracking-tight text-text sm:text-4xl text-balance">
+                <h2 className="text-2xl font-bold tracking-tight font-display text-text sm:text-4xl text-balance">
                   Satu Sumber Data dalam{' '}
                   <span className="text-[#1D63FF]">Hitungan Detik</span>
                 </h2>
@@ -669,12 +697,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     )}
 
                     {previewView === 'table' && (
-                      <table className="w-full text-left border-collapse text-xs">
+                      <table className="w-full text-xs text-left border-collapse">
                         <thead>
                           <tr className="border-b border-border text-muted font-mono text-[11px]">
-                            <th className="py-2 px-3">ID</th>
-                            <th className="py-2 px-3">Tugas</th>
-                            <th className="py-2 px-3">Status</th>
+                            <th className="px-3 py-2">ID</th>
+                            <th className="px-3 py-2">Tugas</th>
+                            <th className="px-3 py-2">Status</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-border">
@@ -693,7 +721,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     )}
 
                     {previewView === 'calendar' && (
-                      <div className="grid grid-cols-7 gap-2 text-center text-xs">
+                      <div className="grid grid-cols-7 gap-2 text-xs text-center">
                         {['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'].map((d) => (
                           <div key={d} className="font-mono text-[10px] text-muted">{d}</div>
                         ))}
@@ -717,15 +745,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     )}
 
                     {previewView === 'timeline' && (
-                      <div className="space-y-3 py-3">
+                      <div className="py-3 space-y-3">
                         {[
                           { id: 'YUU-10', label: 'Phosphor Icons', left: '5%', width: '35%', color: 'bg-emerald-500' },
                           { id: 'YUU-13', label: 'ClickUp Drag Physics', left: '30%', width: '48%', color: 'bg-[#1D63FF]' },
                           { id: 'YUU-14', label: 'Wasmer Deploy', left: '62%', width: '33%', color: 'bg-amber-500' }
                         ].map((bar) => (
-                          <div key={bar.id} className="flex items-center gap-3 text-xs">
+                          <div key={bar.id} className="flex gap-3 items-center text-xs">
                             <span className="w-16 font-mono text-[10px] text-muted">{bar.id}</span>
-                            <div className="relative flex-1 h-7 rounded-lg bg-bg border border-border flex items-center">
+                            <div className="flex relative flex-1 items-center h-7 rounded-lg border bg-bg border-border">
                               <div
                                 className={cn('absolute h-5 rounded-md px-2 text-[10px] font-medium text-white flex items-center', bar.color)}
                                 style={{ left: bar.left, width: bar.width }}
@@ -748,7 +776,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* 7. Pre-Footer CTA & Minimalist Krafft-Style Electric Blue Footer (Mengacu Gambar 2) */}
       <div className="relative overflow-hidden bg-gradient-to-b from-[#FAF9F6] via-[#86B6FF] via-35% to-[#0B45D6] dark:from-[#111113] dark:via-[#1D4ED8] dark:via-40% dark:to-[#0B3AB5]">
         {/* Pre-Footer CTA Section */}
-        <section className="mx-auto max-w-4xl px-4 pt-20 pb-24 text-center sm:px-6">
+        <section className="px-4 pt-20 pb-24 mx-auto max-w-4xl text-center sm:px-6">
           <span className="inline-flex items-center rounded-full border border-border bg-white/90 dark:bg-surface/90 px-3.5 py-1 text-[11px] font-medium text-text shadow-2xs">
             Mari Mulai Bekerja Bersama
           </span>
@@ -769,21 +797,21 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               className="inline-flex items-center gap-2 rounded-xl bg-[#2563EB] px-6 py-3 text-xs font-semibold text-white shadow-[0_12px_28px_-6px_rgba(37,99,235,0.55)] transition-[transform,opacity] duration-150 hover:-translate-y-0.5 hover:opacity-95 active:translate-y-0 active:scale-[0.97] cursor-pointer"
             >
               <span>Buka Dashboard</span>
-              <ArrowUpRight className="h-4 w-4" />
+              <ArrowUpRight className="w-4 h-4" />
             </button>
           </div>
         </section>
 
         {/* Minimalist Krafft-Style Electric Blue Footer (Tanpa 3 Kolom Navigasi) */}
-        <footer className="mx-auto max-w-6xl px-4 pt-8 pb-8 sm:px-6 text-white">
-          <div className="flex flex-col md:flex-row md:items-start justify-between gap-10 pb-12">
+        <footer className="px-4 pt-8 pb-8 mx-auto max-w-6xl text-white sm:px-6">
+          <div className="flex flex-col gap-10 justify-between pb-12 md:flex-row md:items-start">
             {/* Left: Brand Identity & Social Pill Icons */}
             <div className="space-y-4 max-w-xs">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-white p-1">
-                  <img src="/icon.svg" alt="Yuumotion" className="h-full w-full" />
+                <div className="flex justify-center items-center p-1 w-7 h-7 bg-white rounded-lg">
+                  <img src="/icon.svg" alt="Yuumotion" className="w-full h-full" />
                 </div>
-                <span className="font-display text-lg font-bold tracking-tight">Yuumotion</span>
+                <span className="text-lg font-bold tracking-tight font-display">Yuumotion</span>
               </div>
               <p className="text-xs leading-relaxed text-white/85">
                 Partner ruang kerja hibrida untuk ketenangan dokumen dan ketajaman alur tugas tim.
@@ -792,7 +820,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <button
                   type="button"
                   onClick={onEnterApp}
-                  className="flex h-8 w-8 items-center justify-center rounded-full border border-white/25 bg-white/10 text-white transition-colors hover:bg-white/20 cursor-pointer"
+                  className="flex justify-center items-center w-8 h-8 text-white rounded-full border transition-colors cursor-pointer border-white/25 bg-white/10 hover:bg-white/20"
                   title="Buka Kanban"
                 >
                   <Kanban className="h-3.5 w-3.5" />
@@ -800,7 +828,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <button
                   type="button"
                   onClick={onOpenAuth}
-                  className="flex h-8 w-8 items-center justify-center rounded-full border border-white/25 bg-white/10 text-white transition-colors hover:bg-white/20 cursor-pointer"
+                  className="flex justify-center items-center w-8 h-8 text-white rounded-full border transition-colors cursor-pointer border-white/25 bg-white/10 hover:bg-white/20"
                   title="Kelola Akun"
                 >
                   <Users className="h-3.5 w-3.5" />
@@ -808,14 +836,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <button
                   type="button"
                   onClick={onToggleTheme}
-                  className="flex h-8 w-8 items-center justify-center rounded-full border border-white/25 bg-white/10 text-white transition-colors hover:bg-white/20 cursor-pointer"
+                  className="flex justify-center items-center w-8 h-8 text-white rounded-full border transition-colors cursor-pointer border-white/25 bg-white/10 hover:bg-white/20"
                   title="Ganti Tema"
                 >
                   {isDark ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
                 </button>
                 <a
                   href="#architecture"
-                  className="flex h-8 w-8 items-center justify-center rounded-full border border-white/25 bg-white/10 text-white transition-colors hover:bg-white/20"
+                  className="flex justify-center items-center w-8 h-8 text-white rounded-full border transition-colors border-white/25 bg-white/10 hover:bg-white/20"
                   title="Arsitektur Edge"
                 >
                   <Globe className="h-3.5 w-3.5" />
@@ -829,8 +857,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 Berlangganan pembaruan rilis
               </div>
               {subscribed ? (
-                <div className="rounded-xl border border-white/30 bg-white/15 px-4 py-3 text-xs font-medium text-white backdrop-blur-sm flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-emerald-300 shrink-0" />
+                <div className="flex gap-2 items-center px-4 py-3 text-xs font-medium text-white rounded-xl border backdrop-blur-sm border-white/30 bg-white/15">
+                  <CheckCircle className="w-4 h-4 text-emerald-300 shrink-0" />
                   <span>Terima kasih! Email kamu telah tercatat.</span>
                 </div>
               ) : (
@@ -856,10 +884,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
 
           {/* Giant Brand Wordmark (ala Krafft Footer Gambar 2) */}
-          <div className="mt-4 flex items-center justify-center gap-4 sm:gap-7 select-none overflow-hidden pt-4">
-            <div className="flex h-16 w-16 sm:h-28 sm:w-28 items-center justify-center rounded-2xl sm:rounded-3xl bg-white/20 p-2 sm:p-3 backdrop-blur-md border border-white/30 shadow-2xl shrink-0">
-              <div className="flex h-full w-full items-center justify-center rounded-xl sm:rounded-2xl bg-white p-2 sm:p-3">
-                <img src="/icon.svg" alt="Yuumotion Wordmark Icon" className="h-full w-full" />
+          <div className="flex overflow-hidden gap-4 justify-center items-center pt-4 mt-4 select-none sm:gap-7">
+            <div className="flex justify-center items-center p-2 w-16 h-16 rounded-2xl border shadow-2xl backdrop-blur-md sm:h-28 sm:w-28 sm:rounded-3xl bg-white/20 sm:p-3 border-white/30 shrink-0">
+              <div className="flex justify-center items-center p-2 w-full h-full bg-white rounded-xl sm:rounded-2xl sm:p-3">
+                <img src="/icon.svg" alt="Yuumotion Wordmark Icon" className="w-full h-full" />
               </div>
             </div>
             <span className="font-display text-[clamp(3.25rem,11vw,8.5rem)] font-extrabold leading-none tracking-tight text-white">

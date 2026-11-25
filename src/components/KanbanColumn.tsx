@@ -69,7 +69,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
         <div className="flex items-center gap-2">
           <span
             className={cn(
-              'h-2.5 w-2.5 rounded-full shrink-0 shadow-xs',
+              'h-3.5 w-1 rounded-full shrink-0',
               isDoneColumn ? 'bg-status-done' : 'bg-project-solid'
             )}
             style={column.color ? { backgroundColor: column.color } : undefined}

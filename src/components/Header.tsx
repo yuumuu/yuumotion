@@ -1,19 +1,20 @@
-import React, { useState } from 'react';
-import { Board, SyncConnectionStatus, UserPresence, WorkspaceView, UserRole, NotionPage } from '../types/board';
+import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { Board, SyncConnectionStatus, UserPresence, UserRole, NotionPage } from '../types/board';
 import {
   MagnifyingGlass,
   Radio,
   CheckCircle,
   Warning,
   Spinner,
-  Database,
   List as MenuIcon,
   SignOut,
-  Keyboard,
   Gear,
-  House
+  House,
+  User
 } from '@phosphor-icons/react';
 import { Kbd } from './ui';
+import { SettingsTab } from './SettingsHubModal';
 
 interface HeaderProps {
   board?: Board;
@@ -23,28 +24,13 @@ interface HeaderProps {
   currentUserRole: UserRole;
   isSidebarOpen: boolean;
   onToggleSidebar: () => void;
-  currentRoom: string;
-  onRoomChange: (newRoom: string) => void;
   onlineUsers: UserPresence[];
   currentUser: UserPresence;
   syncStatus: SyncConnectionStatus;
-  activeView: WorkspaceView;
-  onViewChange: (view: WorkspaceView) => void;
-  onOpenSyncSettings: () => void;
-  onOpenDbBridge: () => void;
-  onOpenMembersModal: () => void;
-  isDark: boolean;
-  onToggleTheme: () => void;
-  searchQuery: string;
-  onSearchChange: (query: string) => void;
-  onExport: () => void;
-  onImport: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onLogout: () => void;
   onNavigateToLanding: () => void;
-  onOpenAuthModal: () => void;
-  onOpenShortcutsModal: () => void;
   onOpenCommandPalette?: () => void;
-  onOpenPreferences?: () => void;
+  onOpenSettings?: (tab: SettingsTab) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -53,36 +39,57 @@ export const Header: React.FC<HeaderProps> = ({
   currentMode,
   workspaceName,
   currentUserRole,
-  isSidebarOpen: _isSidebarOpen,
   onToggleSidebar,
-  currentRoom: _currentRoom,
-  onRoomChange: _onRoomChange,
   onlineUsers,
-  currentUser: _currentUser,
+  currentUser,
   syncStatus,
-  activeView: _activeView,
-  onViewChange: _onViewChange,
-  onOpenSyncSettings,
-  onOpenDbBridge,
-  onOpenMembersModal: _onOpenMembersModal,
-  isDark: _isDark,
-  onToggleTheme: _onToggleTheme,
-  searchQuery: _searchQuery,
-  onSearchChange: _onSearchChange,
-  onExport,
-  onImport,
   onLogout,
   onNavigateToLanding,
-  onOpenAuthModal: _onOpenAuthModal,
-  onOpenShortcutsModal,
   onOpenCommandPalette,
-  onOpenPreferences
+  onOpenSettings
 }) => {
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [menuPos, setMenuPos] = useState({ top: 56, right: 16 });
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (
+        triggerRef.current &&
+        !triggerRef.current.contains(target) &&
+        (!menuRef.current || !menuRef.current.contains(target))
+      ) {
+        setShowUserMenu(false);
+      }
+    };
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowUserMenu(false);
+    };
+    if (showUserMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleKey);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKey);
+    };
+  }, [showUserMenu]);
+
+  const toggleMenu = () => {
+    if (!showUserMenu && triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      setMenuPos({
+        top: Math.min(rect.bottom + 8, window.innerHeight - 220),
+        right: Math.max(12, window.innerWidth - rect.right)
+      });
+    }
+    setShowUserMenu(!showUserMenu);
+  };
 
   return (
-    <header className="flex sticky top-0 z-30 justify-between items-center px-4 h-14 border-b border-border bg-bar/80 backdrop-blur-md sm:px-6 shrink-0 select-none gap-4">
+    <header className="flex sticky top-0 z-30 justify-between items-center px-4 h-14 border-b border-border bg-bar/85 backdrop-blur-md sm:px-6 shrink-0 select-none gap-4">
       {/* Left: Sidebar Toggle & Compact Breadcrumb */}
       <div className="flex gap-3 items-center min-w-0">
         <button
@@ -105,20 +112,21 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* Center: Clean Search Pill (ala Weihu) */}
-      <div
+      {/* Center: Clean Search Pill */}
+      <button
+        type="button"
         onClick={onOpenCommandPalette}
         className="hidden md:flex items-center rounded-xl border border-border bg-surface/90 px-3.5 py-1.5 text-xs text-muted hover:border-project-ring hover:bg-hover/60 transition-[background-color,border-color] duration-150 cursor-pointer w-full max-w-sm justify-between shadow-2xs"
         title="Buka Command Palette (⌘K)"
       >
-        <div className="flex items-center gap-2 truncate">
+        <span className="flex items-center gap-2 truncate">
           <MagnifyingGlass className="h-3.5 w-3.5 text-muted shrink-0" />
           <span className="truncate">Cari tugas, dokumen, atau perintah...</span>
-        </div>
+        </span>
         <Kbd>⌘K</Kbd>
-      </div>
+      </button>
 
-      {/* Right: Compact Sync Status & Profile Menu */}
+      {/* Right: Compact Sync Status & Clean Profile Menu */}
       <div className="flex gap-2.5 items-center shrink-0">
         {onlineUsers.length > 0 && (
           <div className="hidden xl:flex items-center -space-x-1.5">
@@ -135,11 +143,10 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         )}
 
-        {/* Sync Status Badge */}
         <button
           type="button"
-          onClick={onOpenSyncSettings}
-          className="hidden md:flex items-center gap-1.5 rounded-xl border border-border px-2.5 py-1 text-[11px] font-medium text-muted hover:bg-hover transition-colors cursor-pointer"
+          onClick={() => onOpenSettings?.('sync')}
+          className="hidden md:flex items-center gap-1.5 rounded-xl border border-border bg-surface/60 px-2.5 py-1 text-[11px] font-medium text-muted hover:bg-hover transition-colors cursor-pointer"
           title="Status Sinkronisasi"
         >
           {syncStatus === 'connected' && (
@@ -157,7 +164,7 @@ export const Header: React.FC<HeaderProps> = ({
           {syncStatus === 'local' && (
             <span className="flex items-center gap-1 text-muted">
               <Radio className="h-3 w-3" />
-              <span>Offline (PWA)</span>
+              <span>Lokal</span>
             </span>
           )}
           {syncStatus === 'error' && (
@@ -168,119 +175,81 @@ export const Header: React.FC<HeaderProps> = ({
           )}
         </button>
 
-        {/* User Profile & Quick Actions Menu */}
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => setShowUserMenu(!showUserMenu)}
-            className="flex items-center gap-1.5 p-1 rounded-xl hover:bg-hover transition-colors cursor-pointer"
+        {/* User Menu Trigger */}
+        <button
+          ref={triggerRef}
+          type="button"
+          onClick={toggleMenu}
+          style={{ backgroundColor: currentUser.color || '#6366F1' }}
+          className="flex h-8 w-8 items-center justify-center rounded-full text-white text-xs font-bold shadow-2xs hover:opacity-90 active:scale-95 transition-[opacity,transform] cursor-pointer"
+          title="Menu Profil"
+        >
+          {currentUser.avatar || currentUser.name?.[0]?.toUpperCase() || 'U'}
+        </button>
+
+        {showUserMenu && createPortal(
+          <div
+            ref={menuRef}
+            style={{ position: 'fixed', top: `${menuPos.top}px`, right: `${menuPos.right}px`, zIndex: 9999 }}
+            className="w-56 rounded-2xl border border-border bg-surface p-1.5 shadow-popover animate-yuu-crossfade"
           >
-            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-project-solid text-white text-xs font-bold shadow-2xs">
-              {currentUserRole === 'owner' ? '★' : '●'}
+            <div className="px-3 py-2 border-b border-border mb-1">
+              <div className="text-xs font-bold text-text truncate">{currentUser.name}</div>
+              <div className="font-mono text-[10px] uppercase text-muted">{currentUserRole}</div>
             </div>
-          </button>
 
-          {showUserMenu && (
-            <div className="absolute right-0 top-10 z-50 w-56 rounded-2xl border border-border bg-surface p-1.5 shadow-popover animate-in fade-in zoom-in-95 duration-100">
-              <div className="px-3 py-2 text-xs font-bold text-text border-b border-border mb-1">
-                Akun & Cadangan
-              </div>
+            <button
+              type="button"
+              onClick={() => {
+                onOpenSettings?.('profile');
+                setShowUserMenu(false);
+              }}
+              className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-xs text-text hover:bg-hover transition-colors cursor-pointer"
+            >
+              <User className="h-3.5 w-3.5 text-muted" />
+              <span>Profil Akun</span>
+            </button>
 
-              <button
-                type="button"
-                onClick={() => {
-                  onOpenPreferences?.();
-                  setShowUserMenu(false);
-                }}
-                className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs text-text hover:bg-hover transition-colors cursor-pointer"
-              >
-                <Gear className="h-3.5 w-3.5 text-muted" />
-                <span>Pengaturan Preferensi</span>
-              </button>
+            <button
+              type="button"
+              onClick={() => {
+                onOpenSettings?.('appearance');
+                setShowUserMenu(false);
+              }}
+              className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-xs text-text hover:bg-hover transition-colors cursor-pointer"
+            >
+              <Gear className="h-3.5 w-3.5 text-muted" />
+              <span>Pengaturan &amp; Preferensi</span>
+            </button>
 
-              <button
-                type="button"
-                onClick={() => {
-                  onOpenDbBridge();
-                  setShowUserMenu(false);
-                }}
-                className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs text-text hover:bg-hover transition-colors cursor-pointer"
-              >
-                <Database className="h-3.5 w-3.5 text-muted" />
-                <span>Koneksi Supabase</span>
-              </button>
+            <button
+              type="button"
+              onClick={() => {
+                onNavigateToLanding();
+                setShowUserMenu(false);
+              }}
+              className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-xs text-text hover:bg-hover transition-colors cursor-pointer"
+            >
+              <House className="h-3.5 w-3.5 text-muted" />
+              <span>Halaman Utama (Landing)</span>
+            </button>
 
-              <button
-                type="button"
-                onClick={() => {
-                  onOpenShortcutsModal();
-                  setShowUserMenu(false);
-                }}
-                className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs text-text hover:bg-hover transition-colors cursor-pointer"
-              >
-                <Keyboard className="h-3.5 w-3.5 text-muted" />
-                <span>Daftar Pintasan (Keyboard)</span>
-              </button>
+            <div className="my-1 border-t border-border" />
 
-              <div className="my-1 border-t border-border" />
-
-              <button
-                type="button"
-                onClick={() => {
-                  onExport();
-                  setShowUserMenu(false);
-                }}
-                className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs text-text hover:bg-hover transition-colors cursor-pointer"
-              >
-                <span>Unduh Cadangan (JSON)</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs text-text hover:bg-hover transition-colors cursor-pointer"
-              >
-                <span>Pulihkan Cadangan (JSON)</span>
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".json"
-                onChange={(e) => {
-                  onImport(e);
-                  setShowUserMenu(false);
-                }}
-                className="hidden"
-              />
-
-              <div className="my-1 border-t border-border" />
-
-              <button
-                type="button"
-                onClick={() => {
-                  onNavigateToLanding();
-                  setShowUserMenu(false);
-                }}
-                className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs text-text hover:bg-hover transition-colors cursor-pointer"
-              >
-                <House className="h-3.5 w-3.5 text-muted" />
-                <span>Halaman Utama (Landing)</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  onLogout();
-                  setShowUserMenu(false);
-                }}
-                className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs text-danger hover:bg-danger/10 transition-colors cursor-pointer font-medium"
-              >
-                <SignOut className="h-3.5 w-3.5" />
-                <span>Keluar Akun</span>
-              </button>
-            </div>
-          )}
-        </div>
+            <button
+              type="button"
+              onClick={() => {
+                onLogout();
+                setShowUserMenu(false);
+              }}
+              className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-xs text-danger hover:bg-danger/10 transition-colors cursor-pointer font-medium"
+            >
+              <SignOut className="h-3.5 w-3.5" />
+              <span>Keluar Akun</span>
+            </button>
+          </div>,
+          document.body
+        )}
       </div>
     </header>
   );

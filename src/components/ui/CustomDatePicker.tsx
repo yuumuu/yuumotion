@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { CalendarBlank as CalendarIcon, CaretLeft, CaretRight, X } from '@phosphor-icons/react';
 
 interface CustomDatePickerProps {
@@ -19,7 +20,9 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
   size = 'sm'
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [coords, setCoords] = useState({ top: 0, left: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
 
   const initialDate = value ? new Date(value) : new Date();
   const [viewDate, setViewDate] = useState<Date>(isNaN(initialDate.getTime()) ? new Date() : initialDate);
@@ -35,7 +38,12 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(target) &&
+        (!popoverRef.current || !popoverRef.current.contains(target))
+      ) {
         setIsOpen(false);
       }
     };
@@ -129,7 +137,18 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
       <button
         type="button"
         disabled={disabled}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          if (!isOpen && containerRef.current) {
+            const rect = containerRef.current.getBoundingClientRect();
+            const popW = 256;
+            const popH = 295;
+            const spaceBelow = window.innerHeight - rect.bottom;
+            const top = spaceBelow < popH + 12 ? Math.max(12, rect.top - popH - 6) : rect.bottom + 6;
+            const left = Math.max(12, Math.min(rect.left, window.innerWidth - popW - 12));
+            setCoords({ top, left });
+          }
+          setIsOpen(!isOpen);
+        }}
         aria-haspopup="dialog"
         aria-expanded={isOpen}
         className={`flex w-full items-center justify-between gap-2 rounded-lg border border-appflowy-border bg-appflowy-surface font-medium transition-colors hover:border-neutral-300 disabled:opacity-50 dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface dark:hover:border-neutral-600 ${sizeClasses} ${
@@ -151,8 +170,12 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
         ) : null}
       </button>
 
-      {isOpen && (
-        <div className="absolute left-0 top-full z-50 mt-1 w-64 rounded-2xl border border-appflowy-border bg-appflowy-surface p-3 shadow-xl dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface">
+      {isOpen && createPortal(
+        <div
+          ref={popoverRef}
+          style={{ position: 'fixed', top: `${coords.top}px`, left: `${coords.left}px`, zIndex: 9999 }}
+          className="w-64 rounded-2xl border border-border bg-surface p-3 shadow-xl"
+        >
           <div className="mb-2 flex items-center justify-between">
             <span className="text-xs font-semibold text-appflowy-text dark:text-appflowy-darkText">
               {monthNames[month]} {year}
@@ -225,12 +248,13 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
             <button
               type="button"
               onClick={handleSelectToday}
-              className="font-medium text-purple-600 hover:underline dark:text-purple-400"
+              className="font-medium text-project-solid hover:underline cursor-pointer"
             >
               Today
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

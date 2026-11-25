@@ -32,14 +32,14 @@
 }
 
 .dark {
-  --bg: #0C0D0E;
-  --bar: #141517;
-  --surface: #16171B;
-  --hover: #202227;
-  --border: rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.14);
+  --bg: #0B0D12;
+  --bar: #12151E;
+  --surface: #181C28;
+  --hover: #222838;
+  --border: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.16);
   --text: #ECEEF0;
-  --muted: #8B919E;
+  --muted: #8E95A5;
   --danger: #F87171;
 
   --urgent: #FB7185; --urgent-bg: #38131E;

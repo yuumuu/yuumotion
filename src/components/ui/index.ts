@@ -18,3 +18,4 @@ export * from './Skeleton';
 export * from './Kbd';
 export * from './Separator';
 export * from './AttachmentCard';
+export * from './ConfirmDialog';

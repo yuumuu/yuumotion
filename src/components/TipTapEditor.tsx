@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import TaskList from '@tiptap/extension-task-list';
@@ -85,13 +86,14 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ content, onChange, e
         setSlashQuery(slashMatch[1].toLowerCase());
         setSelectedIndex(0);
         const coords = currentEditor.view.coordsAtPos(from);
-        if (editorContainerRef.current) {
-          const containerRect = editorContainerRef.current.getBoundingClientRect();
-          setMenuPosition({
-            top: coords.bottom - containerRect.top + 8,
-            left: Math.min(coords.left - containerRect.left, containerRect.width - 280)
-          });
-        }
+        const menuW = 288;
+        const menuH = 320;
+        const spaceBelow = window.innerHeight - coords.bottom;
+        const top = spaceBelow < menuH + 16
+          ? Math.max(12, coords.top - menuH - 8)
+          : coords.bottom + 8;
+        const left = Math.max(12, Math.min(coords.left, window.innerWidth - menuW - 12));
+        setMenuPosition({ top, left });
         setShowSlashMenu(true);
       } else {
         setShowSlashMenu(false);
@@ -497,11 +499,11 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ content, onChange, e
         )}
       />
 
-      {/* Slash Command Menu Popover */}
-      {showSlashMenu && editable && (
+      {/* Slash Command Menu Popover (Portal + Viewport-Aware) */}
+      {showSlashMenu && editable && createPortal(
         <div
-          style={{ top: `${menuPosition.top}px`, left: `${menuPosition.left}px` }}
-          className="absolute z-50 w-72 max-h-80 overflow-y-auto rounded-2xl border border-border bg-surface p-1.5 shadow-card-drag animate-in fade-in zoom-in-95 duration-150"
+          style={{ position: 'fixed', top: `${menuPosition.top}px`, left: `${menuPosition.left}px`, zIndex: 9999 }}
+          className="w-72 max-h-80 overflow-y-auto rounded-2xl border border-border bg-surface p-1.5 shadow-card-drag animate-yuu-crossfade"
         >
           <div className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted border-b border-border mb-1">
             Perintah Blok (Tekan /)
@@ -534,7 +536,8 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ content, onChange, e
               </button>
             ))
           )}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

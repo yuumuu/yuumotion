@@ -46,26 +46,26 @@ export const ProjectBanner: React.FC<ProjectBannerProps> = ({
   ];
 
   return (
-    <div className="px-4 pt-4 pb-2 sm:px-6 bg-bg shrink-0 select-none">
+    <div className="px-4 pt-4 pb-2 select-none sm:px-6 bg-bg shrink-0">
       {/* Banner Utama (Gaya Quickit) */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#4F46E5] via-[#2563EB] to-[#3B82F6] px-5 py-4 sm:px-6 sm:py-5 text-white shadow-card-sm">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -right-12 -top-12 h-44 w-44 rounded-full bg-white/15 blur-2xl"
+          className="absolute -top-12 -right-12 w-44 h-44 rounded-full blur-2xl pointer-events-none bg-white/15"
         />
-        <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex relative flex-col gap-3 justify-between sm:flex-row sm:items-center">
           <div className="space-y-1 min-w-0">
             <div className="flex items-center gap-1.5 font-mono text-[11px] text-white/80">
               <span>{workspaceName}</span>
               <span>/</span>
               <span className="uppercase">{currentUserRole}</span>
             </div>
-            <h1 className="font-display text-lg sm:text-2xl font-bold tracking-tight truncate">
+            <h1 className="text-lg font-bold tracking-tight truncate font-display sm:text-2xl">
               {board?.title || 'Project Board'}
             </h1>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex gap-3 items-center shrink-0">
             <div className="flex -space-x-2">
               {safeMembers.slice(0, 4).map((m) => (
                 <div
@@ -84,15 +84,15 @@ export const ProjectBanner: React.FC<ProjectBannerProps> = ({
               className="inline-flex items-center gap-1.5 rounded-xl border border-white/25 bg-white/15 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-sm transition-[background-color,transform] duration-150 hover:bg-white/25 active:scale-[0.97] cursor-pointer"
             >
               <UserPlus className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Anggota ({safeMembers.length})</span>
+              <span className="hidden sm:inline">Anggota</span>
             </button>
           </div>
         </div>
       </div>
 
       {/* Baris Metadata & Toolbar Ringkas */}
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+      <div className="flex flex-wrap gap-3 justify-between items-center pb-3 mt-3 border-b border-border">
+        <div className="flex flex-wrap gap-2 items-center sm:gap-3">
           <span className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 py-1 font-mono text-[11px] font-semibold text-text shadow-2xs">
             <span>{totalTasks} Tugas</span>
           </span>
@@ -109,11 +109,11 @@ export const ProjectBanner: React.FC<ProjectBannerProps> = ({
           )}
 
           <div className="hidden lg:flex items-center gap-3 pl-2 text-[11px] text-muted">
-            <span className="inline-flex items-center gap-1">
+            <span className="inline-flex gap-1 items-center">
               <Calendar className="h-3.5 w-3.5" />
               <span>Sprint Aktif</span>
             </span>
-            <span className="inline-flex items-center gap-1">
+            <span className="inline-flex gap-1 items-center">
               <Tag className="h-3.5 w-3.5" />
               <span>Multi-View Sync</span>
             </span>

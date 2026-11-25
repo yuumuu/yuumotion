@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Board, Card } from '../types/board';
 import { CaretLeft, CaretRight, CalendarBlank as CalendarIcon } from '@phosphor-icons/react';
 import { TAG_COLORS } from '../lib/constants';
-import { Button } from './ui';
+import { Button, ConfirmDialog } from './ui';
 
 interface CalendarViewProps {
   board: Board;
@@ -18,6 +18,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   onAddCardOnDate
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [promptDate, setPromptDate] = useState<string | null>(null);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -117,10 +118,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               key={day}
               onClick={() => {
                 const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const title = prompt(`Jadwalkan tugas untuk ${dateStr}:`);
-                if (title?.trim()) {
-                  onAddCardOnDate(board.columns[0]?.id || 'col-todo', title.trim(), dateStr);
-                }
+                setPromptDate(dateStr);
               }}
               className={`min-h-24 p-2 transition-colors cursor-pointer ${
                 isToday
@@ -167,6 +165,20 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           );
         })}
       </div>
+
+      <ConfirmDialog
+        isOpen={Boolean(promptDate)}
+        onClose={() => setPromptDate(null)}
+        title={`Jadwalkan Tugas (${promptDate || ''})`}
+        mode="prompt"
+        placeholder="Judul tugas baru..."
+        confirmLabel="Jadwalkan"
+        onConfirm={(title) => {
+          if (title && promptDate) {
+            onAddCardOnDate(board.columns[0]?.id || 'col-todo', title, promptDate);
+          }
+        }}
+      />
     </div>
   );
 };

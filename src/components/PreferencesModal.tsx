@@ -14,6 +14,7 @@ import {
 import { Dialog } from './ui/Dialog';
 import { Button } from './ui/Button';
 import { Switch } from './ui/Switch';
+import { toast } from './ui/Toast';
 import { cn } from '../lib/cn';
 import { usePreferences } from '../context/PreferencesContext';
 import { AppTheme, AppDensity, CardOpenMode, ProjectAccentTheme } from '../types/preferences';
@@ -241,7 +242,7 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
             variant="secondary"
             size="sm"
             leftIcon={<DownloadSimple className="h-3.5 w-3.5" />}
-            onClick={() => alert('PWA sudah terpasang dan siap digunakan saat offline.')}
+            onClick={() => toast.success('PWA sudah terpasang dan siap digunakan saat offline.')}
           >
             Cek PWA
           </Button>
