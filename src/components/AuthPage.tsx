@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { AuthUser } from '../types/board';
 import { saveStoredAuthUser, loginWithSupabaseAuth } from '../lib/auth';
+import { apiClient, ApiError } from '../services/apiClient';
 import { PublicFooter } from './PublicFooter';
 import {
   ArrowLeft,
@@ -11,7 +12,9 @@ import {
   Spinner,
   CheckCircle,
   GithubLogo,
-  GoogleLogo
+  GoogleLogo,
+  Eye,
+  EyeSlash
 } from '@phosphor-icons/react';
 
 interface AuthPageProps {
@@ -33,6 +36,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   const [name, setName] = useState(currentUser.name);
   const [email, setEmail] = useState(currentUser.email || '');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [selectedColor, setSelectedColor] = useState(currentUser.color);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -48,7 +53,23 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     setLoading(true);
     setErrorMsg(null);
 
-    // Coba login via Supabase cloud auth bila kredensial tersedia
+    try {
+      const data = await apiClient.auth.login(email.trim(), password);
+      const apiUser = data.user as AuthUser;
+      saveStoredAuthUser(apiUser);
+      onUserChange(apiUser);
+      setLoading(false);
+      onEnterApp();
+      return;
+    } catch (err) {
+      if (err instanceof ApiError && err.status >= 400 && err.status < 500) {
+        setLoading(false);
+        setErrorMsg(err.message);
+        return;
+      }
+    }
+
+    // Fallback bila backend API lokal belum dinyalakan
     const result = await loginWithSupabaseAuth(email.trim(), password);
     setLoading(false);
 
@@ -56,7 +77,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
       onUserChange(result.user);
       onEnterApp();
     } else {
-      // Fallback ke fast-session local jika cloud auth belum disetting
       const localUser: AuthUser = {
         id: `usr-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
         name: email.split('@')[0] || 'User',
@@ -71,17 +91,51 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     }
   };
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMsg(null);
+
     if (!name.trim()) {
-      setErrorMsg('Nama akun wajib diisi.');
+      setErrorMsg('Nama tampilan wajib diisi.');
+      return;
+    }
+    if (!email.trim() || !email.includes('@')) {
+      setErrorMsg('Alamat email valid wajib diisi.');
+      return;
+    }
+    if (password.length < 6) {
+      setErrorMsg('Kata sandi minimal 6 karakter.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setErrorMsg('Konfirmasi kata sandi tidak cocok.');
       return;
     }
 
+    setLoading(true);
+    try {
+      const data = await apiClient.auth.register(name.trim(), email.trim(), password);
+      const apiUser = data.user as AuthUser;
+      saveStoredAuthUser(apiUser);
+      onUserChange(apiUser);
+      setLoading(false);
+      setSuccessMsg('Akun berhasil didaftarkan.');
+      setTimeout(() => onEnterApp(), 500);
+      return;
+    } catch (err) {
+      if (err instanceof ApiError && err.status >= 400 && err.status < 500) {
+        setLoading(false);
+        setErrorMsg(err.message);
+        return;
+      }
+    }
+
+    // Fallback offline-first jika server API belum berjalan
+    setLoading(false);
     const newUser: AuthUser = {
       id: `usr-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
       name: name.trim(),
-      email: email.trim() || undefined,
+      email: email.trim(),
       avatar: name.trim().charAt(0).toUpperCase(),
       color: selectedColor,
       isCloudAuth: false
@@ -89,7 +143,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
     saveStoredAuthUser(newUser);
     onUserChange(newUser);
-    setSuccessMsg('Akun profil berhasil dibuat.');
+    setSuccessMsg('Akun lokal berhasil dibuat (mode offline).');
     setTimeout(() => {
       onEnterApp();
     }, 600);
@@ -260,15 +314,60 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
               <div>
                 <label className="block text-xs font-medium text-appflowy-text dark:text-appflowy-darkText mb-1.5">
-                  Email (Opsional)
+                  Alamat Email
                 </label>
                 <div className="relative">
                   <EnvelopeSimple className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-appflowy-muted" />
                   <input
                     type="email"
+                    required
                     placeholder="nama@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    className="py-2 pr-3 pl-9 w-full text-xs rounded-xl border border-appflowy-border bg-appflowy-bg text-appflowy-text placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-project-ring dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg dark:text-appflowy-darkText"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-appflowy-text dark:text-appflowy-darkText mb-1.5">
+                  Kata Sandi
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-appflowy-muted" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    minLength={6}
+                    placeholder="Minimal 6 karakter"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="py-2 pr-9 pl-9 w-full text-xs rounded-xl border border-appflowy-border bg-appflowy-bg text-appflowy-text placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-project-ring dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg dark:text-appflowy-darkText"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-appflowy-muted hover:text-text cursor-pointer"
+                    title={showPassword ? 'Sembunyikan sandi' : 'Lihat sandi'}
+                  >
+                    {showPassword ? <EyeSlash className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-appflowy-text dark:text-appflowy-darkText mb-1.5">
+                  Konfirmasi Kata Sandi
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-appflowy-muted" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    minLength={6}
+                    placeholder="Ulangi kata sandi"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
                     className="py-2 pr-3 pl-9 w-full text-xs rounded-xl border border-appflowy-border bg-appflowy-bg text-appflowy-text placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-project-ring dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg dark:text-appflowy-darkText"
                   />
                 </div>
