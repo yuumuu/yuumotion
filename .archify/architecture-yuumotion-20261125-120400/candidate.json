@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Yuumotion Architecture & UI System",
+    "output": "yuumotion-architecture.html",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    { "id": "pwa", "type": "frontend", "label": "PWA App Shell", "sublabel": "Vite 6 + React 18", "pos": [50, 240], "size": [140, 60] },
+    { "id": "prefs", "type": "frontend", "label": "Preferences Engine", "sublabel": "Theme, Density, Accents", "pos": [50, 100], "size": [140, 64], "tag": "Anti-FOUC" },
+    { "id": "shell", "type": "frontend", "label": "App Shell Chrome", "sublabel": "Sidebar + Header (h-14)", "pos": [260, 240], "size": [150, 60] },
+    { "id": "kanban", "type": "frontend", "label": "Kanban Canvas", "sublabel": "Zero Shift DnD", "pos": [480, 160], "size": [140, 60] },
+    { "id": "tiptap", "type": "frontend", "label": "TipTap Page Doc", "sublabel": "Slash Command Blocks", "pos": [480, 320], "size": [140, 60] },
+    { "id": "views", "type": "frontend", "label": "Multi-Views Engine", "sublabel": "Table, Gantt, Calendar", "pos": [480, 440], "size": [140, 60] },
+    { "id": "drawer", "type": "frontend", "label": "Card Detail Modal", "sublabel": "Side Drawer / Modal / Full", "pos": [690, 160], "size": [150, 60], "tag": "3 Modes" },
+    { "id": "cache", "type": "database", "label": "Offline Cache", "sublabel": "localStorage / PWA", "pos": [260, 440], "size": [150, 60] },
+    { "id": "realtime", "type": "backend", "label": "Supabase Realtime", "sublabel": "Presence & Card Events", "pos": [910, 200], "size": [150, 60] },
+    { "id": "database", "type": "database", "label": "Supabase Postgres", "sublabel": "Workspaces & Cards", "pos": [910, 340], "size": [150, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Frontend Client Runtime (Linear Playful)", "wraps": ["pwa", "prefs", "shell", "kanban", "tiptap", "views", "drawer", "cache"] },
+    { "kind": "security-group", "label": "Cloud Backend & Persistence", "wraps": ["realtime", "database"] }
+  ],
+  "connections": [
+    { "id": "pwa-to-shell", "from": "pwa", "to": "shell", "label": "mount", "variant": "emphasis" },
+    { "id": "prefs-to-pwa", "from": "prefs", "to": "pwa", "label": "tokens", "fromSide": "bottom", "toSide": "top" },
+    { "id": "shell-to-kanban", "from": "shell", "to": "kanban", "label": "board view" },
+    { "id": "shell-to-tiptap", "from": "shell", "to": "tiptap", "label": "doc view" },
+    { "id": "shell-to-views", "from": "shell", "to": "views", "label": "alt views" },
+    { "id": "kanban-to-drawer", "from": "kanban", "to": "drawer", "label": "open card", "variant": "emphasis" },
+    { "id": "pwa-to-cache", "from": "pwa", "to": "cache", "label": "persist offline", "variant": "dashed", "fromSide": "bottom", "toSide": "top" },
+    { "id": "drawer-to-rt", "from": "drawer", "to": "realtime", "label": "broadcast", "variant": "emphasis" },
+    { "id": "tiptap-to-db", "from": "tiptap", "to": "database", "label": "autosave" },
+    { "id": "rt-to-db", "from": "realtime", "to": "database", "label": "sync mutations" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Client Core", "items": ["Vite 6 + React 18 PWA dengan cache instan", "Anti-FOUC initialization script untuk tema & density", "3-Zone App Shell dengan collapsible sidebar"] },
+    { "dot": "emerald", "title": "Interactions & Views", "items": ["Kanban fluid drag-and-drop dengan rotasi halus 2deg", "Detail kartu dalam 3 mode: Drawer, Modal, Full Page", "Editor Standalone Page TipTap dengan menu Slash Command"] },
+    { "dot": "violet", "title": "Realtime & Storage", "items": ["Supabase Realtime Presence untuk kolaborator aktif", "PWA offline fallback via local storage sync", "RBAC guardrails mengunci hak akses Viewer"] }
+  ]
+}

@@ -257,7 +257,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           onBlur={handleTitleBlur}
-          className="w-full bg-transparent font-display text-xl sm:text-2xl font-bold tracking-tight text-text placeholder:text-muted focus:outline-none"
+          className="w-full bg-transparent font-display text-xl sm:text-2xl font-bold tracking-tight text-text placeholder:text-muted rounded-xl px-1.5 py-1 transition-all focus:outline-none focus:bg-surface focus:border focus:border-project-accent focus:ring-2 focus:ring-project-ring"
           placeholder="Judul Tugas..."
         />
       </div>
