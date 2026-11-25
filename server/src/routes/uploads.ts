@@ -1,11 +1,12 @@
 import { Hono } from 'hono';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { eq } from 'drizzle-orm';
 import { db } from '../db';
 import { uploads } from '../db/schema';
 import { requireAuth, AuthPayload, AppEnv } from '../middleware/auth';
 
 export const uploadRoutes = new Hono<AppEnv>();
-
-uploadRoutes.use('*', requireAuth);
 
 const ALLOWED_MIME_TYPES = new Set([
   'image/png',
@@ -22,8 +23,33 @@ function sanitizeUploadFileName(rawName: string): string {
   return base.slice(0, 120) || 'file';
 }
 
-// Endpoint upload ke Wasmer Storage / S3-compatible dengan fallback data-URL untuk dev lokal
-uploadRoutes.post('/', async (c) => {
+function getVolumeDir(): string {
+  return process.env.UPLOAD_DIR || '/app/storage/uploads';
+}
+
+uploadRoutes.get('/:id/:fileName', async (c) => {
+  const id = c.req.param('id');
+  if (!id) return c.json({ error: 'ID tidak valid.' }, 400);
+
+  const [record] = await db.select().from(uploads).where(eq(uploads.id, id));
+  if (!record) return c.json({ error: 'File tidak ditemukan.' }, 404);
+
+  const filePath = path.join(getVolumeDir(), `${record.id}-${sanitizeUploadFileName(record.fileName)}`);
+  try {
+    const data = await fs.readFile(filePath);
+    return new Response(data, {
+      headers: {
+        'Content-Type': record.mimeType,
+        'Cache-Control': 'public, max-age=31536000, immutable'
+      }
+    });
+  } catch {
+    return c.json({ error: 'File fisik tidak ditemukan di volume.' }, 404);
+  }
+});
+
+// Endpoint upload ke Wasmer Storage (S3), Wasmer Volume (/app/storage/uploads), atau fallback data-URL
+uploadRoutes.post('/', requireAuth, async (c) => {
   const auth = c.get('user') as AuthPayload;
   const form = await c.req.formData();
   const file = form.get('file');
@@ -51,7 +77,6 @@ uploadRoutes.post('/', async (c) => {
 
   let storageUrl = '';
   if (storageEndpoint) {
-    // Upload ke endpoint S3/Wasmer Storage jika kredensial tersedia
     const targetUrl = `${storageEndpoint.replace(/\/$/, '')}/${bucket}/${uploadId}-${encodeURIComponent(safeName)}`;
     const putRes = await fetch(targetUrl, {
       method: 'PUT',
@@ -65,8 +90,15 @@ uploadRoutes.post('/', async (c) => {
     }
     storageUrl = targetUrl;
   } else {
-    const base64 = Buffer.from(buffer).toString('base64');
-    storageUrl = `data:${mimeType};base64,${base64}`;
+    const volumeDir = getVolumeDir();
+    try {
+      await fs.mkdir(volumeDir, { recursive: true });
+      await fs.writeFile(path.join(volumeDir, `${uploadId}-${safeName}`), Buffer.from(buffer));
+      storageUrl = `/api/uploads/${uploadId}/${encodeURIComponent(safeName)}`;
+    } catch {
+      const base64 = Buffer.from(buffer).toString('base64');
+      storageUrl = `data:${mimeType};base64,${base64}`;
+    }
   }
 
   await db.insert(uploads).values({

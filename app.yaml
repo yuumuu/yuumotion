@@ -1,0 +1,42 @@
+kind: wasmer.io/App.v0
+name: yuumotion
+app_id: da_RxJIdtAU5q17
+owner: yuumuu
+package: .
+env:
+  NODE_ENV: production
+  PORT: '8080'
+  UPLOAD_DIR: /app/storage/uploads
+  APP_URL: https://yuumotion.wasmer.app
+capabilities:
+  database:
+    engine: mysql
+volumes:
+- name: uploads
+  mount: /app/storage/uploads
+debug: true
+annotations:
+  anybuild.run/config:
+    commands:
+      build: npm run build && npm run build:server
+      start: node server/dist/index.js
+    edgejs_enable: true
+    edgejs_precompile: true
+    name: out
+    node_build_command: npm run build && npm run build:server
+    node_framework: vite
+    node_install_inputs:
+    - package.json
+    node_package_manager: npm
+    node_package_name: yuumotion
+    node_remove_native_binaries: true
+    node_server: hono
+    npm_version: '11'
+    services:
+    - engine: mysql
+      name: database
+    static_dir: dist
+  anybuild.run/provider: node
+  anybuild.run/version: 0.34.0
+  wasmer.io/version: 7.5.0
+enableDatabase: true

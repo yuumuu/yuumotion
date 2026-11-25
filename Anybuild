@@ -1,0 +1,14 @@
+load("//anybuild/tools:node.bzl", "node_build", "node_config", "node_serve")
+
+config = node_config(
+    schema = 1,
+    node_server = "hono",
+    node_version = "24",
+    commands = {
+        "build": "npm run build && npm run build:server",
+        "start": "node server/dist/index.js",
+    },
+)
+
+build = node_build(config)
+node_serve(config, build, name = "yuumotion")

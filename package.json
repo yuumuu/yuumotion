@@ -6,8 +6,9 @@
   "scripts": {
     "dev": "vite",
     "dev:server": "npx tsx watch server/src/index.ts",
+    "start": "node server/dist/index.js",
     "build": "tsc && vite build",
-    "build:server": "tsc -p server/tsconfig.json",
+    "build:server": "tsc -p server/tsconfig.json --noEmit && npx esbuild server/src/index.ts --bundle --platform=node --format=esm --packages=external --outfile=server/dist/index.js",
     "db:push": "drizzle-kit push",
     "preview": "vite preview"
   },
