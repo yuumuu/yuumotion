@@ -585,8 +585,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
-              {/* Left: Scrollable & Clickable View Steps */}
-              <div className="lg:col-span-4 space-y-4">
+              {/* Left: Scrollable & Clickable View Steps (ruang scroll lega agar transisi terasa nyaman) */}
+              <div className="lg:col-span-4 space-y-6 lg:space-y-16 lg:pb-24">
                 {VIEW_STEPS.map((step, idx) => {
                   const isActive = previewView === step.id;
                   return (
@@ -598,10 +598,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                       data-view-step={step.id}
                       onClick={() => setPreviewView(step.id)}
                       className={cn(
-                        'rounded-2xl border p-5 transition-[border-color,background-color,transform] duration-200 cursor-pointer',
+                        'lg:min-h-[42vh] flex flex-col justify-center rounded-2xl border p-6 transition-[border-color,background-color,transform,box-shadow] duration-200 cursor-pointer',
                         isActive
                           ? 'border-project-solid bg-[#0B0D12] text-white shadow-xl'
-                          : 'border-border bg-bg text-text hover:border-project-ring'
+                          : 'border-border bg-bg text-text hover:border-project-ring opacity-75 hover:opacity-100'
                       )}
                     >
                       <div className="flex items-center justify-between mb-2">
@@ -627,7 +627,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </div>
 
               {/* Right: Sticky Stacking Deck Rendering Real App Components */}
-              <div className="lg:col-span-8 lg:sticky lg:top-20">
+              <div className="lg:col-span-8 lg:sticky lg:top-24">
                 <div className="relative pt-4">
                   {/* Stacked deck background layers (ala gambar referensi) */}
                   <div
