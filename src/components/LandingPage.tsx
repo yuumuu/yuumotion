@@ -849,6 +849,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 Ruang kerja hibrida yang menyatukan kejelasan Kanban dengan ketenangan kanvas dokumen TipTap secara offline-first.
               </p>
             </div>
+            
+          
+          <div
+            aria-hidden="true"
+            className="mt-8 select-none overflow-hidden text-center font-display text-[clamp(3rem,10vw,7.5rem)] font-extrabold leading-none tracking-tighter text-text/[0.035] dark:text-text/[0.04]"
+          >
+            YUUMOTION
+          </div>
           </div>
 
           {/* Editorial Bottom Row & Subtle Typographic Watermark */}
