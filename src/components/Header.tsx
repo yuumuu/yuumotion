@@ -2,22 +2,22 @@ import React, { useState } from 'react';
 import { Board, SyncConnectionStatus, UserPresence, WorkspaceView, UserRole, NotionPage } from '../types/board';
 import {
   Kanban,
-  Calendar,
+  CalendarBlank,
   Clock,
   Table as TableIcon,
-  Search,
+  MagnifyingGlass,
   Radio,
-  CheckCircle2,
-  AlertTriangle,
-  Loader2,
+  CheckCircle,
+  Warning,
+  Spinner,
   Database,
-  Menu,
+  List as MenuIcon,
   ShieldCheck,
   Crown,
-  LogOut,
+  SignOut,
   Keyboard,
-  Settings
-} from 'lucide-react';
+  Gear
+} from '@phosphor-icons/react';
 import { Badge, Kbd } from './ui';
 import { cn } from '../lib/cn';
 
@@ -90,7 +90,7 @@ export const Header: React.FC<HeaderProps> = ({
   const viewItems: { id: WorkspaceView; label: string; icon: React.ReactNode }[] = [
     { id: 'board', label: 'Kanban', icon: <Kanban className="h-3.5 w-3.5" /> },
     { id: 'table', label: 'Table', icon: <TableIcon className="h-3.5 w-3.5" /> },
-    { id: 'calendar', label: 'Kalender', icon: <Calendar className="h-3.5 w-3.5" /> },
+    { id: 'calendar', label: 'Kalender', icon: <CalendarBlank className="h-3.5 w-3.5" /> },
     { id: 'timeline', label: 'Timeline', icon: <Clock className="h-3.5 w-3.5" /> }
   ];
 
@@ -104,7 +104,7 @@ export const Header: React.FC<HeaderProps> = ({
           className="flex justify-center items-center w-8 h-8 rounded-lg cursor-pointer text-muted hover:bg-hover hover:text-text transition-colors"
           title="Toggle Sidebar ([)"
         >
-          <Menu className="w-4 h-4" />
+          <MenuIcon className="w-4 h-4" />
         </button>
 
         <div className="flex gap-2 items-center min-w-0 text-xs">
@@ -172,7 +172,7 @@ export const Header: React.FC<HeaderProps> = ({
           title="Buka Command Palette (⌘K)"
         >
           <div className="flex items-center gap-1.5 truncate">
-            <Search className="h-3.5 w-3.5 text-muted shrink-0" />
+            <MagnifyingGlass className="h-3.5 w-3.5 text-muted shrink-0" />
             <span className="truncate">Cari tugas...</span>
           </div>
           <Kbd>/</Kbd>
@@ -203,13 +203,13 @@ export const Header: React.FC<HeaderProps> = ({
         >
           {syncStatus === 'connected' && (
             <span className="flex items-center gap-1 text-status-done font-medium">
-              <CheckCircle2 className="h-3 w-3" />
+              <CheckCircle className="h-3 w-3" />
               <span>Realtime</span>
             </span>
           )}
           {syncStatus === 'connecting' && (
             <span className="flex items-center gap-1 text-status-high">
-              <Loader2 className="h-3 w-3 animate-spin" />
+              <Spinner className="h-3 w-3 animate-spin" />
               <span>Menghubungkan</span>
             </span>
           )}
@@ -221,7 +221,7 @@ export const Header: React.FC<HeaderProps> = ({
           )}
           {syncStatus === 'error' && (
             <span className="flex items-center gap-1 text-danger font-medium">
-              <AlertTriangle className="h-3 w-3" />
+              <Warning className="h-3 w-3" />
               <span>Error</span>
             </span>
           )}
@@ -253,7 +253,7 @@ export const Header: React.FC<HeaderProps> = ({
                 }}
                 className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs text-text hover:bg-hover transition-colors cursor-pointer"
               >
-                <Settings className="h-3.5 w-3.5 text-muted" />
+                <Gear className="h-3.5 w-3.5 text-muted" />
                 <span>Pengaturan Preferensi</span>
               </button>
 
@@ -322,7 +322,7 @@ export const Header: React.FC<HeaderProps> = ({
                 }}
                 className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs text-danger hover:bg-danger/10 transition-colors cursor-pointer font-medium"
               >
-                <LogOut className="h-3.5 w-3.5" />
+                <SignOut className="h-3.5 w-3.5" />
                 <span>Keluar Akun</span>
               </button>
             </div>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CloudSyncConfig, SyncConnectionStatus } from '../types/board';
-import { X, Cloud, CheckCircle2, AlertTriangle, Loader2, Sparkles, ExternalLink } from 'lucide-react';
+import { X, Cloud, CheckCircle, Warning, Spinner, Sparkle, ArrowSquareOut } from '@phosphor-icons/react';
 
 interface CloudSyncModalProps {
   config: CloudSyncConfig;
@@ -65,13 +65,13 @@ export const CloudSyncModal: React.FC<CloudSyncModalProps> = ({
           <span className="flex items-center gap-1.5 font-medium">
             {status === 'connected' && (
               <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
-                <CheckCircle2 className="h-3.5 w-3.5" />
+                <CheckCircle className="h-3.5 w-3.5" />
                 Connected (Cloud Active)
               </span>
             )}
             {status === 'connecting' && (
               <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                <Spinner className="h-3.5 w-3.5 animate-spin" />
                 Connecting...
               </span>
             )}
@@ -82,7 +82,7 @@ export const CloudSyncModal: React.FC<CloudSyncModalProps> = ({
             )}
             {status === 'error' && (
               <span className="flex items-center gap-1 text-rose-600 dark:text-rose-400">
-                <AlertTriangle className="h-3.5 w-3.5" />
+                <Warning className="h-3.5 w-3.5" />
                 Connection Error
               </span>
             )}
@@ -131,7 +131,7 @@ export const CloudSyncModal: React.FC<CloudSyncModalProps> = ({
           <div className="rounded-lg border border-purple-100 bg-purple-50/50 p-2.5 text-[11px] text-purple-900 dark:border-purple-900/40 dark:bg-purple-950/20 dark:text-purple-300">
             <div className="flex items-start justify-between gap-1.5">
               <div className="flex items-start gap-1.5">
-                <Sparkles className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-purple-600 dark:text-purple-400" />
+                <Sparkle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-purple-600 dark:text-purple-400" />
                 <span>
                   Yuumotion uses Supabase Realtime Broadcast. No database tables or migrations are required.
                 </span>
@@ -153,7 +153,7 @@ export const CloudSyncModal: React.FC<CloudSyncModalProps> = ({
               rel="noreferrer"
               className="inline-flex items-center gap-1 text-[11px] text-purple-600 hover:underline dark:text-purple-400"
             >
-              Supabase Docs <ExternalLink className="h-3 w-3" />
+              Supabase Docs <ArrowSquareOut className="h-3 w-3" />
             </a>
             <div className="flex items-center gap-2">
               <button

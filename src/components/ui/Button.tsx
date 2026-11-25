@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Loader2 } from 'lucide-react';
+import { Spinner } from '@phosphor-icons/react';
 import { cn } from '../../lib/cn';
 
 export type ButtonVariant = 'primary' | 'soft' | 'secondary' | 'ghost' | 'danger';
@@ -63,7 +63,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {loading ? (
-          <Loader2 className="h-4 w-4 animate-spin shrink-0" aria-hidden="true" />
+          <Spinner className="h-4 w-4 animate-spin shrink-0" aria-hidden="true" />
         ) : (
           leftIcon && <span className="inline-flex shrink-0">{leftIcon}</span>
         )}

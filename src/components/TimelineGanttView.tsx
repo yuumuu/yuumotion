@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Board, Card } from '../types/board';
-import { Clock } from 'lucide-react';
+import { Clock } from '@phosphor-icons/react';
 import { TAG_COLORS } from '../lib/constants';
 
 interface TimelineGanttViewProps {

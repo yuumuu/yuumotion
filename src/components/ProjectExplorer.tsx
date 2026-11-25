@@ -5,10 +5,10 @@ import {
   Kanban,
   FileText,
   Plus,
-  Trash2,
-  PanelLeftClose,
+  Trash,
+  SidebarSimple,
   FolderOpen
-} from 'lucide-react';
+} from '@phosphor-icons/react';
 import { cn } from '../lib/cn';
 
 interface ProjectExplorerProps {
@@ -67,7 +67,7 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
           className="flex h-6 w-6 items-center justify-center rounded-lg text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer"
           title="Tutup Panel ([)"
         >
-          <PanelLeftClose className="h-3.5 w-3.5" />
+          <SidebarSimple className="h-3.5 w-3.5" />
         </button>
       </div>
 
@@ -174,7 +174,7 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
                         className="opacity-0 group-hover:opacity-100 p-0.5 text-muted hover:text-danger rounded hover:bg-surface transition-opacity"
                         title="Hapus Dokumen"
                       >
-                        <Trash2 className="h-3 w-3" />
+                        <Trash className="h-3 w-3" />
                       </button>
                     )}
                   </div>

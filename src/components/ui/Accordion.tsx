@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { CaretDown } from '@phosphor-icons/react';
 
 export interface AccordionProps {
   title: React.ReactNode;
@@ -29,7 +29,7 @@ export const Accordion: React.FC<AccordionProps> = ({
           <span>{title}</span>
           {badge && <span>{badge}</span>}
         </div>
-        <ChevronDown
+        <CaretDown
           className={`h-3.5 w-3.5 text-appflowy-muted transition-transform duration-200 ${
             isOpen ? 'rotate-180 text-purple-600 dark:text-purple-400' : ''
           }`}

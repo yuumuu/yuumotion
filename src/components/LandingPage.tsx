@@ -2,16 +2,16 @@ import React from 'react';
 import {
   Kanban,
   FileText,
-  Zap,
+  Lightning,
   ShieldCheck,
   Globe,
   ArrowRight,
   Sun,
   Moon,
-  Sparkles,
-  Layers,
+  Sparkle,
+  Stack,
   Database
-} from 'lucide-react';
+} from '@phosphor-icons/react';
 import { AuthUser } from '../types/board';
 
 interface LandingPageProps {
@@ -36,7 +36,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-blue-500 text-white shadow-md shadow-purple-500/20">
-              <Layers className="h-5 w-5" />
+              <Stack className="h-5 w-5" />
             </div>
             <div>
               <span className="text-base font-bold tracking-tight text-appflowy-text dark:text-appflowy-darkText">
@@ -104,7 +104,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         
         <div className="mx-auto max-w-5xl px-4 text-center sm:px-6">
           <div className="inline-flex items-center gap-2 rounded-full border border-purple-200/80 bg-purple-50/70 px-3.5 py-1 text-xs font-medium text-purple-700 backdrop-blur-xs dark:border-purple-800/60 dark:bg-purple-950/40 dark:text-purple-300">
-            <Sparkles className="h-3.5 w-3.5" />
+            <Sparkle className="h-3.5 w-3.5" />
             <span>Notion + Trello Fusion • Ditenagai Wasmer Edge</span>
           </div>
 
@@ -230,7 +230,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
             <div className="rounded-2xl border border-appflowy-border bg-appflowy-surface p-6 shadow-2xs dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-300 mb-4">
-                <Zap className="h-5 w-5" />
+                <Lightning className="h-5 w-5" />
               </div>
               <h3 className="text-base font-semibold mb-2">Sinkronisasi Instan Bebas Biaya</h3>
               <p className="text-xs leading-relaxed text-appflowy-muted dark:text-appflowy-darkMuted">

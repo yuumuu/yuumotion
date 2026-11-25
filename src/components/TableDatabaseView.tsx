@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Board, Card } from '../types/board';
-import { Plus, Table as TableIcon } from 'lucide-react';
+import { Plus, Table as TableIcon } from '@phosphor-icons/react';
 import { CustomSelect, Button, Input, Badge } from './ui';
 
 interface TableDatabaseViewProps {

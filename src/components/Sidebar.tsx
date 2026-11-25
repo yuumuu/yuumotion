@@ -5,17 +5,16 @@ import {
   Plus,
   Kanban,
   Users,
-  ChevronDown,
-  Trash2,
+  CaretDown,
+  Trash,
   FolderPlus,
-  Search,
-  Settings,
+  MagnifyingGlass,
+  Gear,
   FileText,
-  PanelLeftClose,
-  PanelLeft,
+  SidebarSimple,
   Moon,
   Sun
-} from 'lucide-react';
+} from '@phosphor-icons/react';
 import { Button, Kbd } from './ui';
 import { usePreferences } from '../context/PreferencesContext';
 import { cn } from '../lib/cn';
@@ -131,7 +130,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     </div>
                   </div>
                 </div>
-                <ChevronDown className="h-3.5 w-3.5 text-muted group-hover:text-text transition-colors shrink-0 ml-1" />
+                <CaretDown className="h-3.5 w-3.5 text-muted group-hover:text-text transition-colors shrink-0 ml-1" />
               </button>
 
               {/* Workspace Dropdown Menu */}
@@ -180,7 +179,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               className="mx-auto flex h-8 w-8 items-center justify-center rounded-lg text-text hover:bg-hover cursor-pointer"
               title="Buka Sidebar ([)"
             >
-              <PanelLeft className="h-4 w-4" />
+              <SidebarSimple className="h-4 w-4" />
             </button>
           )}
 
@@ -191,7 +190,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               className="flex h-7 w-7 items-center justify-center rounded-lg text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer"
               title="Tutup Sidebar ([)"
             >
-              <PanelLeftClose className="h-3.5 w-3.5" />
+              <SidebarSimple className="h-3.5 w-3.5" />
             </button>
           )}
         </div>
@@ -240,7 +239,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               className="flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-xs text-muted hover:text-text bg-hover/40 hover:bg-hover border border-border/60 transition-all cursor-pointer group"
             >
               <div className="flex items-center gap-2">
-                <Search className="h-3.5 w-3.5 text-muted group-hover:text-text transition-colors" />
+                <MagnifyingGlass className="h-3.5 w-3.5 text-muted group-hover:text-text transition-colors" />
                 <span className="font-medium">Cari atau navigasi...</span>
               </div>
               <Kbd>⌘K</Kbd>
@@ -368,7 +367,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             className="opacity-0 group-hover:opacity-100 p-0.5 text-muted hover:text-danger rounded hover:bg-surface transition-opacity"
                             title="Hapus Dokumen"
                           >
-                            <Trash2 className="h-3 w-3" />
+                            <Trash className="h-3 w-3" />
                           </button>
                         )}
                       </div>
@@ -388,7 +387,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               className="p-2 rounded-lg text-muted hover:text-text hover:bg-hover cursor-pointer"
               title="Pencarian Cepat (⌘K)"
             >
-              <Search className="h-4 w-4" />
+              <MagnifyingGlass className="h-4 w-4" />
             </button>
             <div className="w-6 border-t border-border" />
             {boards.slice(0, 3).map((b) => (
@@ -445,7 +444,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 className="p-1.5 rounded-lg text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer"
                 title="Pengaturan Preferensi"
               >
-                <Settings className="h-3.5 w-3.5" />
+                <Gear className="h-3.5 w-3.5" />
               </button>
             </div>
           )}

@@ -4,13 +4,13 @@ import { saveStoredAuthUser, loginWithSupabaseAuth } from '../lib/auth';
 import {
   ArrowLeft,
   User,
-  Mail,
+  EnvelopeSimple,
   Lock,
-  Layers,
-  Sparkles,
-  Loader2,
-  CheckCircle2
-} from 'lucide-react';
+  Stack,
+  Sparkle,
+  Spinner,
+  CheckCircle
+} from '@phosphor-icons/react';
 
 interface AuthPageProps {
   currentUser: AuthUser;
@@ -119,7 +119,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
         <div className="flex items-center justify-center gap-2.5">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-blue-500 text-white shadow-md shadow-purple-500/20">
-            <Layers className="h-5 w-5" />
+            <Stack className="h-5 w-5" />
           </div>
           <h2 className="text-xl font-bold tracking-tight text-appflowy-text dark:text-appflowy-darkText">
             Yuumotion Auth
@@ -172,7 +172,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
           {successMsg && (
             <div className="mb-4 flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50/70 p-3 text-xs text-emerald-600 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-400">
-              <CheckCircle2 className="h-4 w-4" />
+              <CheckCircle className="h-4 w-4" />
               <span>{successMsg}</span>
             </div>
           )}
@@ -184,7 +184,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                   Alamat Email
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-appflowy-muted" />
+                  <EnvelopeSimple className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-appflowy-muted" />
                   <input
                     type="email"
                     required
@@ -218,7 +218,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 disabled={loading}
                 className="w-full flex items-center justify-center gap-2 rounded-xl bg-purple-600 py-2.5 text-xs font-semibold text-white shadow-sm transition-all hover:bg-purple-700 disabled:opacity-50 cursor-pointer"
               >
-                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <span>Masuk ke Workspace</span>}
+                {loading ? <Spinner className="h-4 w-4 animate-spin" /> : <span>Masuk ke Workspace</span>}
               </button>
             </form>
           ) : (
@@ -245,7 +245,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                   Email (Opsional)
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-appflowy-muted" />
+                  <EnvelopeSimple className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-appflowy-muted" />
                   <input
                     type="email"
                     placeholder="nama@email.com"
@@ -301,7 +301,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
               onClick={handleGuestAccess}
               className="mt-4 w-full flex items-center justify-center gap-2 rounded-xl border border-appflowy-border bg-appflowy-bg py-2 text-xs font-medium text-appflowy-text hover:bg-neutral-100 dark:border-appflowy-darkBorder dark:bg-appflowy-darkBg dark:text-appflowy-darkText dark:hover:bg-neutral-800 cursor-pointer"
             >
-              <Sparkles className="h-3.5 w-3.5 text-emerald-500" />
+              <Sparkle className="h-3.5 w-3.5 text-emerald-500" />
               <span>Masuk sebagai Guest (Tanpa Sandi)</span>
             </button>
           </div>

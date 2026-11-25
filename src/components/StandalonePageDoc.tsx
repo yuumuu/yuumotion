@@ -5,17 +5,17 @@ import { TipTapEditor } from './TipTapEditor';
 import {
   FileText,
   BookOpen,
-  Sparkles,
-  Layers,
+  Sparkle,
+  Stack,
   Compass,
   Code,
   Shield,
-  Workflow,
-  ImageIcon,
-  Trash2,
+  TreeStructure,
+  Image,
+  Trash,
   Lock,
   Clock
-} from 'lucide-react';
+} from '@phosphor-icons/react';
 import { cn } from '../lib/cn';
 
 interface StandalonePageDocProps {
@@ -27,12 +27,12 @@ interface StandalonePageDocProps {
 const PRESET_ICONS = [
   { id: 'doc', label: 'Dokumen', icon: <FileText className="h-5 w-5" /> },
   { id: 'book', label: 'Catatan', icon: <BookOpen className="h-5 w-5" /> },
-  { id: 'sparkles', label: 'Ide Baru', icon: <Sparkles className="h-5 w-5" /> },
-  { id: 'layers', label: 'Spesifikasi', icon: <Layers className="h-5 w-5" /> },
+  { id: 'sparkles', label: 'Ide Baru', icon: <Sparkle className="h-5 w-5" /> },
+  { id: 'layers', label: 'Spesifikasi', icon: <Stack className="h-5 w-5" /> },
   { id: 'compass', label: 'Roadmap', icon: <Compass className="h-5 w-5" /> },
   { id: 'code', label: 'Teknis', icon: <Code className="h-5 w-5" /> },
   { id: 'shield', label: 'Keamanan', icon: <Shield className="h-5 w-5" /> },
-  { id: 'workflow', label: 'Alur Sistem', icon: <Workflow className="h-5 w-5" /> }
+  { id: 'workflow', label: 'Alur Sistem', icon: <TreeStructure className="h-5 w-5" /> }
 ];
 
 const PRESET_COVERS = [
@@ -132,7 +132,7 @@ export const StandalonePageDoc: React.FC<StandalonePageDocProps> = ({
                 onClick={() => setShowCoverPicker(!showCoverPicker)}
                 className="flex h-7 items-center gap-1.5 rounded-lg bg-black/60 px-2.5 text-xs font-medium text-white backdrop-blur-xs hover:bg-black/80 cursor-pointer"
               >
-                <ImageIcon className="h-3.5 w-3.5" />
+                <Image className="h-3.5 w-3.5" />
                 <span>Ganti Cover</span>
               </button>
               <button
@@ -143,7 +143,7 @@ export const StandalonePageDoc: React.FC<StandalonePageDocProps> = ({
                 }}
                 className="flex h-7 items-center gap-1 rounded-lg bg-black/60 px-2.5 text-xs font-medium text-white backdrop-blur-xs hover:bg-black/80 cursor-pointer"
               >
-                <Trash2 className="h-3.5 w-3.5" />
+                <Trash className="h-3.5 w-3.5" />
                 <span>Hapus</span>
               </button>
             </div>
@@ -202,7 +202,7 @@ export const StandalonePageDoc: React.FC<StandalonePageDocProps> = ({
                 onClick={() => setShowCoverPicker(!showCoverPicker)}
                 className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer"
               >
-                <ImageIcon className="h-3.5 w-3.5" />
+                <Image className="h-3.5 w-3.5" />
                 <span>Pilih Cover</span>
               </button>
             )}
@@ -239,7 +239,7 @@ export const StandalonePageDoc: React.FC<StandalonePageDocProps> = ({
                   }}
                   className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-border py-1.5 text-xs text-muted hover:bg-hover cursor-pointer"
                 >
-                  <ImageIcon className="h-3.5 w-3.5" />
+                  <Image className="h-3.5 w-3.5" />
                   <span>Unggah Gambar Kustom</span>
                 </button>
               </div>
@@ -276,7 +276,7 @@ export const StandalonePageDoc: React.FC<StandalonePageDocProps> = ({
         {canEdit && (
           <div className="mb-5 flex flex-wrap items-center gap-1.5 border-b border-border/80 pb-3">
             <span className="flex items-center gap-1 text-[11px] font-medium text-muted mr-1">
-              <Sparkles className="h-3 w-3 text-project-accent" />
+              <Sparkle className="h-3 w-3 text-project-accent" />
               Template:
             </span>
             {DOC_TEMPLATES.map((tmpl) => (

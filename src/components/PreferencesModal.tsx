@@ -2,15 +2,15 @@ import React, { useState } from 'react';
 import {
   Sun,
   Moon,
-  Monitor,
-  Layout,
-  Maximize2,
+  Desktop,
+  SidebarSimple,
+  ArrowsOut,
   Square,
-  Sparkles,
-  Download,
-  Wifi,
+  Sparkle,
+  DownloadSimple,
+  WifiHigh,
   Check
-} from 'lucide-react';
+} from '@phosphor-icons/react';
 import { Dialog } from './ui/Dialog';
 import { Button } from './ui/Button';
 import { Switch } from './ui/Switch';
@@ -64,7 +64,7 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
             {[
               { id: 'light', label: 'Terang', desc: 'Default kertas hangat', icon: <Sun className="h-4 w-4" /> },
               { id: 'dark', label: 'Gelap', desc: 'Arang lembut nyaman', icon: <Moon className="h-4 w-4" /> },
-              { id: 'system', label: 'Sistem', desc: 'Otomatis sesuai OS', icon: <Monitor className="h-4 w-4" /> }
+              { id: 'system', label: 'Sistem', desc: 'Otomatis sesuai OS', icon: <Desktop className="h-4 w-4" /> }
             ].map((item) => (
               <button
                 key={item.id}
@@ -168,7 +168,7 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                 id: 'drawer',
                 title: 'Side Peek Drawer',
                 desc: 'Panel kanan, papan di belakang tetap bisa diakses',
-                icon: <Layout className="h-4 w-4" />
+                icon: <SidebarSimple className="h-4 w-4" />
               },
               {
                 id: 'modal',
@@ -180,7 +180,7 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                 id: 'fullpage',
                 title: 'Halaman Penuh',
                 desc: 'Buka kartu sebagai halaman dokumen penuh',
-                icon: <Maximize2 className="h-4 w-4" />
+                icon: <ArrowsOut className="h-4 w-4" />
               }
             ].map((mode) => (
               <button
@@ -208,7 +208,7 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
         {/* 5. Gerak & Micro-delight */}
         <div className="flex items-center justify-between p-3.5 rounded-xl border border-border bg-bar">
           <div className="flex items-center gap-3">
-            <Sparkles className="h-4 w-4 text-project-accent" />
+            <Sparkle className="h-4 w-4 text-project-accent" />
             <div>
               <span className="text-xs font-semibold text-text block">
                 Kurangi Animasi (Reduced Motion)
@@ -227,7 +227,7 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
         {/* 6. PWA & Status Offline */}
         <div className="flex items-center justify-between p-3.5 rounded-xl border border-border bg-bar">
           <div className="flex items-center gap-3">
-            <Wifi className="h-4 w-4 text-status-done" />
+            <WifiHigh className="h-4 w-4 text-status-done" />
             <div>
               <span className="text-xs font-semibold text-text block">
                 Status PWA & Sinkronisasi
@@ -240,7 +240,7 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
           <Button
             variant="secondary"
             size="sm"
-            leftIcon={<Download className="h-3.5 w-3.5" />}
+            leftIcon={<DownloadSimple className="h-3.5 w-3.5" />}
             onClick={() => alert('PWA sudah terpasang dan siap digunakan saat offline.')}
           >
             Cek PWA

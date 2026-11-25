@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle2, AlertTriangle, Info, X } from 'lucide-react';
+import { CheckCircle, Warning, Info, X } from '@phosphor-icons/react';
 
 export interface ToastMessage {
   id: string;
@@ -53,8 +53,8 @@ export const ToastContainer: React.FC = () => {
           className="pointer-events-auto flex items-center justify-between gap-2.5 rounded-xl border border-appflowy-border bg-appflowy-surface p-3 shadow-lg dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface animate-in slide-in-from-bottom-2 duration-150 text-xs"
         >
           <div className="flex items-center gap-2">
-            {t.type === 'success' && <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />}
-            {t.type === 'error' && <AlertTriangle className="h-4 w-4 text-rose-500 shrink-0" />}
+            {t.type === 'success' && <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0" />}
+            {t.type === 'error' && <Warning className="h-4 w-4 text-rose-500 shrink-0" />}
             {t.type === 'info' && <Info className="h-4 w-4 text-purple-500 shrink-0" />}
             <span className="font-medium text-appflowy-text dark:text-appflowy-darkText">{t.text}</span>
           </div>

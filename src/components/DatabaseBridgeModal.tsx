@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Board, DatabaseBridgeConfig } from '../types/board';
 import { generateBoardSqlDump, syncBoardToDatabase } from '../lib/dbBridge';
 import { CustomSelect } from './ui/CustomSelect';
-import { X, Database, Download, RefreshCw, CheckCircle2, AlertTriangle, FileCode } from 'lucide-react';
+import { X, Database, DownloadSimple, ArrowsClockwise, CheckCircle, Warning, FileCode } from '@phosphor-icons/react';
 
 interface DatabaseBridgeModalProps {
   board: Board;
@@ -92,9 +92,9 @@ export const DatabaseBridgeModal: React.FC<DatabaseBridgeModalProps> = ({
             }`}
           >
             {statusMessage.isError ? (
-              <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+              <Warning className="h-4 w-4 flex-shrink-0" />
             ) : (
-              <CheckCircle2 className="h-4 w-4 flex-shrink-0" />
+              <CheckCircle className="h-4 w-4 flex-shrink-0" />
             )}
             <span>{statusMessage.text}</span>
           </div>
@@ -157,7 +157,7 @@ export const DatabaseBridgeModal: React.FC<DatabaseBridgeModalProps> = ({
                 onClick={() => handleDownloadSql('mysql')}
                 className="inline-flex items-center gap-1.5 rounded-lg border border-appflowy-border bg-appflowy-surface px-2.5 py-1 text-xs font-medium text-appflowy-text hover:bg-neutral-100 dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface dark:text-appflowy-darkText"
               >
-                <Download className="h-3.5 w-3.5" />
+                <DownloadSimple className="h-3.5 w-3.5" />
                 <span>Export MySQL Dump</span>
               </button>
               <button
@@ -165,7 +165,7 @@ export const DatabaseBridgeModal: React.FC<DatabaseBridgeModalProps> = ({
                 onClick={() => handleDownloadSql('sqlite')}
                 className="inline-flex items-center gap-1.5 rounded-lg border border-appflowy-border bg-appflowy-surface px-2.5 py-1 text-xs font-medium text-appflowy-text hover:bg-neutral-100 dark:border-appflowy-darkBorder dark:bg-appflowy-darkSurface dark:text-appflowy-darkText"
               >
-                <Download className="h-3.5 w-3.5" />
+                <DownloadSimple className="h-3.5 w-3.5" />
                 <span>Export SQLite Dump</span>
               </button>
             </div>
@@ -178,7 +178,7 @@ export const DatabaseBridgeModal: React.FC<DatabaseBridgeModalProps> = ({
               disabled={isSyncing}
               className="inline-flex items-center gap-1.5 rounded bg-indigo-50 px-3 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-100 disabled:opacity-50 dark:bg-indigo-950/40 dark:text-indigo-300"
             >
-              <RefreshCw className={`h-3.5 w-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+              <ArrowsClockwise className={`h-3.5 w-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
               <span>{isSyncing ? 'Syncing...' : 'Push to DB Endpoint'}</span>
             </button>
 

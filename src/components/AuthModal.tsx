@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { AuthUser } from '../types/board';
 import { loginWithSupabaseAuth, saveStoredAuthUser } from '../lib/auth';
-import { X, CheckCircle2, ShieldCheck, Loader2 } from 'lucide-react';
+import { X, CheckCircle, ShieldCheck, Spinner } from '@phosphor-icons/react';
 
 interface AuthModalProps {
   currentUser: AuthUser;
@@ -153,7 +153,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       localColor === c ? 'scale-125 ring-2 ring-purple-400 ring-offset-1' : 'opacity-80'
                     }`}
                   >
-                    {localColor === c && <CheckCircle2 className="h-3.5 w-3.5" />}
+                    {localColor === c && <CheckCircle className="h-3.5 w-3.5" />}
                   </button>
                 ))}
               </div>
@@ -239,7 +239,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 disabled={loading}
                 className="inline-flex items-center gap-1.5 rounded bg-purple-600 px-3.5 py-1.5 text-xs font-medium text-white shadow-xs hover:bg-purple-700 disabled:opacity-50"
               >
-                {loading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                {loading && <Spinner className="h-3.5 w-3.5 animate-spin" />}
                 <span>Sign In Cloud</span>
               </button>
             </div>

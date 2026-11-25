@@ -15,18 +15,18 @@ import {
 } from './ui';
 import {
   X,
-  Trash2,
+  Trash,
   Tag,
   CheckSquare,
   FileText,
   Plus,
   Paperclip,
-  ImageIcon,
-  History,
-  Maximize2,
+  Image,
+  ClockCounterClockwise,
+  ArrowsOut,
   Square,
-  Layout
-} from 'lucide-react';
+  SidebarSimple
+} from '@phosphor-icons/react';
 import { usePreferences } from '../context/PreferencesContext';
 import { CardOpenMode } from '../types/preferences';
 import { cn } from '../lib/cn';
@@ -234,7 +234,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
             }}
             className="absolute right-3 top-3 flex h-7 items-center gap-1 rounded-lg bg-black/60 px-2.5 text-xs font-medium text-white backdrop-blur-xs hover:bg-black/80 cursor-pointer"
           >
-            <Trash2 className="h-3.5 w-3.5" />
+            <Trash className="h-3.5 w-3.5" />
             <span>Hapus Cover</span>
           </button>
         </div>
@@ -435,7 +435,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
             <Button
               size="xs"
               variant="secondary"
-              leftIcon={<ImageIcon className="h-3 w-3" />}
+              leftIcon={<Image className="h-3 w-3" />}
               onClick={() => coverInputRef.current?.click()}
             >
               Ganti Cover
@@ -505,7 +505,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
         <div>
           <div className="mb-2 flex items-center justify-between">
             <span className="flex items-center gap-1.5 text-xs font-semibold text-muted">
-              <History className="h-3.5 w-3.5" />
+              <ClockCounterClockwise className="h-3.5 w-3.5" />
               Riwayat Aktivitas Kartu
             </span>
             <span className="text-[11px] text-muted font-mono">{activities.length} catatan</span>
@@ -544,7 +544,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
         )}
         title="Mode Side Peek Drawer"
       >
-        <Layout className="h-4 w-4" />
+        <SidebarSimple className="h-4 w-4" />
       </button>
       <button
         type="button"
@@ -566,7 +566,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
         )}
         title="Mode Halaman Penuh"
       >
-        <Maximize2 className="h-4 w-4" />
+        <ArrowsOut className="h-4 w-4" />
       </button>
       <Separator orientation="vertical" className="h-4 mx-1" />
       <button
@@ -580,7 +580,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
         className="p-1.5 rounded-md text-danger hover:bg-status-urgent-bg transition-colors cursor-pointer"
         title="Hapus Kartu Ini"
       >
-        <Trash2 className="h-4 w-4" />
+        <Trash className="h-4 w-4" />
       </button>
     </div>
   );

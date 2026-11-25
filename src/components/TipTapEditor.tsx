@@ -6,30 +6,30 @@ import TaskItem from '@tiptap/extension-task-item';
 import Placeholder from '@tiptap/extension-placeholder';
 import Image from '@tiptap/extension-image';
 import {
-  Bold,
-  Italic,
-  Strikethrough,
+  TextB as Bold,
+  TextItalic as Italic,
+  TextStrikethrough as Strikethrough,
   Code,
-  Heading1,
-  Heading2,
-  Heading3,
-  List,
-  ListOrdered,
+  TextHOne as Heading1,
+  TextHTwo as Heading2,
+  TextHThree as Heading3,
+  ListBullets as List,
+  ListNumbers as ListOrdered,
   CheckSquare,
-  Quote,
+  Quotes as Quote,
   Minus,
-  ImageIcon,
-  Undo,
-  Redo,
+  Image as ImageIcon,
+  ArrowCounterClockwise as Undo,
+  ArrowClockwise as Redo,
   Info,
   Lightbulb,
-  AlertTriangle,
+  Warning as AlertTriangle,
   Terminal,
-  Workflow,
+  TreeStructure as Workflow,
   Sigma,
-  Bookmark,
-  Share2
-} from 'lucide-react';
+  BookmarkSimple as Bookmark,
+  ShareNetwork as Share2
+} from '@phosphor-icons/react';
 import { cn } from '../lib/cn';
 
 interface TipTapEditorProps {

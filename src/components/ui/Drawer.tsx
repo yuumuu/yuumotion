@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { X, Maximize2, Square } from 'lucide-react';
+import { X, ArrowsOut, Square } from '@phosphor-icons/react';
 import { cn } from '../../lib/cn';
 import { CardOpenMode } from '../../types/preferences';
 
@@ -84,7 +84,7 @@ export const Drawer: React.FC<DrawerProps> = ({
                   )}
                   title="Buka Halaman Penuh"
                 >
-                  <Maximize2 className="h-3.5 w-3.5" />
+                  <ArrowsOut className="h-3.5 w-3.5" />
                 </button>
               </>
             )}
@@ -163,7 +163,7 @@ export const Drawer: React.FC<DrawerProps> = ({
                     )}
                     title="Buka Halaman Penuh"
                   >
-                    <Maximize2 className="h-4 w-4" />
+                    <ArrowsOut className="h-4 w-4" />
                   </button>
                 </>
               )}

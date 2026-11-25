@@ -1,5 +1,5 @@
 import React from 'react';
-import { Download, Trash2, FileText, Image as ImageIcon } from 'lucide-react';
+import { DownloadSimple, Trash, FileText, Image as ImageIcon } from '@phosphor-icons/react';
 import { CardAttachment } from '../../types/board';
 
 export interface AttachmentCardProps {
@@ -44,7 +44,7 @@ export const AttachmentCard: React.FC<AttachmentCardProps> = ({
           className="flex h-6 w-6 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-100 hover:text-purple-600 dark:hover:bg-neutral-800 dark:hover:text-purple-400 cursor-pointer"
           title="Unduh file"
         >
-          <Download className="h-3.5 w-3.5" />
+          <DownloadSimple className="h-3.5 w-3.5" />
         </a>
         {!readOnly && onRemove && (
           <button
@@ -53,7 +53,7 @@ export const AttachmentCard: React.FC<AttachmentCardProps> = ({
             className="flex h-6 w-6 items-center justify-center rounded text-appflowy-muted hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40 dark:hover:text-rose-400 cursor-pointer"
             title="Hapus file"
           >
-            <Trash2 className="h-3.5 w-3.5" />
+            <Trash className="h-3.5 w-3.5" />
           </button>
         )}
       </div>

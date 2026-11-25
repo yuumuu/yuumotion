@@ -1,5 +1,5 @@
 import React from 'react';
-import { Keyboard, Command } from 'lucide-react';
+import { Keyboard, Command } from '@phosphor-icons/react';
 import { Dialog, Kbd, Button } from './ui';
 
 interface KeyboardShortcutsModalProps {

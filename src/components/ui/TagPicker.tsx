@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { CardTag } from '../../types/board';
 import { TAG_COLORS } from '../../lib/constants';
-import { Plus, X } from 'lucide-react';
+import { Plus, X } from '@phosphor-icons/react';
 
 export interface TagPickerProps {
   selectedTags: CardTag[];

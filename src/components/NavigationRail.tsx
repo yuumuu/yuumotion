@@ -1,6 +1,6 @@
 import React from 'react';
 import { Workspace, AuthUser } from '../types/board';
-import { Search, Moon, Sun, Settings } from 'lucide-react';
+import { MagnifyingGlass, Moon, Sun, Gear } from '@phosphor-icons/react';
 import { usePreferences } from '../context/PreferencesContext';
 import { cn } from '../lib/cn';
 
@@ -54,7 +54,7 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
           className="flex h-8 w-8 items-center justify-center rounded-xl text-muted hover:text-text hover:bg-hover active:bg-hover/80 transition-colors cursor-pointer"
           title="Pencarian Cepat (⌘K)"
         >
-          <Search className="h-4 w-4" />
+          <MagnifyingGlass className="h-4 w-4" />
         </button>
 
         {/* Project Switcher Icons */}
@@ -103,7 +103,7 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
           className="flex h-8 w-8 items-center justify-center rounded-xl text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer"
           title="Pengaturan Preferensi"
         >
-          <Settings className="h-4 w-4" />
+          <Gear className="h-4 w-4" />
         </button>
 
         <div className="w-8 border-t border-border my-0.5" />

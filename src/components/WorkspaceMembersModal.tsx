@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Workspace, WorkspaceMember, UserRole, AuthUser } from '../types/board';
 import { canManageMembers, canDeleteWorkspace } from '../lib/auth';
 import { CustomSelect } from './ui/CustomSelect';
-import { X, Users, UserPlus, Shield, Trash2, Crown, AlertTriangle } from 'lucide-react';
+import { X, Users, UserPlus, Shield, Trash, Crown, Warning } from '@phosphor-icons/react';
 
 interface WorkspaceMembersModalProps {
   workspace: Workspace;
@@ -239,7 +239,7 @@ export const WorkspaceMembersModal: React.FC<WorkspaceMembersModalProps> = ({
                           className="flex h-7 w-7 items-center justify-center rounded text-neutral-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40"
                           title="Remove from workspace"
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
+                          <Trash className="h-3.5 w-3.5" />
                         </button>
                       )}
                     </div>
@@ -252,7 +252,7 @@ export const WorkspaceMembersModal: React.FC<WorkspaceMembersModalProps> = ({
           {isOwner && onDeleteWorkspace && (
             <div className="rounded-xl border border-rose-200 bg-rose-50/50 p-3 text-xs dark:border-rose-900/40 dark:bg-rose-950/20">
               <div className="flex items-center gap-2 text-rose-700 dark:text-rose-400 font-medium">
-                <AlertTriangle className="h-4 w-4" />
+                <Warning className="h-4 w-4" />
                 <span>Danger Zone</span>
               </div>
               <p className="mt-1 text-[11px] text-rose-600/90 dark:text-rose-400/90">

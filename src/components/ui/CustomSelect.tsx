@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Check } from 'lucide-react';
+import { CaretDown, Check } from '@phosphor-icons/react';
 
 export interface SelectOption<T extends string | number = string> {
   value: T;
@@ -84,7 +84,7 @@ export function CustomSelect<T extends string | number = string>({
           {selectedOption?.icon && <span className="flex-shrink-0">{selectedOption.icon}</span>}
           <span className="truncate">{selectedOption ? selectedOption.label : placeholder}</span>
         </span>
-        <ChevronDown
+        <CaretDown
           className={`h-3.5 w-3.5 flex-shrink-0 text-appflowy-muted transition-transform duration-150 ${
             isOpen ? 'rotate-180' : ''
           }`}

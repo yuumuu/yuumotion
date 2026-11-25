@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Board, Card } from '../types/board';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
+import { CaretLeft, CaretRight, CalendarBlank as CalendarIcon } from '@phosphor-icons/react';
 import { TAG_COLORS } from '../lib/constants';
 import { Button } from './ui';
 
@@ -62,7 +62,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               onClick={handlePrevMonth}
               title="Bulan Sebelumnya"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <CaretLeft className="h-4 w-4" />
             </Button>
             <Button
               variant="ghost"
@@ -77,7 +77,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               onClick={handleNextMonth}
               title="Bulan Berikutnya"
             >
-              <ChevronRight className="h-4 w-4" />
+              <CaretRight className="h-4 w-4" />
             </Button>
           </div>
         </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Moon, Sun, Monitor, Layers, Layout, FileText, CheckCircle2 } from 'lucide-react';
+import { MagnifyingGlass, Moon, Sun, Desktop, Stack, SidebarSimple, FileText, CheckCircle } from '@phosphor-icons/react';
 import { Kbd } from './ui/Kbd';
 import { cn } from '../lib/cn';
 import { usePreferences } from '../context/PreferencesContext';
@@ -44,7 +44,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       id: 'create-task',
       label: 'Buat Tugas Baru',
       shortcut: 'C',
-      icon: <CheckCircle2 className="h-4 w-4 text-project-accent" />,
+      icon: <CheckCircle className="h-4 w-4 text-project-accent" />,
       run: () => {
         onQuickCreateTask?.();
         onClose();
@@ -54,7 +54,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       id: 'view-board',
       label: 'Buka Papan Kanban',
       shortcut: '1',
-      icon: <Layers className="h-4 w-4 text-muted" />,
+      icon: <Stack className="h-4 w-4 text-muted" />,
       run: () => {
         onNavigateView?.('board');
         onClose();
@@ -64,7 +64,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       id: 'view-table',
       label: 'Buka Database Spreadsheet',
       shortcut: '2',
-      icon: <Layout className="h-4 w-4 text-muted" />,
+      icon: <SidebarSimple className="h-4 w-4 text-muted" />,
       run: () => {
         onNavigateView?.('table');
         onClose();
@@ -101,7 +101,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     {
       id: 'theme-system',
       label: 'Ganti Tema: Ikuti Sistem',
-      icon: <Monitor className="h-4 w-4 text-muted" />,
+      icon: <Desktop className="h-4 w-4 text-muted" />,
       run: () => {
         updatePreferences({ theme: 'system' as AppTheme });
         onClose();
@@ -110,7 +110,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     {
       id: 'density-compact',
       label: preferences.density === 'compact' ? 'Kepadatan: Kembali ke Comfortable' : 'Kepadatan: Ubah ke Compact',
-      icon: <Layout className="h-4 w-4 text-muted" />,
+      icon: <SidebarSimple className="h-4 w-4 text-muted" />,
       run: () => {
         updatePreferences({
           density: (preferences.density === 'compact' ? 'comfortable' : 'compact') as AppDensity
@@ -121,7 +121,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     {
       id: 'open-prefs',
       label: 'Buka Pengaturan Preferensi',
-      icon: <Monitor className="h-4 w-4 text-muted" />,
+      icon: <Desktop className="h-4 w-4 text-muted" />,
       run: () => {
         onOpenPreferences?.();
         onClose();
@@ -145,7 +145,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-3 border-b border-border px-4 py-3 bg-bar">
-          <Search className="h-4 w-4 text-muted shrink-0" />
+          <MagnifyingGlass className="h-4 w-4 text-muted shrink-0" />
           <input
             type="text"
             autoFocus

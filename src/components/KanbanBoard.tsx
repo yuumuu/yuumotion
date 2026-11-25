@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Board, Card } from '../types/board';
 import { KanbanColumn } from './KanbanColumn';
-import { Plus } from 'lucide-react';
+import { Plus } from '@phosphor-icons/react';
 import { Button, Input } from './ui';
 
 interface KanbanBoardProps {

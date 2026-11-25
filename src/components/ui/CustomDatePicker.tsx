@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { CalendarBlank as CalendarIcon, CaretLeft, CaretRight, X } from '@phosphor-icons/react';
 
 interface CustomDatePickerProps {
   value?: string;
@@ -164,7 +164,7 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
                 className="flex h-6 w-6 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-100 dark:hover:bg-neutral-800"
                 title="Previous month"
               >
-                <ChevronLeft className="h-3.5 w-3.5" />
+                <CaretLeft className="h-3.5 w-3.5" />
               </button>
               <button
                 type="button"
@@ -172,7 +172,7 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
                 className="flex h-6 w-6 items-center justify-center rounded text-appflowy-muted hover:bg-neutral-100 dark:hover:bg-neutral-800"
                 title="Next month"
               >
-                <ChevronRight className="h-3.5 w-3.5" />
+                <CaretRight className="h-3.5 w-3.5" />
               </button>
             </div>
           </div>

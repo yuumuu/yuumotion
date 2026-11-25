@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Card } from '../types/board';
-import { Calendar, CheckSquare, Paperclip, CheckCircle2 } from 'lucide-react';
+import { CalendarBlank, CheckSquare, Paperclip, CheckCircle } from '@phosphor-icons/react';
 import { cn } from '../lib/cn';
 
 interface KanbanCardProps {
@@ -124,7 +124,7 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({
               )}
             >
               {isAllDone ? (
-                <CheckCircle2 className="h-3 w-3" />
+                <CheckCircle className="h-3 w-3" />
               ) : (
                 <CheckSquare className="h-3 w-3" />
               )}
@@ -141,7 +141,7 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({
 
           {card.dueDate && (
             <span className="inline-flex items-center gap-1">
-              <Calendar className="h-3 w-3" />
+              <CalendarBlank className="h-3 w-3" />
               <span>{card.dueDate.slice(5)}</span>
             </span>
           )}

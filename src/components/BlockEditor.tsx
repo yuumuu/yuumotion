@@ -1,19 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  Heading1,
-  Heading2,
-  Heading3,
-  AlignLeft,
-  List,
-  ListOrdered,
-  Quote,
-  Code2,
+  TextHOne as Heading1,
+  TextHTwo as Heading2,
+  TextHThree as Heading3,
+  TextAlignLeft as AlignLeft,
+  ListBullets as List,
+  ListNumbers as ListOrdered,
+  Quotes as Quote,
+  Code as Code2,
   Minus,
   Plus,
-  Trash2,
+  Trash as Trash2,
   Eye,
-  PenTool
-} from 'lucide-react';
+  PenNib as PenTool
+} from '@phosphor-icons/react';
 
 export type BlockType =
   | 'paragraph'

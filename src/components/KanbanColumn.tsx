@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, Column } from '../types/board';
 import { KanbanCard } from './KanbanCard';
-import { Plus, MoreHorizontal, Trash2 } from 'lucide-react';
+import { Plus, DotsThree, Trash } from '@phosphor-icons/react';
 import { Button } from './ui';
 import { cn } from '../lib/cn';
 
@@ -102,7 +102,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
               className="flex h-6 w-6 items-center justify-center rounded-lg text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer"
               title="Menu Kolom"
             >
-              <MoreHorizontal className="h-3.5 w-3.5" />
+              <DotsThree className="h-4 w-4" />
             </button>
 
             {showMenu && (
@@ -115,7 +115,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
                   }}
                   className="flex w-full items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs text-danger hover:bg-danger/10 transition-colors cursor-pointer font-medium"
                 >
-                  <Trash2 className="h-3.5 w-3.5" />
+                  <Trash className="h-3.5 w-3.5" />
                   <span>Hapus Kolom</span>
                 </button>
               </div>
