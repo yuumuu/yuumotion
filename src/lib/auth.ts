@@ -212,19 +212,20 @@ export type AppRoute = 'app' | 'landing' | 'auth';
 const SESSION_ACTIVE_KEY = 'yuumotion_session_active';
 
 export function hasActiveSession(): boolean {
-  const val = localStorage.getItem(SESSION_ACTIVE_KEY);
-  return val !== 'false';
+  return localStorage.getItem(SESSION_ACTIVE_KEY) === 'true';
 }
 
 export function setActiveSession(active: boolean) {
   localStorage.setItem(SESSION_ACTIVE_KEY, active ? 'true' : 'false');
 }
 
+const LANDING_SECTION_ANCHORS = new Set(['landing', 'top', 'personas', 'docs', 'views', 'open-source']);
+
 export function resolveRouteWithAuthGuard(): AppRoute {
   const rawHash = window.location.hash.replace(/^#\/?/, '').toLowerCase();
   const isAuthed = hasActiveSession();
 
-  if (rawHash === 'landing') {
+  if (LANDING_SECTION_ANCHORS.has(rawHash)) {
     return 'landing';
   }
   if (rawHash === 'auth') {

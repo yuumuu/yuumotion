@@ -123,6 +123,13 @@ export interface AuthUser {
   avatar: string;
   color: string;
   isCloudAuth: boolean;
+  title?: string;
+  bio?: string;
+  timezone?: string;
+  avatarUrl?: string;
+  avatarEmoji?: string;
+  presenceStatus?: 'online' | 'busy' | 'away';
+  notificationsEnabled?: boolean;
 }
 
 export interface UserPresence {

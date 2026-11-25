@@ -22,11 +22,13 @@ import {
   getActiveWorkspaceId,
   setActiveWorkspaceId,
   canEditContent,
+  hasActiveSession,
   resolveRouteWithAuthGuard,
   navigateWithGuard,
   setActiveSession,
   AppRoute
 } from './lib/auth';
+import { apiClient } from './services/apiClient';
 import { createSyncManager, getStoredCloudConfig } from './lib/sync';
 import { getStoredDbConfig, saveStoredDbConfig } from './lib/dbBridge';
 import { Header } from './components/Header';
@@ -984,6 +986,7 @@ export const App: React.FC = () => {
   const selectedCard = selectedCardId ? activeBoard.cards[selectedCardId] : null;
 
   const handleLogout = () => {
+    apiClient.auth.logout().catch(() => {});
     const guestUser: AuthUser = {
       id: `usr-guest-${Math.random().toString(36).substring(2, 7)}`,
       name: 'Guest Collab',
@@ -994,7 +997,9 @@ export const App: React.FC = () => {
     saveStoredAuthUser(guestUser);
     setCurrentUser(guestUser);
     setActiveSession(false);
+    setIsSettingsOpen(false);
     goToRoute('landing');
+    toast.info('Berhasil keluar dari akun.');
   };
 
   if (shareTokenParam) {
@@ -1042,12 +1047,16 @@ export const App: React.FC = () => {
   }
 
   if (appRoute === 'landing') {
+    const authed = hasActiveSession();
     return (
       <LandingPage
-        currentUser={currentUser}
+        currentUser={authed ? currentUser : null}
         onEnterApp={() => {
-          setActiveSession(true);
-          goToRoute('app');
+          if (hasActiveSession()) {
+            goToRoute('app');
+          } else {
+            goToRoute('auth');
+          }
         }}
         onOpenAuth={() => goToRoute('auth')}
         isDark={isDark}
@@ -1368,6 +1377,7 @@ export const App: React.FC = () => {
         onOpenDbBridge={() => setIsDbModalOpen(true)}
         onExportBackup={handleExport}
         onImportBackup={handleImport}
+        onLogout={handleLogout}
       />
 
       <CommandPalette

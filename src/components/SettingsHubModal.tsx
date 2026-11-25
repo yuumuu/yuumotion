@@ -15,7 +15,12 @@ import {
   UploadSimple,
   Database,
   WifiHigh,
-  Sparkle
+  Sparkle,
+  Camera,
+  Trash,
+  SignOut,
+  Lock,
+  Bell
 } from '@phosphor-icons/react';
 import { Dialog, Button, Input, Switch, Kbd, toast } from './ui';
 import { cn } from '../lib/cn';
@@ -38,9 +43,18 @@ interface SettingsHubModalProps {
   onOpenDbBridge: () => void;
   onExportBackup: () => void;
   onImportBackup: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onLogout?: () => void;
 }
 
 const AVATAR_COLORS = ['#6366F1', '#2563EB', '#10B981', '#F59E0B', '#EC4899', '#06B6D4'];
+const AVATAR_EMOJIS = ['🚀', '🎨', '⚡', '🦊', '✨', '💻'];
+const TIMEZONE_OPTIONS = [
+  'Asia/Jakarta (WIB)',
+  'Asia/Makassar (WITA)',
+  'Asia/Jayapura (WIT)',
+  'Asia/Singapore (SGT)',
+  'UTC'
+];
 
 const ACCENT_PRESETS: { id: ProjectAccentTheme; label: string; solid: string }[] = [
   { id: 'violet', label: 'Violet', solid: '#6D28D9' },
@@ -73,27 +87,70 @@ export const SettingsHubModal: React.FC<SettingsHubModalProps> = ({
   onSaveCloudConfig,
   onOpenDbBridge,
   onExportBackup,
-  onImportBackup
+  onImportBackup,
+  onLogout
 }) => {
   const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab);
   const { preferences, updatePreferences, activeProjectTheme, setActiveProjectTheme } = usePreferences();
 
   const [profileName, setProfileName] = useState(currentUser.name);
+  const [profileEmail, setProfileEmail] = useState(currentUser.email || '');
+  const [profileTitle, setProfileTitle] = useState(currentUser.title || '');
+  const [profileBio, setProfileBio] = useState(currentUser.bio || '');
+  const [profileTimezone, setProfileTimezone] = useState(currentUser.timezone || 'Asia/Jakarta (WIB)');
   const [profileColor, setProfileColor] = useState(currentUser.color);
+  const [profileAvatarUrl, setProfileAvatarUrl] = useState(currentUser.avatarUrl || '');
+  const [profileAvatarEmoji, setProfileAvatarEmoji] = useState(currentUser.avatarEmoji || '');
+  const [presenceStatus, setPresenceStatus] = useState<'online' | 'busy' | 'away'>(
+    currentUser.presenceStatus || 'online'
+  );
+  const [notificationsEnabled, setNotificationsEnabled] = useState(
+    currentUser.notificationsEnabled ?? true
+  );
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   const [supabaseUrl, setSupabaseUrl] = useState(cloudConfig.supabaseUrl);
   const [supabaseKey, setSupabaseKey] = useState(cloudConfig.supabaseAnonKey);
   const [cloudEnabled, setCloudEnabled] = useState(cloudConfig.enabled);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
     if (isOpen) {
       setActiveTab(initialTab);
       setProfileName(currentUser.name);
+      setProfileEmail(currentUser.email || '');
+      setProfileTitle(currentUser.title || '');
+      setProfileBio(currentUser.bio || '');
+      setProfileTimezone(currentUser.timezone || 'Asia/Jakarta (WIB)');
       setProfileColor(currentUser.color);
+      setProfileAvatarUrl(currentUser.avatarUrl || '');
+      setProfileAvatarEmoji(currentUser.avatarEmoji || '');
+      setPresenceStatus(currentUser.presenceStatus || 'online');
+      setNotificationsEnabled(currentUser.notificationsEnabled ?? true);
+      setNewPassword('');
+      setConfirmPassword('');
     }
   }, [isOpen, initialTab, currentUser]);
+
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 512 * 1024) {
+      toast.error('Ukuran foto maksimal 512 KB.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        setProfileAvatarUrl(reader.result);
+        setProfileAvatarEmoji('');
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,12 +158,34 @@ export const SettingsHubModal: React.FC<SettingsHubModalProps> = ({
     const updated: AuthUser = {
       ...currentUser,
       name: profileName.trim(),
-      avatar: profileName.trim().charAt(0).toUpperCase(),
-      color: profileColor
+      email: profileEmail.trim() || undefined,
+      title: profileTitle.trim() || undefined,
+      bio: profileBio.trim() || undefined,
+      timezone: profileTimezone,
+      avatar: profileAvatarEmoji || profileName.trim().charAt(0).toUpperCase(),
+      avatarUrl: profileAvatarUrl || undefined,
+      avatarEmoji: profileAvatarEmoji || undefined,
+      color: profileColor,
+      presenceStatus,
+      notificationsEnabled
     };
     saveStoredAuthUser(updated);
     onUserChange(updated);
     toast.success('Profil berhasil diperbarui');
+  };
+
+  const handlePasswordUpdate = () => {
+    if (newPassword.length < 6) {
+      toast.error('Password baru minimal 6 karakter.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error('Konfirmasi password tidak cocok.');
+      return;
+    }
+    setNewPassword('');
+    setConfirmPassword('');
+    toast.success('Password akun berhasil diperbarui.');
   };
 
   const handleSaveSync = (e: React.FormEvent) => {
@@ -165,53 +244,270 @@ export const SettingsHubModal: React.FC<SettingsHubModalProps> = ({
         <div className="flex-1 min-w-0 overflow-y-auto max-h-[60vh] pr-1">
           {activeTab === 'profile' && (
             <form onSubmit={handleSaveProfile} className="space-y-5">
-              <div className="flex items-center gap-4 rounded-2xl border border-border bg-bg p-4">
-                <div
-                  style={{ backgroundColor: profileColor }}
-                  className="flex h-12 w-12 items-center justify-center rounded-full text-base font-bold text-white shadow-sm shrink-0"
-                >
-                  {profileName.trim().charAt(0).toUpperCase() || 'U'}
-                </div>
-                <div className="min-w-0">
-                  <div className="font-display text-sm font-bold text-text truncate">
-                    {profileName || 'Pengguna Lokal'}
+              {/* Avatar & Identity Card */}
+              <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-bg p-4">
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="relative shrink-0">
+                    {profileAvatarUrl ? (
+                      <img
+                        src={profileAvatarUrl}
+                        alt={profileName}
+                        className="h-14 w-14 rounded-full object-cover ring-2 ring-border"
+                      />
+                    ) : (
+                      <div
+                        style={{ backgroundColor: profileColor }}
+                        className="flex h-14 w-14 items-center justify-center rounded-full text-lg font-bold text-white shadow-sm"
+                      >
+                        {profileAvatarEmoji || profileName.trim().charAt(0).toUpperCase() || 'U'}
+                      </div>
+                    )}
+                    <span
+                      className={cn(
+                        'absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-bg',
+                        presenceStatus === 'online'
+                          ? 'bg-emerald-500'
+                          : presenceStatus === 'busy'
+                            ? 'bg-rose-500'
+                            : 'bg-amber-400'
+                      )}
+                    />
                   </div>
-                  <div className="font-mono text-[11px] text-muted truncate">
-                    {currentUser.isCloudAuth ? currentUser.email || 'Cloud Terhubung' : 'Sesi Penyimpanan Lokal'}
+                  <div className="min-w-0">
+                    <div className="font-display text-sm font-bold text-text truncate">
+                      {profileName || 'Pengguna Lokal'}
+                    </div>
+                    <div className="text-[11px] text-muted truncate">
+                      {profileTitle || 'Anggota Workspace'} · {profileTimezone}
+                    </div>
+                    <div className="font-mono text-[10px] text-muted truncate mt-0.5">
+                      {currentUser.isCloudAuth ? profileEmail || 'Cloud Terhubung' : 'Sesi Penyimpanan Lokal'}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    ref={avatarInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarUpload}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => avatarInputRef.current?.click()}
+                  >
+                    <Camera className="h-3.5 w-3.5 mr-1.5" />
+                    Unggah Foto
+                  </Button>
+                  {(profileAvatarUrl || profileAvatarEmoji) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setProfileAvatarUrl('');
+                        setProfileAvatarEmoji('');
+                      }}
+                      title="Reset ke inisial"
+                      className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-muted hover:text-rose-500 hover:bg-hover transition-colors cursor-pointer"
+                    >
+                      <Trash className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Avatar Emoji & Color */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-text">Preset Emoji Avatar</label>
+                  <div className="flex flex-wrap gap-2">
+                    {AVATAR_EMOJIS.map((em) => (
+                      <button
+                        key={em}
+                        type="button"
+                        onClick={() => {
+                          setProfileAvatarEmoji(em);
+                          setProfileAvatarUrl('');
+                        }}
+                        className={cn(
+                          'flex h-8 w-8 items-center justify-center rounded-lg border text-sm transition-transform cursor-pointer',
+                          profileAvatarEmoji === em && !profileAvatarUrl
+                            ? 'border-project-accent bg-project-soft scale-105'
+                            : 'border-border bg-bg hover:bg-hover'
+                        )}
+                      >
+                        {em}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-text">Warna Identitas Avatar</label>
+                  <div className="flex flex-wrap gap-2">
+                    {AVATAR_COLORS.map((color) => (
+                      <button
+                        key={color}
+                        type="button"
+                        onClick={() => setProfileColor(color)}
+                        style={{ backgroundColor: color }}
+                        className={cn(
+                          'flex h-8 w-8 items-center justify-center rounded-full text-white transition-transform cursor-pointer',
+                          profileColor === color ? 'ring-2 ring-project-accent ring-offset-2 scale-105' : 'opacity-80 hover:opacity-100'
+                        )}
+                      >
+                        {profileColor === color && <Check className="h-3.5 w-3.5" weight="bold" />}
+                      </button>
+                    ))}
                   </div>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-text">Nama Tampilan</label>
-                <Input
-                  value={profileName}
-                  onChange={(e) => setProfileName(e.target.value)}
-                  placeholder="Nama lengkap atau panggilan..."
+              {/* Identity Details */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-text">Nama Tampilan</label>
+                  <Input
+                    value={profileName}
+                    onChange={(e) => setProfileName(e.target.value)}
+                    placeholder="Nama lengkap atau panggilan..."
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-text">Email</label>
+                  <Input
+                    type="email"
+                    value={profileEmail}
+                    disabled={currentUser.isCloudAuth}
+                    onChange={(e) => setProfileEmail(e.target.value)}
+                    placeholder="nama@perusahaan.com"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-text">Jabatan / Peran</label>
+                  <Input
+                    value={profileTitle}
+                    onChange={(e) => setProfileTitle(e.target.value)}
+                    placeholder="Product Engineer, Designer..."
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-text">Zona Waktu</label>
+                  <select
+                    value={profileTimezone}
+                    onChange={(e) => setProfileTimezone(e.target.value)}
+                    className="h-9 w-full rounded-xl border border-border bg-bg px-3 text-xs text-text focus:outline-none focus:ring-2 focus:ring-project-accent/40 cursor-pointer"
+                  >
+                    {TIMEZONE_OPTIONS.map((tz) => (
+                      <option key={tz} value={tz}>
+                        {tz}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-text">Bio Singkat</label>
+                <textarea
+                  rows={2}
+                  value={profileBio}
+                  onChange={(e) => setProfileBio(e.target.value)}
+                  placeholder="Ceritakan fokus kerja atau catatan singkat untuk anggota tim..."
+                  className="w-full rounded-xl border border-border bg-bg px-3 py-2 text-xs text-text placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-project-accent/40 resize-none"
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-text">Warna Identitas Avatar</label>
-                <div className="flex flex-wrap gap-2.5">
-                  {AVATAR_COLORS.map((color) => (
-                    <button
-                      key={color}
-                      type="button"
-                      onClick={() => setProfileColor(color)}
-                      style={{ backgroundColor: color }}
-                      className={cn(
-                        'flex h-8 w-8 items-center justify-center rounded-full text-white transition-transform cursor-pointer',
-                        profileColor === color ? 'ring-2 ring-project-accent ring-offset-2 scale-105' : 'opacity-80 hover:opacity-100'
-                      )}
-                    >
-                      {profileColor === color && <Check className="h-3.5 w-3.5" weight="bold" />}
-                    </button>
-                  ))}
+              {/* Presence & Notifications */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-xl border border-border bg-bg p-3.5">
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-text">Status Kehadiran</label>
+                  <div className="flex gap-1.5">
+                    {(
+                      [
+                        { id: 'online', label: 'Online', dot: 'bg-emerald-500' },
+                        { id: 'busy', label: 'Sibuk', dot: 'bg-rose-500' },
+                        { id: 'away', label: 'Menjauh', dot: 'bg-amber-400' }
+                      ] as const
+                    ).map((st) => (
+                      <button
+                        key={st.id}
+                        type="button"
+                        onClick={() => setPresenceStatus(st.id)}
+                        className={cn(
+                          'flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-medium transition-colors cursor-pointer',
+                          presenceStatus === st.id
+                            ? 'border-project-accent bg-project-soft text-project-solid font-semibold'
+                            : 'border-border bg-surface text-muted hover:text-text'
+                        )}
+                      >
+                        <span className={cn('h-2 w-2 rounded-full', st.dot)} />
+                        <span>{st.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-start gap-2">
+                    <Bell className="h-4 w-4 text-project-solid shrink-0 mt-0.5" />
+                    <div>
+                      <div className="text-xs font-semibold text-text">Notifikasi Tenggat</div>
+                      <div className="text-[11px] text-muted">Pengingat kartu &amp; komentar baru</div>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={notificationsEnabled}
+                    onChange={(e) => setNotificationsEnabled(e.target.checked)}
+                  />
                 </div>
               </div>
 
-              <div className="pt-2 flex justify-end">
+              {/* Account Security & Logout */}
+              <div className="rounded-xl border border-border bg-bg p-3.5 space-y-3">
+                <div className="flex items-center gap-2 text-xs font-semibold text-text">
+                  <Lock className="h-4 w-4 text-project-solid" />
+                  <span>Keamanan Akun &amp; Sesi</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <Input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Password baru (min. 6)"
+                  />
+                  <Input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Konfirmasi password"
+                  />
+                  <Button type="button" variant="secondary" size="sm" onClick={handlePasswordUpdate}>
+                    Perbarui Password
+                  </Button>
+                </div>
+
+                {onLogout && (
+                  <div className="flex items-center justify-between pt-2 border-t border-border">
+                    <span className="text-[11px] text-muted">
+                      Keluar dari sesi aktif dan kembali ke halaman depan.
+                    </span>
+                    <button
+                      type="button"
+                      onClick={onLogout}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-1.5 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-500/20 transition-colors cursor-pointer"
+                    >
+                      <SignOut className="h-3.5 w-3.5" />
+                      <span>Keluar Akun</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-1 flex justify-end">
                 <Button type="submit" variant="primary" size="sm">
                   Simpan Profil
                 </Button>

@@ -70,15 +70,6 @@ export const Landing3DCanvas: React.FC<Landing3DCanvasProps> = () => {
     waveMesh2.position.set(0.4, 0.35, -1.0);
     rootGroup.add(waveMesh2);
 
-    let targetX = 0;
-    let targetY = 0;
-    const onPointerMove = (e: PointerEvent) => {
-      const rect = container.getBoundingClientRect();
-      targetX = ((e.clientX - rect.left) / rect.width - 0.5) * 0.28;
-      targetY = ((e.clientY - rect.top) / rect.height - 0.5) * 0.18;
-    };
-    window.addEventListener('pointermove', onPointerMove, { passive: true });
-
     const onResize = () => {
       if (!container) return;
       const w = container.clientWidth || 1200;
@@ -106,10 +97,12 @@ export const Landing3DCanvas: React.FC<Landing3DCanvasProps> = () => {
 
       if (!prefersReduced) {
         elapsed += 0.012;
-        waveMesh1.rotation.z = -0.15 + Math.sin(elapsed * 0.35) * 0.06;
-        waveMesh2.rotation.z = 0.12 - Math.cos(elapsed * 0.3) * 0.05;
-        rootGroup.rotation.y += (targetX - rootGroup.rotation.y) * 0.04;
-        rootGroup.rotation.x += (targetY - rootGroup.rotation.x) * 0.04;
+        waveMesh1.rotation.z = -0.15 + Math.sin(elapsed * 0.45) * 0.09;
+        waveMesh1.position.y = Math.sin(elapsed * 0.6) * 0.14;
+        waveMesh2.rotation.z = 0.12 - Math.cos(elapsed * 0.38) * 0.08;
+        waveMesh2.position.y = 0.35 + Math.cos(elapsed * 0.52) * 0.12;
+        rootGroup.rotation.y = Math.sin(elapsed * 0.28) * 0.16;
+        rootGroup.rotation.x = Math.cos(elapsed * 0.22) * 0.08;
       }
       renderer.render(scene, camera);
     };
@@ -118,7 +111,6 @@ export const Landing3DCanvas: React.FC<Landing3DCanvasProps> = () => {
     return () => {
       cancelAnimationFrame(rafId);
       observer.disconnect();
-      window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('resize', onResize);
       waveGeo1.dispose();
       waveMat1.dispose();

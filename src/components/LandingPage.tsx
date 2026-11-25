@@ -50,25 +50,25 @@ const VIEW_STEPS: {
     id: 'board',
     title: 'Kanban Board',
     desc: 'Seret dan lepas kartu antar kolom, batas WIP, dan edit judul langsung di tempat.',
-    icon: <Kanban className="h-4 w-4" />
+    icon: <Kanban className="w-4 h-4" />
   },
   {
     id: 'table',
     title: 'Tabel Spreadsheet',
     desc: 'Ubah status, prioritas, dan tenggat waktu tugas dalam tampilan baris terstruktur.',
-    icon: <TableIcon className="h-4 w-4" />
+    icon: <TableIcon className="w-4 h-4" />
   },
   {
     id: 'calendar',
     title: 'Kalender Bulanan',
     desc: 'Seret kartu langsung antar tanggal dan pantau event multi-hari sekaligus.',
-    icon: <CalendarBlank className="h-4 w-4" />
+    icon: <CalendarBlank className="w-4 h-4" />
   },
   {
     id: 'timeline',
     title: 'Gantt Timeline',
     desc: 'Geser jadwal atau tarik tepi bar timeline untuk menyesuaikan durasi pengerjaan.',
-    icon: <Clock className="h-4 w-4" />
+    icon: <Clock className="w-4 h-4" />
   }
 ];
 
@@ -152,6 +152,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 }) => {
   const [personaTab, setPersonaTab] = useState<PersonaTab>('product');
   const [previewView, setPreviewView] = useState<PreviewViewMode>('board');
+  const [viewScrollProgress, setViewScrollProgress] = useState(0);
   const [isNavbarHidden, setIsNavbarHidden] = useState(false);
   const viewsSectionRef = useRef<HTMLElement>(null);
 
@@ -168,9 +169,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
       if (rect.top <= 0 && rect.bottom >= window.innerHeight) {
         const progress = Math.min(0.999, Math.max(0, -rect.top / totalScrollable));
+        setViewScrollProgress(progress);
         const idx = Math.floor(progress * VIEW_STEPS.length);
         const nextView = VIEW_STEPS[idx]?.id;
         if (nextView) setPreviewView(nextView);
+      } else if (rect.top > 0) {
+        setViewScrollProgress(0);
+      } else if (rect.bottom < window.innerHeight) {
+        setViewScrollProgress(1);
       }
     };
 
@@ -178,6 +184,37 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  useEffect(() => {
+    const els = Array.from(document.querySelectorAll('[data-reveal]'));
+    if (els.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('yuu-reveal-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.12 }
+    );
+    els.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+
+  const scrollToSection = (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    if (id === 'top') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   const scrollToViewStep = (idx: number, id: PreviewViewMode) => {
     setPreviewView(id);
@@ -200,31 +237,41 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         )}
       >
         <div className="pointer-events-auto mx-auto max-w-6xl flex justify-between items-center px-4 h-14 rounded-2xl border shadow-lg backdrop-blur-md border-black/10 bg-white/85 text-[#0B0D12] dark:border-white/15 dark:bg-[#0B0D12]/80 dark:text-white transition-colors duration-200">
-          <a href="#top" className="flex items-center gap-2.5">
-            <img src="/icon.svg" alt="Yuumotion" className="h-8 w-8 rounded-xl shadow-xs ring-1 ring-black/10 dark:ring-white/25" />
+          <a href="#top" onClick={(e) => scrollToSection(e, 'top')} className="flex items-center gap-2.5 cursor-pointer">
+            <img src="/icon.svg" alt="Yuumotion" className="w-8 h-8 rounded-xl ring-1 shadow-xs ring-black/10 dark:ring-white/25" />
             <span className="text-base font-bold tracking-tight font-display">
               Yuumotion
             </span>
           </a>
 
           <nav className="hidden gap-7 items-center text-xs font-semibold md:flex text-slate-700 dark:text-slate-200">
-            <a href="#personas" className="transition-colors duration-150 hover:text-blue-600 dark:hover:text-blue-400">
+            <a
+              href="#personas"
+              onClick={(e) => scrollToSection(e, 'personas')}
+              className="transition-colors duration-150 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer"
+            >
               Solusi Tim
             </a>
-            <a href="#docs" className="transition-colors duration-150 hover:text-blue-600 dark:hover:text-blue-400">
+            <a
+              href="#docs"
+              onClick={(e) => scrollToSection(e, 'docs')}
+              className="transition-colors duration-150 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer"
+            >
               Dokumen &amp; Sync
             </a>
-            <a href="#views" className="transition-colors duration-150 hover:text-blue-600 dark:hover:text-blue-400">
+            <a
+              href="#views"
+              onClick={(e) => scrollToSection(e, 'views')}
+              className="transition-colors duration-150 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer"
+            >
               Multi-View
             </a>
             <a
-              href={GITHUB_REPO_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 transition-colors duration-150 hover:text-blue-600 dark:hover:text-blue-400"
+              href="#open-source"
+              onClick={(e) => scrollToSection(e, 'open-source')}
+              className="transition-colors duration-150 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer"
             >
-              <GithubLogo className="h-3.5 w-3.5" />
-              <span>GitHub</span>
+              Open-Source
             </a>
           </nav>
 
@@ -251,6 +298,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
       {/* 1. Sky-Blue Volumetric Hero + Rich Animated Background (GPU-composited) */}
       <div className="relative overflow-hidden bg-gradient-to-b from-[#6BB5FF] via-[#2563EB] to-[#1D4ED8] text-white">
+        {/* Subtle Dot Grid & Radial Center Glow */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 opacity-25 bg-[radial-gradient(rgba(255,255,255,0.5)_1px,transparent_1px)] [background-size:28px_28px] animate-yuu-hero-glow"
+        />
         <div
           aria-hidden="true"
           className="pointer-events-none absolute -top-28 -left-20 h-[520px] w-[520px] rounded-full bg-white/30 blur-3xl animate-yuu-hero-drift"
@@ -262,43 +314,55 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute bottom-12 left-1/3 h-[380px] w-[380px] rounded-full bg-blue-300/25 blur-3xl animate-yuu-hero-drift"
+          className="pointer-events-none absolute bottom-12 left-1/3 h-[420px] w-[420px] rounded-full bg-blue-300/30 blur-3xl animate-yuu-hero-drift"
           style={{ animationDelay: '-2.5s', animationDuration: '14s' }}
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -inset-x-24 top-0 h-[440px] opacity-55 bg-[linear-gradient(115deg,transparent_25%,rgba(255,255,255,0.32)_45%,transparent_65%)] animate-yuu-hero-beam"
+          className="pointer-events-none absolute -inset-x-24 top-0 h-[440px] opacity-55 bg-[linear-gradient(115deg,transparent_25%,rgba(255,255,255,0.34)_45%,transparent_65%)] animate-yuu-hero-beam"
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -inset-x-24 top-24 h-[380px] opacity-35 bg-[linear-gradient(130deg,transparent_30%,rgba(191,219,254,0.3)_50%,transparent_70%)] animate-yuu-hero-beam"
+          className="pointer-events-none absolute -inset-x-24 top-24 h-[380px] opacity-40 bg-[linear-gradient(130deg,transparent_30%,rgba(191,219,254,0.34)_50%,transparent_70%)] animate-yuu-hero-beam"
           style={{ animationDelay: '-6s', animationDuration: '16s', animationDirection: 'reverse' }}
         />
-        {/* Rotating Orbital Rings */}
+        {/* Rotating Concentric Orbital Rings */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute left-1/2 top-[42%] h-[680px] w-[680px] rounded-full border border-dashed border-white/20 animate-yuu-hero-orbit"
+          className="pointer-events-none absolute left-1/2 top-[40%] h-[880px] w-[880px] rounded-full border border-dashed border-white/15 animate-yuu-hero-orbit"
+          style={{ animationDuration: '58s' }}
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute left-1/2 top-[42%] h-[460px] w-[460px] rounded-full border border-white/15 animate-yuu-hero-orbit"
-          style={{ animationDuration: '28s', animationDirection: 'reverse' }}
+          className="pointer-events-none absolute left-1/2 top-[40%] h-[660px] w-[660px] rounded-full border border-dashed border-white/25 animate-yuu-hero-orbit"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute left-1/2 top-[40%] h-[440px] w-[440px] rounded-full border border-white/20 animate-yuu-hero-orbit"
+          style={{ animationDuration: '26s', animationDirection: 'reverse' }}
         />
         {/* Floating Spark Particles */}
         {[
-          { top: '18%', left: '14%', size: 'h-2 w-2', delay: '0s', dur: '5.5s' },
-          { top: '28%', left: '84%', size: 'h-2.5 w-2.5', delay: '-1.8s', dur: '6.5s' },
-          { top: '48%', left: '9%', size: 'h-1.5 w-1.5', delay: '-3.1s', dur: '5s' },
-          { top: '54%', left: '89%', size: 'h-2 w-2', delay: '-2.4s', dur: '7s' },
-          { top: '22%', left: '68%', size: 'h-1.5 w-1.5', delay: '-4.2s', dur: '6s' },
-          { top: '38%', left: '24%', size: 'h-2 w-2', delay: '-0.9s', dur: '6.8s' }
+          { top: '14%', left: '12%', size: 'h-2 w-2', delay: '0s', dur: '5.5s', alt: false },
+          { top: '26%', left: '84%', size: 'h-2.5 w-2.5', delay: '-1.8s', dur: '6.5s', alt: true },
+          { top: '48%', left: '8%', size: 'h-1.5 w-1.5', delay: '-3.1s', dur: '5s', alt: false },
+          { top: '54%', left: '89%', size: 'h-2 w-2', delay: '-2.4s', dur: '7s', alt: true },
+          { top: '20%', left: '68%', size: 'h-1.5 w-1.5', delay: '-4.2s', dur: '6s', alt: false },
+          { top: '38%', left: '22%', size: 'h-2 w-2', delay: '-0.9s', dur: '6.8s', alt: true },
+          { top: '12%', left: '42%', size: 'h-1.5 w-1.5', delay: '-2.1s', dur: '5.8s', alt: false },
+          { top: '34%', left: '76%', size: 'h-2 w-2', delay: '-3.7s', dur: '7.2s', alt: true },
+          { top: '62%', left: '16%', size: 'h-2.5 w-2.5', delay: '-1.2s', dur: '6.2s', alt: false },
+          { top: '16%', left: '92%', size: 'h-1.5 w-1.5', delay: '-4.8s', dur: '5.4s', alt: true },
+          { top: '44%', left: '56%', size: 'h-1.5 w-1.5', delay: '-0.4s', dur: '6.4s', alt: false },
+          { top: '68%', left: '78%', size: 'h-2 w-2', delay: '-2.9s', dur: '7.4s', alt: true }
         ].map((p, idx) => (
           <span
             key={idx}
             aria-hidden="true"
             style={{ top: p.top, left: p.left, animationDelay: p.delay, animationDuration: p.dur }}
             className={cn(
-              'pointer-events-none absolute rounded-full bg-white/75 shadow-[0_0_12px_rgba(255,255,255,0.8)] animate-yuu-hero-float',
+              'pointer-events-none absolute rounded-full bg-white/80 shadow-[0_0_14px_rgba(255,255,255,0.85)]',
+              p.alt ? 'animate-yuu-hero-float-alt' : 'animate-yuu-hero-float',
               p.size
             )}
           />
@@ -344,7 +408,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           >
             <div className="hidden sm:block rounded-t-2xl border border-white/40 dark:border-white/15 bg-white/95 dark:bg-[#141720]/95 p-5 text-slate-900 dark:text-slate-100 shadow-2xl">
               <div className="flex gap-2 items-center mb-3">
-                <div className="flex justify-center items-center w-7 h-7 text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-500/20 rounded-lg">
+                <div className="flex justify-center items-center w-7 h-7 text-blue-600 bg-blue-100 rounded-lg dark:text-blue-400 dark:bg-blue-500/20">
                   <FileText className="w-4 h-4" />
                 </div>
                 <span className="text-xs font-bold font-display">Dokumen PRD</span>
@@ -367,7 +431,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <div className="rounded-t-2xl border border-white/60 dark:border-white/15 bg-white dark:bg-[#141720] p-6 text-slate-900 dark:text-slate-100 shadow-[0_24px_60px_-15px_rgba(15,23,42,0.35)] sm:-mt-6">
               <div className="flex justify-between items-center mb-4">
                 <div className="flex gap-2 items-center">
-                  <Kanban className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  <Kanban className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                   <span className="text-sm font-bold font-display">Roadmap Q4</span>
                 </div>
                 <span className="rounded-full bg-blue-50 dark:bg-blue-500/20 px-2 py-0.5 font-mono text-[10px] font-semibold text-blue-600 dark:text-blue-300">
@@ -425,7 +489,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       <main className="flex-1">
         {/* 2. Section Persona Cards dengan Bottom Fluid Artwork */}
         <section id="personas" className="py-20 sm:py-24 bg-[#FAF9F6] dark:bg-[#0B0D12]">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div data-reveal className="yuu-reveal px-4 mx-auto max-w-6xl sm:px-6">
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="text-2xl font-bold tracking-tight font-display text-text sm:text-4xl text-balance">
                 Ruang Kerja Andal untuk{' '}
@@ -497,11 +561,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     )}
                   >
                     <div className="p-7 pb-3">
-                      <div className="flex items-center justify-between mb-5">
+                      <div className="flex justify-between items-center mb-5">
                         <div
                           className={cn(
-                            'flex items-center justify-center rounded-xl w-10 h-10',
-                            isSelected ? 'bg-white/20 text-white' : 'bg-project-soft text-project-solid'
+                            'flex justify-center items-center w-10 h-10 rounded-xl',
+                            isSelected ? 'text-white bg-white/20' : 'bg-project-soft text-project-solid'
                           )}
                         >
                           {card.icon}
@@ -520,11 +584,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                           )}
                         >
                           <span>{card.cta}</span>
-                          <ArrowRight className="h-3 w-3" />
+                          <ArrowRight className="w-3 h-3" />
                         </button>
                       </div>
 
-                      <h3 className={cn('mb-2 font-display text-lg font-bold', isSelected ? 'text-white' : 'text-text')}>
+                      <h3 className={cn('mb-2 text-lg font-bold font-display', isSelected ? 'text-white' : 'text-text')}>
                         {card.title}
                       </h3>
                       <p className={cn('text-xs leading-relaxed', isSelected ? 'text-white/85' : 'text-muted')}>
@@ -540,15 +604,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
         </section>
 
-        {/* 3. Section Editorial Hitam (Layout Terbalik: Preview App Shell di Kiri, Copy di Kanan) */}
+        {/* 3. Section Editorial Hitam (Layout Terbalik: Preview App Shell + Cover Docs di Kiri, Copy di Kanan) */}
         <section id="docs" className="bg-[#0B0D12] text-white py-20 sm:py-24 border-y border-white/10">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
-            {/* Left: Miniature Real App Shell Preview (Rail + Explorer + TipTap + Sticky TOC) */}
+          <div data-reveal className="yuu-reveal grid grid-cols-1 gap-10 items-center px-4 mx-auto max-w-7xl sm:px-6 lg:grid-cols-12 lg:gap-12">
+            {/* Left: Larger Miniature Real App Shell Preview with Cover Image */}
             <div className="lg:col-span-7 lg:order-1">
-              <div className="rounded-2xl border border-white/15 bg-[#12151E] shadow-2xl overflow-hidden flex h-[370px] sm:h-[400px] select-none">
+              <div className="rounded-2xl border border-white/15 bg-[#12151E] shadow-2xl overflow-hidden flex h-[470px] sm:h-[530px] select-none">
                 {/* Mini Blue Navigation Rail */}
                 <div className="w-11 bg-gradient-to-b from-[#1D4ED8] to-[#1E40AF] flex flex-col items-center py-3 gap-3 shrink-0 border-r border-white/15">
-                  <img src="/icon.svg" alt="Yuumotion" className="h-6 w-6 rounded-lg ring-1 ring-white/25" />
+                  <img src="/icon.svg" alt="Yuumotion" className="w-6 h-6 rounded-lg ring-1 ring-white/25" />
                   <div className="w-5 border-t border-white/20" />
                   <div className="h-6 w-6 rounded-lg bg-white/25 ring-1 ring-white/40 flex items-center justify-center text-[10px] font-bold">
                     Y
@@ -565,56 +629,79 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     Papan Sprint
                   </div>
                   <div className="rounded-lg px-2 py-1 text-[11px] text-slate-300 flex items-center gap-1.5 mb-3">
-                    <Kanban className="h-3 w-3 text-slate-400" />
+                    <Kanban className="w-3 h-3 text-slate-400" />
                     <span className="truncate">Roadmap Q4</span>
                   </div>
                   <div className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
                     Dokumen &amp; PRD
                   </div>
                   <div className="rounded-lg bg-blue-600/20 border border-blue-500/40 px-2 py-1 text-[11px] font-semibold text-blue-300 flex items-center gap-1.5">
-                    <FileText className="h-3 w-3 shrink-0" />
+                    <FileText className="w-3 h-3 shrink-0" />
                     <span className="truncate">Arsitektur v2</span>
                   </div>
                 </div>
 
-                {/* Mini TipTap Canvas + Sticky TOC */}
-                <div className="flex-1 bg-[#0B0D12] p-5 flex gap-4 overflow-hidden">
-                  <div className="flex-1 min-w-0 space-y-3">
-                    <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
-                      <span className="font-display text-sm font-bold text-white truncate">
-                        Arsitektur Ruang Kerja
-                      </span>
-                      <span className="font-mono text-[10px] text-blue-400 shrink-0">✓ Tersimpan</span>
-                    </div>
-                    <div className="flex flex-wrap gap-1.5 pb-1">
-                      {['Meeting Notes', 'PRD', 'Roadmap'].map((t) => (
-                        <span key={t} className="rounded-md border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-slate-300">
-                          {t}
-                        </span>
-                      ))}
-                    </div>
-                    <div className="space-y-2 text-[11px] text-slate-300 leading-relaxed">
-                      <div className="font-display text-xs font-bold text-white">1. Ringkasan Sistem</div>
-                      <p className="text-slate-400">
-                        Ketik perintah slash <span className="font-mono text-blue-400">/image</span> atau{' '}
-                        <span className="font-mono text-blue-400">/code</span> untuk menyisipkan blok terstruktur secara instan.
-                      </p>
-                      <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 p-2.5 text-[11px] text-blue-200">
-                        TipTap terhubung langsung dengan tombol Export Markdown (.md).
-                      </div>
-                    </div>
+                {/* Mini TipTap Canvas + Cover Banner + Sticky TOC */}
+                <div className="flex-1 bg-[#0B0D12] flex flex-col overflow-hidden">
+                  {/* Cover Image Banner */}
+                  <div className="relative h-28 sm:h-32 w-full shrink-0 overflow-hidden border-b border-white/10">
+                    <img
+                      src="https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1200&auto=format&fit=crop&q=80"
+                      alt="Cover Dokumen Yuumotion"
+                      className="h-full w-full object-cover object-center"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0B0D12]/80 via-[#0B0D12]/20 to-transparent" />
+                    <span className="absolute right-3 top-2.5 rounded-lg border border-white/20 bg-black/40 px-2 py-0.5 text-[10px] font-medium text-white/90 backdrop-blur-sm">
+                      Ganti Cover
+                    </span>
                   </div>
 
-                  {/* Mini Sticky TOC */}
-                  <div className="hidden md:block w-32 shrink-0 rounded-xl border border-white/10 bg-[#141720] p-2.5 h-fit">
-                    <div className="flex items-center gap-1 font-mono text-[9px] font-semibold uppercase tracking-wider text-slate-400 pb-1.5 mb-1.5 border-b border-white/10">
-                      <ListBullets className="h-3 w-3 text-blue-400" />
-                      <span>Daftar Isi</span>
+                  <div className="flex-1 px-5 pb-5 flex gap-4 overflow-hidden">
+                    <div className="flex-1 space-y-3 min-w-0">
+                      <div className="-mt-6 relative z-10 flex items-end justify-between border-b border-white/10 pb-2.5">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-[#141720] text-lg shadow-lg shrink-0">
+                            📝
+                          </span>
+                          <span className="text-sm sm:text-base font-bold text-white truncate font-display">
+                            Arsitektur Ruang Kerja
+                          </span>
+                        </div>
+                        <span className="font-mono text-[10px] text-blue-400 shrink-0">✓ Tersimpan</span>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5 pb-1">
+                        {['Meeting Notes', 'PRD', 'Roadmap'].map((t) => (
+                          <span key={t} className="rounded-md border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-slate-300">
+                            {t}
+                          </span>
+                        ))}
+                      </div>
+                      <div className="space-y-2.5 text-[11px] text-slate-300 leading-relaxed">
+                        <div className="text-xs font-bold text-white font-display">1. Ringkasan Sistem</div>
+                        <p className="text-slate-400">
+                          Ketik perintah slash <span className="font-mono text-blue-400">/image</span> atau{' '}
+                          <span className="font-mono text-blue-400">/code</span> untuk menyisipkan blok terstruktur secara instan.
+                        </p>
+                        <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 p-2.5 text-[11px] text-blue-200">
+                          TipTap terhubung langsung dengan tombol Export Markdown (.md).
+                        </div>
+                        <div className="rounded-xl border border-white/10 bg-[#141720] p-2.5 font-mono text-[10px] text-slate-300">
+                          BroadcastChannel (0ms) + Hono SSE Realtime
+                        </div>
+                      </div>
                     </div>
-                    <div className="space-y-1 text-[10px]">
-                      <div className="text-white font-semibold truncate">1. Ringkasan</div>
-                      <div className="text-slate-400 pl-2 truncate">2. Skema DB</div>
-                      <div className="text-slate-400 pl-2 truncate">3. RBAC Policy</div>
+
+                    {/* Mini Sticky TOC */}
+                    <div className="hidden md:block w-32 shrink-0 mt-3 rounded-xl border border-white/10 bg-[#141720] p-2.5 h-fit">
+                      <div className="flex items-center gap-1 font-mono text-[9px] font-semibold uppercase tracking-wider text-slate-400 pb-1.5 mb-1.5 border-b border-white/10">
+                        <ListBullets className="w-3 h-3 text-blue-400" />
+                        <span>Daftar Isi</span>
+                      </div>
+                      <div className="space-y-1 text-[10px]">
+                        <div className="font-semibold text-white truncate">1. Ringkasan</div>
+                        <div className="pl-2 truncate text-slate-400">2. Skema DB</div>
+                        <div className="pl-2 truncate text-slate-400">3. RBAC Policy</div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -622,19 +709,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
 
             {/* Right: Copy Editorial */}
-            <div className="lg:col-span-5 lg:order-2 space-y-5">
-              <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-tight leading-tight">
+            <div className="space-y-5 lg:col-span-5 lg:order-2">
+              <h2 className="text-3xl font-bold tracking-tight leading-tight font-display sm:text-4xl">
                 Tulis Spesifikasi,{' '}
                 <span className="font-serif italic font-normal text-blue-400">Simpan Otomatis</span> di Perangkat.
               </h2>
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              <p className="text-xs leading-relaxed sm:text-sm text-slate-300">
                 Editor TipTap dengan perintah slash (/), daftar isi sticky otomatis, export Markdown (.md), serta sinkronisasi 0ms antar tab dan RBAC Owner hingga Viewer.
               </p>
 
               <div className="grid grid-cols-2 gap-4 pt-3 border-t border-white/10">
                 <div>
-                  <div className="flex items-center gap-2 text-xs font-bold text-white mb-1">
-                    <Lightning className="h-4 w-4 text-blue-400" />
+                  <div className="flex gap-2 items-center mb-1 text-xs font-bold text-white">
+                    <Lightning className="w-4 h-4 text-blue-400" />
                     <span>0ms Local Sync</span>
                   </div>
                   <p className="text-[11px] text-slate-400">
@@ -642,8 +729,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   </p>
                 </div>
                 <div>
-                  <div className="flex items-center gap-2 text-xs font-bold text-white mb-1">
-                    <ShieldCheck className="h-4 w-4 text-blue-400" />
+                  <div className="flex gap-2 items-center mb-1 text-xs font-bold text-white">
+                    <ShieldCheck className="w-4 h-4 text-blue-400" />
                     <span>RBAC Guardrails</span>
                   </div>
                   <p className="text-[11px] text-slate-400">
@@ -661,13 +748,30 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           ref={viewsSectionRef}
           className="relative bg-white dark:bg-[#11131A] border-b border-border lg:h-[270vh]"
         >
-          <div className="lg:sticky lg:top-0 lg:h-screen flex items-center overflow-hidden py-14 lg:py-0">
-            <div className="mx-auto max-w-7xl w-full px-4 sm:px-6">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-                {/* Left: Compact Normal-Sized Tabs */}
-                <div className="lg:col-span-4 space-y-5">
+          <div className="relative flex overflow-hidden items-center py-14 lg:sticky lg:top-0 lg:h-screen lg:py-0">
+            {/* Top Horizontal Scroll Progress Indicator */}
+            <div className="hidden lg:block absolute top-0 inset-x-0 z-20 h-1 bg-border/60">
+              <div
+                style={{ transform: `scaleX(${Math.max(0.04, viewScrollProgress)})` }}
+                className="h-full origin-left bg-gradient-to-r from-[#2563EB] to-[#60A5FA] transition-transform duration-100 ease-out"
+              />
+            </div>
+
+            <div data-reveal className="yuu-reveal px-4 mx-auto w-full max-w-7xl sm:px-6">
+              <div className="grid grid-cols-1 gap-8 items-center lg:grid-cols-12">
+                {/* Left: Compact Normal-Sized Tabs + Vertical Scroll Rail */}
+                <div className="space-y-5 lg:col-span-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-project-solid">
+                      Progres Tampilan · 0{VIEW_STEPS.findIndex((s) => s.id === previewView) + 1} / 0{VIEW_STEPS.length}
+                    </span>
+                    <span className="hidden lg:inline-block font-mono text-[11px] text-muted">
+                      {Math.round(viewScrollProgress * 100)}%
+                    </span>
+                  </div>
+
                   <div>
-                    <h2 className="font-display text-2xl sm:text-4xl font-bold tracking-tight text-text">
+                    <h2 className="text-2xl font-bold tracking-tight font-display sm:text-4xl text-text">
                       Satu Sumber Data, Empat Perspektif Nyata
                     </h2>
                     <p className="mt-2 text-xs sm:text-sm text-muted">
@@ -675,7 +779,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     </p>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="flex gap-3 items-stretch">
+                    {/* Vertical Progress Rail */}
+                    <div className="hidden lg:block w-1 rounded-full bg-border overflow-hidden shrink-0">
+                      <div
+                        style={{ height: `${Math.max(12, viewScrollProgress * 100)}%` }}
+                        className="w-full rounded-full bg-gradient-to-b from-[#2563EB] to-[#60A5FA] transition-[height] duration-150 ease-out"
+                      />
+                    </div>
+
+                    <div className="space-y-2 flex-1 min-w-0">
                     {VIEW_STEPS.map((step, idx) => {
                       const isActive = previewView === step.id;
                       return (
@@ -690,17 +803,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                               : 'border-border bg-bg text-text hover:border-project-ring'
                           )}
                         >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
+                          <div className="flex justify-between items-center">
+                            <div className="flex gap-2 items-center">
                               <span
                                 className={cn(
-                                  'flex h-6 w-6 items-center justify-center rounded-lg',
-                                  isActive ? 'bg-blue-600 text-white' : 'bg-project-soft text-project-solid'
+                                  'flex justify-center items-center w-6 h-6 rounded-lg',
+                                  isActive ? 'text-white bg-blue-600' : 'bg-project-soft text-project-solid'
                                 )}
                               >
                                 {step.icon}
                               </span>
-                              <span className="font-display text-xs font-bold">{step.title}</span>
+                              <span className="text-xs font-bold font-display">{step.title}</span>
                             </div>
                             <span className="font-mono text-[10px] opacity-60">0{idx + 1}</span>
                           </div>
@@ -712,6 +825,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                         </button>
                       );
                     })}
+                    </div>
                   </div>
                 </div>
 
@@ -727,11 +841,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                       className="mx-3 h-3.5 rounded-t-2xl border border-b-0 border-border bg-[#1D4ED8]/85"
                     />
 
-                    <div className="rounded-2xl border border-border bg-bg shadow-2xl overflow-hidden">
+                    <div className="overflow-hidden rounded-2xl border shadow-2xl border-border bg-bg">
                       <div className="flex items-center justify-between px-4 py-2.5 border-b border-border bg-bar">
-                        <div className="flex items-center gap-2">
-                          <img src="/icon.svg" alt="Yuumotion" className="h-5 w-5 rounded-md" />
-                          <span className="font-display text-xs font-bold text-text">
+                        <div className="flex gap-2 items-center">
+                          <img src="/icon.svg" alt="Yuumotion" className="w-5 h-5 rounded-md" />
+                          <span className="text-xs font-bold font-display text-text">
                             {INITIAL_BOARD.title}
                           </span>
                         </div>
@@ -788,8 +902,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
         </section>
 
-        {/* 5. Full-Bleed 3D Open-Source Section */}
-        <section className="relative overflow-hidden bg-[#0B0D12] text-white py-28 sm:py-36 border-b border-white/10">
+        {/* 5. Full-Bleed 3D Open-Source Section (Dedicated to Architecture & Repo) */}
+        <section id="open-source" className="relative overflow-hidden bg-[#0B0D12] text-white py-28 sm:py-36 border-b border-white/10">
           <div className="absolute inset-0 pointer-events-none">
             <Suspense fallback={null}>
               <Landing3DCanvas isDark={true} />
@@ -800,33 +914,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#0B0D12] via-[#0B0D12]/75 via-40% to-transparent"
           />
 
-          <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6">
-            <div className="max-w-lg space-y-5">
-              <h2 className="font-display text-3xl sm:text-5xl font-bold tracking-tight leading-tight">
+          <div data-reveal className="yuu-reveal relative z-10 px-4 mx-auto max-w-6xl sm:px-6">
+            <div className="space-y-5 max-w-lg">
+              <h2 className="text-3xl font-bold tracking-tight leading-tight font-display sm:text-5xl">
                 Arsitektur Terbuka,{' '}
                 <span className="font-serif italic font-normal text-blue-400">Siap Diperluas</span>
               </h2>
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              <p className="text-xs leading-relaxed sm:text-sm text-slate-300">
                 Dibangun dalam satu repositori dengan frontend React + Vite dan backend Hono + Drizzle ORM untuk MySQL/TiDB di Wasmer Edge. Berlisensi Apache 2.0.
               </p>
-              <div className="flex flex-wrap gap-3 pt-2">
+              <div className="pt-2">
                 <a
                   href={GITHUB_REPO_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-xs font-semibold text-white shadow-lg transition-[transform,opacity] duration-150 hover:opacity-95 active:scale-[0.97]"
                 >
-                  <GithubLogo className="h-4 w-4" />
+                  <GithubLogo className="w-4 h-4" />
                   <span>Beri Bintang &amp; Lihat Repo</span>
                   <ArrowUpRight className="h-3.5 w-3.5" />
                 </a>
-                <button
-                  type="button"
-                  onClick={onEnterApp}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-white/25 bg-white/10 px-4 py-2.5 text-xs font-semibold text-white backdrop-blur-sm hover:bg-white/20 transition-colors cursor-pointer"
-                >
-                  <span>Coba Demo Langsung</span>
-                </button>
               </div>
             </div>
           </div>
@@ -835,7 +942,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
       {/* 6. Pre-Footer CTA & Krafft-Style Electric Blue Footer */}
       <div className="relative overflow-hidden bg-gradient-to-b from-[#FAF9F6] via-[#60A5FA] via-35% to-[#0B45D6] dark:from-[#0B0D12] dark:via-[#1D4ED8] dark:via-40% dark:to-[#0B3AB5]">
-        <section className="px-4 pt-20 pb-24 mx-auto max-w-4xl text-center sm:px-6">
+        <section data-reveal className="yuu-reveal px-4 pt-20 pb-24 mx-auto max-w-4xl text-center sm:px-6">
           <h2 className="font-display text-3xl font-bold tracking-tight text-[#0B0D12] dark:text-white sm:text-5xl leading-[1.12] text-balance">
             Dirancang untuk <span className="font-serif italic font-normal">tim yang serius</span>{' '}
             membangun produk.
@@ -845,24 +952,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             Dari catatan cepat hingga roadmap peluncuran berskala besar, mulai tata ruang kerja Yuumotion dalam hitungan detik.
           </p>
 
-          <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+          <div className="flex justify-center items-center mt-7">
             <button
               type="button"
               onClick={onEnterApp}
               className="inline-flex items-center gap-2 rounded-xl bg-[#2563EB] px-6 py-3 text-xs font-semibold text-white shadow-[0_12px_28px_-6px_rgba(37,99,235,0.55)] transition-[transform,opacity] duration-150 hover:-translate-y-0.5 hover:opacity-95 active:translate-y-0 active:scale-[0.97] cursor-pointer"
             >
-              <span>Buka Dashboard</span>
+              <span>{currentUser ? 'Buka Dashboard' : 'Mulai Workspace Gratis'}</span>
               <ArrowUpRight className="w-4 h-4" />
             </button>
-            <a
-              href={GITHUB_REPO_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-xl border border-white/40 bg-white/20 backdrop-blur-sm px-5 py-3 text-xs font-semibold text-white hover:bg-white/30 transition-colors"
-            >
-              <GithubLogo className="w-4 h-4" />
-              <span>GitHub Repo</span>
-            </a>
           </div>
         </section>
 
