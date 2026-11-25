@@ -32,7 +32,11 @@ export function getStoredCloudConfig(): CloudSyncConfig {
 }
 
 export function saveStoredCloudConfig(config: CloudSyncConfig) {
-  localStorage.setItem(CLOUD_CONFIG_KEY, JSON.stringify(config));
+  try {
+    localStorage.setItem(CLOUD_CONFIG_KEY, JSON.stringify(config));
+  } catch {
+    // Ignore storage quota exceeded
+  }
 }
 
 class RealtimeSyncManager {

@@ -21,7 +21,11 @@ export function getStoredDbConfig(): DatabaseBridgeConfig {
 }
 
 export function saveStoredDbConfig(config: DatabaseBridgeConfig) {
-  localStorage.setItem(DB_CONFIG_KEY, JSON.stringify(config));
+  try {
+    localStorage.setItem(DB_CONFIG_KEY, JSON.stringify(config));
+  } catch {
+    // Ignore storage quota exceeded
+  }
 }
 
 export function generateBoardSqlDump(board: Board, dialect: 'mysql' | 'sqlite' = 'mysql'): string {

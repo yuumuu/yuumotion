@@ -108,6 +108,10 @@ export function generateLocalUser(): UserPresence {
     lastActive: Date.now()
   };
 
-  localStorage.setItem('yuumotion_current_user', JSON.stringify(user));
+  try {
+    localStorage.setItem('yuumotion_current_user', JSON.stringify(user));
+  } catch {
+    // Ignore storage quota exceeded
+  }
   return user;
 }

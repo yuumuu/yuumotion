@@ -6,7 +6,8 @@ import {
   getWorkspacesStorageKey,
   getActiveWorkspaceStorageKey,
   isGuestUser,
-  migrateLegacyGlobalWorkspacesToGuest
+  migrateLegacyGlobalWorkspacesToGuest,
+  safeSetStorageItem
 } from './storageNamespace';
 
 const AUTH_USER_KEY = 'yuumotion_auth_user';
@@ -31,12 +32,12 @@ export function getStoredAuthUser(): AuthUser {
     isCloudAuth: false
   };
 
-  localStorage.setItem(AUTH_USER_KEY, JSON.stringify(defaultUser));
+  safeSetStorageItem(AUTH_USER_KEY, JSON.stringify(defaultUser));
   return defaultUser;
 }
 
 export function saveStoredAuthUser(user: AuthUser) {
-  localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
+  safeSetStorageItem(AUTH_USER_KEY, JSON.stringify(user));
 }
 
 export function canEditContent(role: UserRole): boolean {
@@ -173,12 +174,12 @@ export function getStoredWorkspaces(currentUser: AuthUser): Workspace[] {
     updatedAt: Date.now()
   };
 
-  localStorage.setItem(storageKey, JSON.stringify([initialWorkspace]));
+  safeSetStorageItem(storageKey, JSON.stringify([initialWorkspace]));
   return [initialWorkspace];
 }
 
 export function saveStoredWorkspaces(workspaces: Workspace[], currentUser?: AuthUser | null) {
-  localStorage.setItem(getWorkspacesStorageKey(currentUser), JSON.stringify(workspaces));
+  safeSetStorageItem(getWorkspacesStorageKey(currentUser), JSON.stringify(workspaces));
 }
 
 export function getActiveWorkspaceId(workspaces: Workspace[], currentUser?: AuthUser | null): string {
@@ -190,7 +191,7 @@ export function getActiveWorkspaceId(workspaces: Workspace[], currentUser?: Auth
 }
 
 export function setActiveWorkspaceId(workspaceId: string, currentUser?: AuthUser | null) {
-  localStorage.setItem(getActiveWorkspaceStorageKey(currentUser), workspaceId);
+  safeSetStorageItem(getActiveWorkspaceStorageKey(currentUser), workspaceId);
 }
 
 export async function loginWithSupabaseAuth(email: string, password: string):Promise<{ success: boolean; user?: AuthUser; message?: string }> {
@@ -235,7 +236,7 @@ export function hasActiveSession(): boolean {
 }
 
 export function setActiveSession(active: boolean) {
-  localStorage.setItem(SESSION_ACTIVE_KEY, active ? 'true' : 'false');
+  safeSetStorageItem(SESSION_ACTIVE_KEY, active ? 'true' : 'false');
 }
 
 const LANDING_SECTION_ANCHORS = new Set(['landing', 'top', 'personas', 'docs', 'views', 'open-source']);
