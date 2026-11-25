@@ -1232,6 +1232,7 @@ export const App: React.FC = () => {
                     searchQuery={searchQuery}
                     onCardClick={(card) => setSelectedCardId(card.id)}
                     onAddCardOnDate={handleAddCardOnDate}
+                    onUpdateCard={handleUpdateCard}
                   />
                 )}
 
