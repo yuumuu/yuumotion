@@ -5,7 +5,7 @@ interface Landing3DCanvasProps {
   isDark?: boolean;
 }
 
-export const Landing3DCanvas: React.FC<Landing3DCanvasProps> = ({ isDark = false }) => {
+export const Landing3DCanvas: React.FC<Landing3DCanvasProps> = ({ isDark = true }) => {
   const mountRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -13,103 +13,138 @@ export const Landing3DCanvas: React.FC<Landing3DCanvasProps> = ({ isDark = false
     if (!container) return;
 
     const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const width = container.clientWidth || 420;
-    const height = container.clientHeight || 320;
+    const width = container.clientWidth || 1200;
+    const height = container.clientHeight || 520;
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(42, width / height, 0.1, 100);
-    camera.position.set(0, 0.2, 5.2);
+    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
+    camera.position.set(0, 0.4, 7.5);
 
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'low-power' });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     container.appendChild(renderer.domElement);
 
-    const ambient = new THREE.AmbientLight(0xffffff, isDark ? 0.7 : 0.9);
+    const ambient = new THREE.AmbientLight(0xffffff, isDark ? 0.6 : 0.85);
     scene.add(ambient);
 
-    const keyLight = new THREE.DirectionalLight(0x60a5fa, 1.8);
-    keyLight.position.set(3, 4, 5);
-    scene.add(keyLight);
+    const blueLight = new THREE.DirectionalLight(0x3b82f6, 2.2);
+    blueLight.position.set(5, 6, 5);
+    scene.add(blueLight);
 
-    const rimLight = new THREE.DirectionalLight(0x1d4ed8, 1.2);
-    rimLight.position.set(-4, -2, 3);
+    const rimLight = new THREE.DirectionalLight(0x93c5fd, 1.4);
+    rimLight.position.set(-6, -3, 4);
     scene.add(rimLight);
 
-    const group = new THREE.Group();
-    scene.add(group);
+    const rootGroup = new THREE.Group();
+    scene.add(rootGroup);
 
-    // Core crystalline blue-glass icosahedron
-    const coreGeo = new THREE.IcosahedronGeometry(1.15, 0);
-    const coreMat = new THREE.MeshPhysicalMaterial({
-      color: 0x2563eb,
-      roughness: 0.15,
-      metalness: 0.2,
-      transmission: 0.35,
-      transparent: true,
-      opacity: 0.92
-    });
-    const coreMesh = new THREE.Mesh(coreGeo, coreMat);
-    group.add(coreMesh);
+    // 1. Flowing Architectural Wave Ribbon (full-bleed horizontal span)
+    const waveGeo = new THREE.PlaneGeometry(18, 6.5, 44, 16);
+    const posAttr = waveGeo.attributes.position;
+    for (let i = 0; i < posAttr.count; i++) {
+      const x = posAttr.getX(i);
+      const y = posAttr.getY(i);
+      const z = Math.sin(x * 0.45) * 0.75 + Math.cos(y * 0.65) * 0.45;
+      posAttr.setZ(i, z);
+    }
+    waveGeo.computeVertexNormals();
 
-    // Crisp white/dark wireframe cage
-    const wireGeo = new THREE.IcosahedronGeometry(1.38, 0);
-    const wireMat = new THREE.MeshBasicMaterial({
-      color: isDark ? 0x93c5fd : 0x1e293b,
+    const waveMat = new THREE.MeshBasicMaterial({
+      color: isDark ? 0x2563eb : 0x3b82f6,
       wireframe: true,
       transparent: true,
-      opacity: 0.35
+      opacity: isDark ? 0.22 : 0.18
     });
-    const wireMesh = new THREE.Mesh(wireGeo, wireMat);
-    group.add(wireMesh);
+    const waveMesh = new THREE.Mesh(waveGeo, waveMat);
+    waveMesh.rotation.x = -0.68;
+    waveMesh.position.set(0, -1.2, -1.8);
+    rootGroup.add(waveMesh);
 
-    // Orbiting Kanban-tile blocks
-    const tileMatBlue = new THREE.MeshStandardMaterial({ color: 0x3b82f6, roughness: 0.3 });
-    const tileMatNeutral = new THREE.MeshStandardMaterial({
-      color: isDark ? 0xf8fafc : 0x0f172a,
-      roughness: 0.35
+    // 2. Floating Kanban & Document Panels (Blue / Black / White palette)
+    const panelGeo = new THREE.BoxGeometry(1.45, 0.92, 0.06);
+    const matBlue = new THREE.MeshStandardMaterial({
+      color: 0x2563eb,
+      roughness: 0.25,
+      metalness: 0.15,
+      transparent: true,
+      opacity: 0.88
     });
-    const tileGeo = new THREE.BoxGeometry(0.48, 0.3, 0.08);
-    const tiles: THREE.Mesh[] = [];
-    for (let i = 0; i < 4; i++) {
-      const mesh = new THREE.Mesh(tileGeo, i % 2 === 0 ? tileMatBlue : tileMatNeutral);
-      const angle = (i / 4) * Math.PI * 2;
-      mesh.position.set(Math.cos(angle) * 2.05, Math.sin(angle) * 0.85, Math.sin(angle) * 0.75);
-      mesh.rotation.set(0.2, angle, 0.15);
-      group.add(mesh);
-      tiles.push(mesh);
-    }
+    const matDark = new THREE.MeshStandardMaterial({
+      color: 0x0f172a,
+      roughness: 0.35,
+      metalness: 0.2,
+      transparent: true,
+      opacity: 0.9
+    });
+    const matWhite = new THREE.MeshStandardMaterial({
+      color: 0xf8fafc,
+      roughness: 0.2,
+      metalness: 0.05,
+      transparent: true,
+      opacity: isDark ? 0.82 : 0.94
+    });
+
+    const panelSpecs = [
+      { x: 3.4, y: 1.5, z: -0.4, rx: 0.2, ry: -0.35, rz: 0.08, mat: matBlue },
+      { x: 4.9, y: 0.2, z: 0.3, rx: -0.15, ry: -0.45, rz: -0.06, mat: matWhite },
+      { x: 2.3, y: -1.1, z: 0.1, rx: 0.12, ry: -0.25, rz: 0.12, mat: matDark },
+      { x: 5.5, y: -1.6, z: -0.8, rx: 0.25, ry: -0.5, rz: -0.1, mat: matBlue },
+      { x: -4.2, y: 1.6, z: -1.2, rx: 0.18, ry: 0.35, rz: -0.08, mat: matDark },
+      { x: -5.4, y: -0.8, z: -0.6, rx: -0.1, ry: 0.4, rz: 0.06, mat: matBlue }
+    ];
+
+    const panels: { mesh: THREE.Mesh; baseY: number; speed: number; phase: number }[] = [];
+    panelSpecs.forEach((spec, idx) => {
+      const mesh = new THREE.Mesh(panelGeo, spec.mat);
+      mesh.position.set(spec.x, spec.y, spec.z);
+      mesh.rotation.set(spec.rx, spec.ry, spec.rz);
+      rootGroup.add(mesh);
+      panels.push({ mesh, baseY: spec.y, speed: 0.6 + idx * 0.12, phase: idx * 1.1 });
+    });
 
     let targetX = 0;
     let targetY = 0;
     const onPointerMove = (e: PointerEvent) => {
       const rect = container.getBoundingClientRect();
-      targetX = ((e.clientX - rect.left) / rect.width - 0.5) * 0.7;
-      targetY = ((e.clientY - rect.top) / rect.height - 0.5) * 0.5;
+      targetX = ((e.clientX - rect.left) / rect.width - 0.5) * 0.35;
+      targetY = ((e.clientY - rect.top) / rect.height - 0.5) * 0.22;
     };
-    container.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointermove', onPointerMove, { passive: true });
 
     const onResize = () => {
       if (!container) return;
-      const w = container.clientWidth || 420;
-      const h = container.clientHeight || 320;
+      const w = container.clientWidth || 1200;
+      const h = container.clientHeight || 520;
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
     };
     window.addEventListener('resize', onResize);
 
+    // Pause render loop automatically when section is off-screen
+    let isInView = true;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isInView = entry.isIntersecting;
+      },
+      { threshold: 0.02 }
+    );
+    observer.observe(container);
+
     let rafId = 0;
+    let elapsed = 0;
     const animate = () => {
       rafId = requestAnimationFrame(animate);
+      if (!isInView) return;
+
       if (!prefersReduced) {
-        coreMesh.rotation.y += 0.006;
-        coreMesh.rotation.x += 0.003;
-        wireMesh.rotation.y -= 0.004;
-        group.rotation.y += (targetX - group.rotation.y) * 0.05;
-        group.rotation.x += (targetY - group.rotation.x) * 0.05;
-        tiles.forEach((t, idx) => {
-          t.rotation.z += 0.005 * (idx % 2 === 0 ? 1 : -1);
+        elapsed += 0.014;
+        waveMesh.rotation.z = Math.sin(elapsed * 0.25) * 0.05;
+        rootGroup.rotation.y += (targetX - rootGroup.rotation.y) * 0.04;
+        rootGroup.rotation.x += (targetY - rootGroup.rotation.x) * 0.04;
+        panels.forEach((p) => {
+          p.mesh.position.y = p.baseY + Math.sin(elapsed * p.speed + p.phase) * 0.14;
         });
       }
       renderer.render(scene, camera);
@@ -118,15 +153,15 @@ export const Landing3DCanvas: React.FC<Landing3DCanvasProps> = ({ isDark = false
 
     return () => {
       cancelAnimationFrame(rafId);
-      container.removeEventListener('pointermove', onPointerMove);
+      observer.disconnect();
+      window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('resize', onResize);
-      coreGeo.dispose();
-      coreMat.dispose();
-      wireGeo.dispose();
-      wireMat.dispose();
-      tileGeo.dispose();
-      tileMatBlue.dispose();
-      tileMatNeutral.dispose();
+      waveGeo.dispose();
+      waveMat.dispose();
+      panelGeo.dispose();
+      matBlue.dispose();
+      matDark.dispose();
+      matWhite.dispose();
       renderer.dispose();
       if (renderer.domElement.parentNode === container) {
         container.removeChild(renderer.domElement);
@@ -134,13 +169,7 @@ export const Landing3DCanvas: React.FC<Landing3DCanvasProps> = ({ isDark = false
     };
   }, [isDark]);
 
-  return (
-    <div
-      ref={mountRef}
-      aria-label="Visualisasi 3D Yuumotion"
-      className="h-[280px] sm:h-[320px] w-full cursor-grab active:cursor-grabbing"
-    />
-  );
+  return <div ref={mountRef} aria-hidden="true" className="w-full h-full" />;
 };
 
 export default Landing3DCanvas;
