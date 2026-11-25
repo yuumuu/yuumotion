@@ -20,6 +20,14 @@ interface TimelineDragState {
   hasMoved: boolean;
 }
 
+interface TimelineResizeState {
+  card: Card;
+  edge: 'left' | 'right';
+  startX: number;
+  trackWidth: number;
+  deltaDays: number;
+}
+
 function formatYMD(d: Date): string {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -37,6 +45,9 @@ export const TimelineGanttView: React.FC<TimelineGanttViewProps> = ({
   const [dragState, setDragState] = useState<TimelineDragState | null>(null);
   const dragRef = useRef<TimelineDragState | null>(null);
   dragRef.current = dragState;
+  const [resizeState, setResizeState] = useState<TimelineResizeState | null>(null);
+  const resizeRef = useRef<TimelineResizeState | null>(null);
+  resizeRef.current = resizeState;
 
   const baseDate = new Date();
   baseDate.setDate(baseDate.getDate() - 3);
@@ -62,11 +73,21 @@ export const TimelineGanttView: React.FC<TimelineGanttViewProps> = ({
     return Math.floor((utc2 - utc1) / msPerDay);
   };
 
-  const calculateCardPosition = (card: Card, extraDays = 0) => {
-    const startDate = card.startDate ? new Date(card.startDate) : new Date(card.updatedAt);
-    const dueDate = card.dueDate ? new Date(card.dueDate) : new Date(startDate.getTime() + 1000 * 60 * 60 * 24 * 3);
+  const calculateCardPosition = (card: Card, extraStartDays = 0, extraEndDays = 0) => {
+    const baseStart = card.startDate ? new Date(card.startDate) : new Date(card.updatedAt);
+    const baseDue = card.dueDate ? new Date(card.dueDate) : new Date(baseStart.getTime() + 1000 * 60 * 60 * 24 * 3);
 
-    const startOffset = getDayDiff(timelineDays[0], startDate) + extraDays;
+    let startDate = new Date(baseStart);
+    startDate.setDate(baseStart.getDate() + extraStartDays);
+    let dueDate = new Date(baseDue);
+    dueDate.setDate(baseDue.getDate() + extraEndDays);
+
+    if (dueDate < startDate) {
+      if (extraStartDays !== 0 && extraEndDays === 0) startDate = new Date(dueDate);
+      else dueDate = new Date(startDate);
+    }
+
+    const startOffset = getDayDiff(timelineDays[0], startDate);
     const duration = Math.max(1, getDayDiff(startDate, dueDate) + 1);
 
     const leftPercent = Math.max(0, Math.min(100, (startOffset / timelineSpan) * 100));
@@ -130,6 +151,56 @@ export const TimelineGanttView: React.FC<TimelineGanttViewProps> = ({
     };
   }, [Boolean(dragState), timelineSpan, onCardClick, onUpdateCard]);
 
+  useEffect(() => {
+    if (!resizeState) return;
+    const handleMove = (e: PointerEvent) => {
+      const prev = resizeRef.current;
+      if (!prev) return;
+      const dx = e.clientX - prev.startX;
+      const deltaDays = Math.round((dx / Math.max(prev.trackWidth, 200)) * timelineSpan);
+      setResizeState({ ...prev, deltaDays });
+    };
+    const handleUp = () => {
+      const current = resizeRef.current;
+      if (current && current.deltaDays !== 0 && onUpdateCard) {
+        const origStart = current.card.startDate
+          ? new Date(current.card.startDate)
+          : new Date(current.card.updatedAt);
+        const origDue = current.card.dueDate
+          ? new Date(current.card.dueDate)
+          : new Date(origStart.getTime() + 1000 * 60 * 60 * 24 * 3);
+
+        let nextStart = new Date(origStart);
+        let nextDue = new Date(origDue);
+        if (current.edge === 'left') {
+          nextStart.setDate(origStart.getDate() + current.deltaDays);
+          if (nextStart > nextDue) nextStart = new Date(nextDue);
+        } else {
+          nextDue.setDate(origDue.getDate() + current.deltaDays);
+          if (nextDue < nextStart) nextDue = new Date(nextStart);
+        }
+        const startStr = formatYMD(nextStart);
+        const dueStr = formatYMD(nextDue);
+        onUpdateCard({
+          ...current.card,
+          startDate: startStr,
+          dueDate: dueStr,
+          updatedAt: Date.now()
+        });
+        toast.success(`Durasi diperbarui: ${startStr} s/d ${dueStr}`);
+      }
+      setResizeState(null);
+    };
+    window.addEventListener('pointermove', handleMove);
+    window.addEventListener('pointerup', handleUp);
+    window.addEventListener('pointercancel', handleUp);
+    return () => {
+      window.removeEventListener('pointermove', handleMove);
+      window.removeEventListener('pointerup', handleUp);
+      window.removeEventListener('pointercancel', handleUp);
+    };
+  }, [Boolean(resizeState), timelineSpan, onUpdateCard]);
+
   return (
     <div className="flex h-full flex-1 flex-col overflow-hidden bg-bg p-4 sm:p-5 select-none">
       <div className="mb-3.5 flex items-center justify-between">
@@ -188,8 +259,22 @@ export const TimelineGanttView: React.FC<TimelineGanttViewProps> = ({
                 <div className="divide-y divide-border/30">
                   {columnCards.map((card) => {
                     const isDraggingThis = dragState?.card.id === card.id;
-                    const extraDays = isDraggingThis ? dragState.deltaDays : 0;
-                    const { leftPercent, widthPercent, isVisible } = calculateCardPosition(card, extraDays);
+                    const isResizingThis = resizeState?.card.id === card.id;
+                    const extraStartDays = isDraggingThis
+                      ? dragState.deltaDays
+                      : isResizingThis && resizeState.edge === 'left'
+                      ? resizeState.deltaDays
+                      : 0;
+                    const extraEndDays = isDraggingThis
+                      ? dragState.deltaDays
+                      : isResizingThis && resizeState.edge === 'right'
+                      ? resizeState.deltaDays
+                      : 0;
+                    const { leftPercent, widthPercent, isVisible } = calculateCardPosition(
+                      card,
+                      extraStartDays,
+                      extraEndDays
+                    );
                     const tag = card.tags[0];
                     const style = tag ? TAG_COLORS[tag.color] || TAG_COLORS.purple : TAG_COLORS.purple;
 
@@ -228,20 +313,58 @@ export const TimelineGanttView: React.FC<TimelineGanttViewProps> = ({
                                 width: `${widthPercent}%`
                               }}
                               className={cn(
-                                'absolute h-6 rounded-lg px-2.5 flex items-center justify-between text-[10px] font-semibold text-white shadow-2xs select-none',
-                                isDraggingThis
+                                'group/bar absolute h-6 rounded-lg px-2.5 flex items-center justify-between text-[10px] font-semibold text-white shadow-2xs select-none',
+                                isDraggingThis || isResizingThis
                                   ? 'cursor-grabbing ring-2 ring-project-accent brightness-110 z-20 shadow-card-drag'
-                                  : 'cursor-grab hover:brightness-105 transition-[left,brightness] duration-75',
+                                  : 'cursor-grab hover:brightness-105 transition-[left,width,brightness] duration-75',
                                 style.dot
                               )}
-                              title="Geser kiri/kanan untuk ubah tanggal, klik untuk detail"
+                              title="Geser bar untuk pindah jadwal, tarik tepi kiri/kanan untuk ubah durasi"
                             >
-                              <span className="truncate">{card.title}</span>
-                              {isDraggingThis && dragState.deltaDays !== 0 && (
-                                <span className="ml-1.5 rounded bg-black/30 px-1 font-mono text-[9px] shrink-0">
-                                  {dragState.deltaDays > 0 ? `+${dragState.deltaDays}h` : `${dragState.deltaDays}h`}
-                                </span>
-                              )}
+                              <div
+                                onPointerDown={(e) => {
+                                  e.stopPropagation();
+                                  if (e.button !== 0) return;
+                                  const track = e.currentTarget.parentElement?.parentElement;
+                                  setResizeState({
+                                    card,
+                                    edge: 'left',
+                                    startX: e.clientX,
+                                    trackWidth: track?.getBoundingClientRect().width ?? 400,
+                                    deltaDays: 0
+                                  });
+                                }}
+                                className="absolute left-0 top-0 h-full w-2.5 cursor-ew-resize rounded-l-lg hover:bg-black/25"
+                                title="Tarik untuk ubah tanggal mulai"
+                              />
+                              <span className="truncate px-1">{card.title}</span>
+                              {(isDraggingThis || isResizingThis) &&
+                                (dragState?.deltaDays || resizeState?.deltaDays) !== 0 && (
+                                  <span className="ml-1.5 rounded bg-black/30 px-1 font-mono text-[9px] shrink-0">
+                                    {(() => {
+                                      const d = isDraggingThis
+                                        ? dragState!.deltaDays
+                                        : resizeState!.deltaDays;
+                                      return d > 0 ? `+${d}h` : `${d}h`;
+                                    })()}
+                                  </span>
+                                )}
+                              <div
+                                onPointerDown={(e) => {
+                                  e.stopPropagation();
+                                  if (e.button !== 0) return;
+                                  const track = e.currentTarget.parentElement?.parentElement;
+                                  setResizeState({
+                                    card,
+                                    edge: 'right',
+                                    startX: e.clientX,
+                                    trackWidth: track?.getBoundingClientRect().width ?? 400,
+                                    deltaDays: 0
+                                  });
+                                }}
+                                className="absolute right-0 top-0 h-full w-2.5 cursor-ew-resize rounded-r-lg hover:bg-black/25"
+                                title="Tarik untuk ubah tenggat waktu"
+                              />
                             </div>
                           ) : (
                             <span className="text-[10px] text-muted italic px-2">Diluar rentang waktu</span>

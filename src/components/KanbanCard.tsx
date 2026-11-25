@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card } from '../types/board';
 import { CalendarBlank, Paperclip, Check, CheckSquare } from '@phosphor-icons/react';
 import { cn } from '../lib/cn';
@@ -16,6 +16,8 @@ interface KanbanCardProps {
   onKeyboardDragToggle?: () => void;
   onKeyboardMove?: (direction: 'left' | 'right') => void;
   onKeyboardCancel?: () => void;
+  onRenameCard?: (cardId: string, newTitle: string) => void;
+  assigneeAvatars?: string[];
 }
 
 const priorityConfig: Record<string, { label: string; badge: string }> = {
@@ -71,8 +73,13 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({
   isKeyboardDragging,
   onKeyboardDragToggle,
   onKeyboardMove,
-  onKeyboardCancel
+  onKeyboardCancel,
+  onRenameCard,
+  assigneeAvatars
 }) => {
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [draftTitle, setDraftTitle] = useState(card.title);
+
   if (isOriginPlaceholder) {
     return (
       <div
@@ -156,7 +163,7 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({
             onQuickComplete(card);
           }}
           title="Tandai Selesai"
-          className="absolute right-2.5 top-2.5 z-10 flex h-6 w-6 items-center justify-center rounded-lg border border-border bg-surface/95 text-muted opacity-0 shadow-2xs transition-[opacity,color,transform] duration-150 group-hover:opacity-100 hover:text-status-done hover:border-status-done/40 active:scale-90 cursor-pointer"
+          className="absolute right-2.5 top-2.5 z-10 flex h-7 w-7 items-center justify-center rounded-full border-2 border-border/50 bg-surface/90 text-muted opacity-40 shadow-sm transition-all duration-150 group-hover:opacity-100 group-hover:border-status-done group-hover:bg-status-done/15 group-hover:text-status-done hover:scale-110 active:scale-90 cursor-pointer"
         >
           <Check className="h-3.5 w-3.5" weight="bold" />
         </button>
@@ -206,15 +213,51 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({
         )}
       </div>
 
-      {/* Title */}
-      <h3
-        className={cn(
-          'text-xs font-semibold leading-snug text-text mb-2 line-clamp-2',
-          isDoneColumn && 'line-through text-muted'
-        )}
-      >
-        {card.title}
-      </h3>
+      {/* Title (Double-click untuk inline edit) */}
+      {isEditingTitle ? (
+        <input
+          type="text"
+          autoFocus
+          value={draftTitle}
+          onChange={(e) => setDraftTitle(e.target.value)}
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+          onBlur={() => {
+            setIsEditingTitle(false);
+            if (draftTitle.trim() && draftTitle.trim() !== card.title) {
+              onRenameCard?.(card.id, draftTitle.trim());
+            } else {
+              setDraftTitle(card.title);
+            }
+          }}
+          onKeyDown={(e) => {
+            e.stopPropagation();
+            if (e.key === 'Enter') {
+              e.currentTarget.blur();
+            } else if (e.key === 'Escape') {
+              setDraftTitle(card.title);
+              setIsEditingTitle(false);
+            }
+          }}
+          className="w-full bg-transparent text-xs font-semibold leading-snug text-text mb-2 focus:outline-none"
+        />
+      ) : (
+        <h3
+          onDoubleClick={(e) => {
+            if (!onRenameCard || isFloatingClone) return;
+            e.stopPropagation();
+            setDraftTitle(card.title);
+            setIsEditingTitle(true);
+          }}
+          title={onRenameCard ? 'Klik dua kali untuk ubah judul' : undefined}
+          className={cn(
+            'text-xs font-semibold leading-snug text-text mb-2 line-clamp-2',
+            isDoneColumn && 'line-through text-muted'
+          )}
+        >
+          {card.title}
+        </h3>
+      )}
 
       {/* Minimal Tag Pills (maks 2) */}
       {card.tags.length > 0 && (
@@ -226,6 +269,20 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({
             >
               #{tag.name.toLowerCase()}
             </span>
+          ))}
+        </div>
+      )}
+
+      {/* Assignee Avatars */}
+      {assigneeAvatars && assigneeAvatars.length > 0 && (
+        <div className="flex -space-x-1.5 mb-2">
+          {assigneeAvatars.slice(0, 3).map((avatar, i) => (
+            <div
+              key={i}
+              className="flex h-5 w-5 items-center justify-center rounded-full bg-project-soft border-2 border-surface text-[9px] font-bold text-project-solid"
+            >
+              {avatar}
+            </div>
           ))}
         </div>
       )}

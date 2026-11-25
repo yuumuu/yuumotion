@@ -49,6 +49,14 @@ export interface Card {
   autoMoveDone?: boolean;
   order: number;
   updatedAt: number;
+  assignees?: string[];
+  blockedBy?: string[];
+  blocks?: string[];
+  recurrence?: {
+    frequency: 'daily' | 'weekly' | 'monthly';
+    interval: number;
+    daysOfWeek?: number[];
+  };
 }
 
 export interface Column {
@@ -57,6 +65,7 @@ export interface Column {
   color: string;
   order: number;
   updatedAt: number;
+  wipLimit?: number;
 }
 
 export interface Board {
@@ -66,6 +75,7 @@ export interface Board {
   columns: Column[];
   cards: Record<string, Card>;
   updatedAt: number;
+  shareToken?: string;
 }
 
 export interface NotionPage {
@@ -79,6 +89,7 @@ export interface NotionPage {
   parentId?: string;
   createdAt: number;
   updatedAt: number;
+  shareToken?: string;
 }
 
 export interface WorkspaceMember {

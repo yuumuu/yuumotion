@@ -29,7 +29,8 @@ import {
   TreeStructure as Workflow,
   Sigma,
   BookmarkSimple as Bookmark,
-  ShareNetwork as Share2
+  ShareNetwork as Share2,
+  DownloadSimple
 } from '@phosphor-icons/react';
 import { cn } from '../lib/cn';
 
@@ -53,6 +54,8 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ content, onChange, e
   const [slashQuery, setSlashQuery] = useState('');
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const editorContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -76,6 +79,9 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ content, onChange, e
     ],
     content: content || '<p></p>',
     onUpdate: ({ editor: currentEditor }) => {
+      setSaveStatus('saving');
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = setTimeout(() => setSaveStatus('saved'), 1500);
       onChange(currentEditor.getHTML(), currentEditor.getJSON() as Record<string, unknown>);
 
       const { from } = currentEditor.state.selection;
@@ -393,6 +399,48 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ content, onChange, e
     e.target.value = '';
   };
 
+  const handleExportMarkdown = () => {
+    if (!editor) return;
+    const html = editor.getHTML();
+    const div = document.createElement('div');
+    div.innerHTML = html;
+
+    const convert = (el: Element): string => {
+      const tag = el.tagName?.toLowerCase();
+      const inner = Array.from(el.childNodes)
+        .map((n) => {
+          if (n.nodeType === Node.TEXT_NODE) return n.textContent || '';
+          return convert(n as Element);
+        })
+        .join('');
+
+      if (tag === 'h1') return `# ${inner}\n\n`;
+      if (tag === 'h2') return `## ${inner}\n\n`;
+      if (tag === 'h3') return `### ${inner}\n\n`;
+      if (tag === 'p') return `${inner}\n\n`;
+      if (tag === 'strong' || tag === 'b') return `**${inner}**`;
+      if (tag === 'em' || tag === 'i') return `*${inner}*`;
+      if (tag === 's') return `~~${inner}~~`;
+      if (tag === 'code') return `\`${inner}\``;
+      if (tag === 'pre') return `\`\`\`\n${inner}\n\`\`\`\n\n`;
+      if (tag === 'blockquote') return `> ${inner}\n\n`;
+      if (tag === 'li') return `- ${inner}\n`;
+      if (tag === 'ul' || tag === 'ol') return `${inner}\n`;
+      if (tag === 'br') return '\n';
+      if (tag === 'hr') return '---\n\n';
+      return inner;
+    };
+
+    const md = convert(div).replace(/\n{3,}/g, '\n\n').trim();
+    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'dokumen.md';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div
       ref={editorContainerRef}
@@ -487,6 +535,33 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ content, onChange, e
           >
             <Redo className="h-3.5 w-3.5" />
           </button>
+          <div className="h-4 w-px bg-border mx-1" />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="p-1.5 rounded-lg text-muted hover:text-text hover:bg-hover cursor-pointer"
+            title="Sisipkan Gambar"
+          >
+            <ImageIcon className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={handleExportMarkdown}
+            className="p-1.5 rounded-lg text-muted hover:text-text hover:bg-hover cursor-pointer"
+            title="Export ke Markdown (.md)"
+          >
+            <DownloadSimple className="h-3.5 w-3.5" />
+          </button>
+          {saveStatus !== 'idle' && (
+            <span
+              className={cn(
+                'ml-auto pr-1.5 text-[10px] font-medium transition-opacity duration-300',
+                saveStatus === 'saving' ? 'text-muted animate-pulse' : 'text-status-done'
+              )}
+            >
+              {saveStatus === 'saving' ? 'Menyimpan...' : '✓ Tersimpan'}
+            </span>
+          )}
         </div>
       )}
 

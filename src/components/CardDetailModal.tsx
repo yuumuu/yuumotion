@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Card, Column, PriorityLevel, CardTag, CardAttachment, CardActivity } from '../types/board';
+import { Card, Column, PriorityLevel, CardTag, CardAttachment, CardActivity, WorkspaceMember } from '../types/board';
 import { INITIAL_TAGS } from '../lib/constants';
 import { TipTapEditor } from './TipTapEditor';
 import {
@@ -27,7 +27,8 @@ import {
   ArrowsOut,
   Square,
   SidebarSimple,
-  ArrowLeftIcon
+  ArrowLeftIcon,
+  Users
 } from '@phosphor-icons/react';
 import { usePreferences } from '../context/PreferencesContext';
 import { CardOpenMode } from '../types/preferences';
@@ -36,6 +37,7 @@ import { cn } from '../lib/cn';
 interface CardDetailModalProps {
   card: Card;
   columns: Column[];
+  members?: WorkspaceMember[];
   onClose: () => void;
   onUpdate: (updated: Card) => void;
   onDelete: (cardId: string) => void;
@@ -44,6 +46,7 @@ interface CardDetailModalProps {
 export const CardDetailModal: React.FC<CardDetailModalProps> = ({
   card,
   columns,
+  members,
   onClose,
   onUpdate,
   onDelete
@@ -195,9 +198,11 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
           url: reader.result as string,
           createdAt: Date.now()
         };
-        const nextAttachments = [...attachments, newAttachment];
-        setAttachments(nextAttachments);
-        syncChanges({ attachments: nextAttachments });
+        setAttachments((prev) => {
+          const nextAttachments = [...prev, newAttachment];
+          syncChanges({ attachments: nextAttachments });
+          return nextAttachments;
+        });
         addActivity(`Mengunggah lampiran "${file.name}"`);
       };
       reader.readAsDataURL(file);
@@ -224,22 +229,47 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
   // Render Inner Content
   const renderDetailContent = () => (
     <div className="space-y-6">
+      {/* Quick Cover & Action Toolbar di Bagian Atas */}
+      <div className="flex flex-wrap items-center justify-between gap-2 -mt-1">
+        <div className="flex items-center gap-2">
+          <Button
+            size="xs"
+            variant="ghost"
+            leftIcon={<Image className="w-3.5 h-3.5" />}
+            onClick={() => coverInputRef.current?.click()}
+          >
+            {coverImage ? 'Ganti Cover' : 'Tambah Cover'}
+          </Button>
+          {coverImage && (
+            <Button
+              size="xs"
+              variant="ghost"
+              leftIcon={<Trash className="w-3.5 h-3.5 text-danger" />}
+              onClick={() => {
+                setCoverImage('');
+                syncChanges({ coverImage: undefined });
+                addActivity('Menghapus cover gambar kartu');
+              }}
+            >
+              Hapus Cover
+            </Button>
+          )}
+        </div>
+        <Button
+          size="xs"
+          variant="ghost"
+          className="text-danger hover:bg-status-urgent-bg"
+          leftIcon={<Trash className="w-3.5 h-3.5" />}
+          onClick={() => setConfirmDeleteOpen(true)}
+        >
+          Hapus Kartu
+        </Button>
+      </div>
+
       {/* Cover Image Banner */}
       {coverImage && (
         <div className="overflow-hidden relative w-full h-44 rounded-xl border border-border bg-bar">
           <img src={coverImage} alt="Card Cover" className="object-cover w-full h-full" />
-          <button
-            type="button"
-            onClick={() => {
-              setCoverImage('');
-              syncChanges({ coverImage: undefined });
-              addActivity('Menghapus cover gambar kartu');
-            }}
-            className="absolute right-3 top-3 flex h-7 items-center gap-1 rounded-lg bg-black/60 px-2.5 text-xs font-medium text-white backdrop-blur-xs hover:bg-black/80 cursor-pointer"
-          >
-            <Trash className="h-3.5 w-3.5" />
-            <span>Hapus Cover</span>
-          </button>
         </div>
       )}
 
@@ -260,7 +290,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           onBlur={handleTitleBlur}
-          className="w-full bg-transparent font-display text-xl sm:text-2xl font-bold tracking-tight text-text placeholder:text-muted rounded-xl px-1.5 py-1 transition-all focus:outline-none focus:bg-surface focus:border focus:border-project-accent focus:ring-2 focus:ring-project-ring"
+          className="w-full bg-transparent font-display text-xl sm:text-2xl font-bold tracking-tight text-text placeholder:text-muted rounded-xl px-1.5 py-1 transition-colors focus:outline-none"
           placeholder="Judul Tugas..."
         />
       </div>
@@ -353,8 +383,58 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
             syncChanges({ tags: next });
             addActivity(`Membuat tag baru "${name}"`);
           }}
+          onDeleteTag={(tagId: string) => {
+            const deleted = allAvailableTags.find((t) => t.id === tagId);
+            setAllAvailableTags((prev) => prev.filter((t) => t.id !== tagId));
+            const next = tags.filter((t) => t.id !== tagId);
+            setTags(next);
+            syncChanges({ tags: next });
+            if (deleted) addActivity(`Menghapus tag "${deleted.name}" dari daftar`);
+          }}
         />
       </div>
+
+      {/* Assignees Section */}
+      {members && members.length > 0 && (
+        <div>
+          <label className="text-xs font-semibold uppercase tracking-wider text-muted flex items-center gap-1.5 mb-2">
+            <Users className="h-3.5 w-3.5" />
+            Ditugaskan Ke
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {members.map((m) => {
+              const isAssigned = (card.assignees || []).includes(m.id);
+              return (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => {
+                    const current = card.assignees || [];
+                    const next = isAssigned ? current.filter((id) => id !== m.id) : [...current, m.id];
+                    syncChanges({ assignees: next });
+                    addActivity(isAssigned ? `Melepas tugas dari ${m.name}` : `Menugaskan ke ${m.name}`);
+                  }}
+                  title={m.name}
+                  className={cn(
+                    'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium border transition-all cursor-pointer',
+                    isAssigned
+                      ? 'border-project-accent bg-project-soft text-project-solid font-semibold shadow-2xs'
+                      : 'border-border bg-surface text-muted hover:text-text hover:bg-hover'
+                  )}
+                >
+                  <span
+                    className="flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold text-white shrink-0"
+                    style={{ backgroundColor: m.color || '#6366F1' }}
+                  >
+                    {m.avatar || m.name.slice(0, 2).toUpperCase()}
+                  </span>
+                  <span>{m.name}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* TipTap Rich Editor Description */}
       <div>
@@ -438,18 +518,10 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
             <Button
               size="xs"
               variant="secondary"
-              leftIcon={<Image className="w-3 h-3" />}
-              onClick={() => coverInputRef.current?.click()}
-            >
-              Ganti Cover
-            </Button>
-            <Button
-              size="xs"
-              variant="secondary"
               leftIcon={<Paperclip className="w-3 h-3" />}
               onClick={() => fileInputRef.current?.click()}
             >
-              Unggah File
+              Unggah File / Gambar
             </Button>
             <input
               ref={coverInputRef}

@@ -44,6 +44,7 @@ import { DatabaseBridgeModal } from './components/DatabaseBridgeModal';
 import { WorkspaceMembersModal } from './components/WorkspaceMembersModal';
 import { LandingPage } from './components/LandingPage';
 import { AuthPage } from './components/AuthPage';
+import { EmptyWorkspaceOnboarding } from './components/EmptyWorkspaceOnboarding';
 import { CommandPalette } from './components/CommandPalette';
 import { SettingsHubModal, SettingsTab } from './components/SettingsHubModal';
 import { ToastContainer, ConfirmDialog, toast } from './components/ui';
@@ -446,13 +447,14 @@ export const App: React.FC = () => {
   };
 
   const handleDeleteWorkspace = (wsId: string) => {
-    if (workspaces.length <= 1) {
-      alert('Cannot delete the only remaining workspace.');
-      return;
-    }
     const nextWs = workspaces.filter((w) => w.id !== wsId);
     setWorkspaces(nextWs);
-    handleSelectWorkspace(nextWs[0].id);
+    if (nextWs.length > 0) {
+      handleSelectWorkspace(nextWs[0].id);
+    } else {
+      setActiveWorkspaceIdState('');
+    }
+    toast.info('Workspace telah dihapus.');
   };
 
   const handleAddPage = () => {
@@ -758,6 +760,40 @@ export const App: React.FC = () => {
     });
   };
 
+  const handleReorderColumns = (columnId: string, targetIndex: number) => {
+    if (!canEdit) return;
+    handleUpdateActiveBoard((prev) => {
+      const sorted = [...prev.columns].sort((a, b) => a.order - b.order);
+      const col = sorted.find((c) => c.id === columnId);
+      if (!col) return prev;
+      const without = sorted.filter((c) => c.id !== columnId);
+      without.splice(targetIndex, 0, col);
+      return {
+        ...prev,
+        updatedAt: Date.now(),
+        columns: without.map((c, idx) => ({ ...c, order: idx, updatedAt: Date.now() }))
+      };
+    });
+  };
+
+  const handleUpdateWipLimit = (columnId: string, wipLimit?: number) => {
+    if (!canEdit) return;
+    handleUpdateActiveBoard((prev) => ({
+      ...prev,
+      updatedAt: Date.now(),
+      columns: prev.columns.map((c) =>
+        c.id === columnId ? { ...c, wipLimit, updatedAt: Date.now() } : c
+      )
+    }));
+  };
+
+  const handleRenameCard = (cardId: string, newTitle: string) => {
+    if (!canEdit) return;
+    const card = activeBoard.cards[cardId];
+    if (!card) return;
+    handleUpdateCard({ ...card, title: newTitle, updatedAt: Date.now() });
+  };
+
   const handleExport = () => {
     const exportData = {
       workspace: activeWorkspace,
@@ -845,6 +881,19 @@ export const App: React.FC = () => {
           goToRoute('app');
         }}
       />
+    );
+  }
+
+  if (workspaces.length === 0) {
+    return (
+      <>
+        <EmptyWorkspaceOnboarding
+          userName={currentUser.name}
+          onCreateWorkspace={handleCreateWorkspace}
+          onNavigateLanding={() => goToRoute('landing')}
+        />
+        <ToastContainer />
+      </>
     );
   }
 
@@ -950,11 +999,15 @@ export const App: React.FC = () => {
                 {activeView === 'board' && (
                   <KanbanBoard
                     board={activeBoard}
+                    members={activeWorkspace?.members || []}
                     searchQuery={searchQuery}
                     onCardClick={(card) => setSelectedCardId(card.id)}
                     onAddCard={handleAddCard}
+                    onRenameCard={handleRenameCard}
                     onAddColumn={handleAddColumn}
                     onDeleteColumn={handleDeleteColumn}
+                    onReorderColumns={handleReorderColumns}
+                    onUpdateWipLimit={handleUpdateWipLimit}
                     onDropCard={handleDropCard}
                   />
                 )}
@@ -995,6 +1048,7 @@ export const App: React.FC = () => {
             <CardDetailModal
               card={selectedCard}
               columns={activeBoard.columns}
+              members={activeWorkspace?.members || []}
               onClose={() => setSelectedCardId(null)}
               onUpdate={handleUpdateCard}
               onDelete={handleDeleteCard}
@@ -1106,6 +1160,19 @@ export const App: React.FC = () => {
         onNavigateView={(v) => setActiveView(v as WorkspaceView)}
         onQuickCreateTask={() => setIsQuickTaskPromptOpen(true)}
         onOpenPreferences={() => openSettingsTab('appearance')}
+        boards={activeWorkspace?.boards || []}
+        pages={activeWorkspace?.pages || []}
+        onNavigateToBoard={(boardId) => {
+          setActiveTarget({ type: 'board', id: boardId });
+        }}
+        onNavigateToPage={(pageId) => {
+          setActiveTarget({ type: 'page', id: pageId });
+        }}
+        onNavigateToCard={(boardId, cardId) => {
+          setActiveTarget({ type: 'board', id: boardId });
+          setActiveView('board');
+          setSelectedCardId(cardId);
+        }}
       />
 
       <ConfirmDialog

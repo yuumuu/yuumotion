@@ -8,6 +8,7 @@ export interface TagPickerProps {
   allTags: CardTag[];
   onToggleTag: (tag: CardTag) => void;
   onCreateTag: (name: string, color: string) => void;
+  onDeleteTag?: (tagId: string) => void;
   readOnly?: boolean;
 }
 
@@ -18,6 +19,7 @@ export const TagPicker: React.FC<TagPickerProps> = ({
   allTags,
   onToggleTag,
   onCreateTag,
+  onDeleteTag,
   readOnly = false
 }) => {
   const [isCreating, setIsCreating] = useState(false);
@@ -39,22 +41,39 @@ export const TagPicker: React.FC<TagPickerProps> = ({
           const isSelected = selectedTags.some((t) => t.id === tag.id);
           const style = TAG_COLORS[tag.color] || TAG_COLORS.neutral;
           return (
-            <button
+            <div
               key={tag.id}
-              type="button"
-              disabled={readOnly}
-              onClick={() => onToggleTag(tag)}
-              className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-all cursor-pointer ${
+              className={`group/tag inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium transition-all ${
                 style.bg
               } ${style.text} ${
                 isSelected
                   ? 'ring-2 ring-purple-500 shadow-2xs font-semibold'
-                  : 'opacity-40 hover:opacity-100'
+                  : 'opacity-60 hover:opacity-100'
               }`}
             >
-              <span className={`h-1.5 w-1.5 rounded-full ${style.dot}`} />
-              <span>{tag.name}</span>
-            </button>
+              <button
+                type="button"
+                disabled={readOnly}
+                onClick={() => onToggleTag(tag)}
+                className="inline-flex items-center gap-1.5 cursor-pointer"
+              >
+                <span className={`h-1.5 w-1.5 rounded-full ${style.dot}`} />
+                <span>{tag.name}</span>
+              </button>
+              {!readOnly && onDeleteTag && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteTag(tag.id);
+                  }}
+                  title={`Hapus tag "${tag.name}"`}
+                  className="ml-0.5 rounded p-0.5 opacity-0 group-hover/tag:opacity-100 hover:bg-black/10 dark:hover:bg-white/10 transition-opacity cursor-pointer"
+                >
+                  <X className="h-2.5 w-2.5" />
+                </button>
+              )}
+            </div>
           );
         })}
 

@@ -4,6 +4,7 @@ import { Kbd } from './ui/Kbd';
 import { cn } from '../lib/cn';
 import { usePreferences } from '../context/PreferencesContext';
 import { AppTheme, AppDensity } from '../types/preferences';
+import { Board, NotionPage } from '../types/board';
 
 interface CommandPaletteProps {
   isOpen: boolean;
@@ -11,6 +12,11 @@ interface CommandPaletteProps {
   onNavigateView?: (view: string) => void;
   onQuickCreateTask?: () => void;
   onOpenPreferences?: () => void;
+  boards?: Board[];
+  pages?: NotionPage[];
+  onNavigateToCard?: (boardId: string, cardId: string) => void;
+  onNavigateToBoard?: (boardId: string) => void;
+  onNavigateToPage?: (pageId: string) => void;
 }
 
 export const CommandPalette: React.FC<CommandPaletteProps> = ({
@@ -18,7 +24,12 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   onClose,
   onNavigateView,
   onQuickCreateTask,
-  onOpenPreferences
+  onOpenPreferences,
+  boards,
+  pages,
+  onNavigateToCard,
+  onNavigateToBoard,
+  onNavigateToPage
 }) => {
   const [query, setQuery] = useState('');
   const { preferences, updatePreferences } = usePreferences();
@@ -133,6 +144,53 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     a.label.toLowerCase().includes(query.toLowerCase())
   );
 
+  const searchResults: Array<{
+    id: string;
+    label: string;
+    subtitle: string;
+    type: 'card' | 'board' | 'page';
+    boardId?: string;
+    itemId: string;
+  }> = [];
+
+  if (query.trim().length > 0 && (boards || pages)) {
+    const q = query.toLowerCase();
+    (boards || []).forEach((b) => {
+      if (b.title.toLowerCase().includes(q)) {
+        searchResults.push({
+          id: `board-${b.id}`,
+          label: b.title,
+          subtitle: 'Papan Kanban',
+          type: 'board',
+          itemId: b.id
+        });
+      }
+      Object.values(b.cards || {}).forEach((card) => {
+        if (card.title.toLowerCase().includes(q)) {
+          searchResults.push({
+            id: `card-${card.id}`,
+            label: card.title,
+            subtitle: `Kartu di ${b.title}`,
+            type: 'card',
+            boardId: b.id,
+            itemId: card.id
+          });
+        }
+      });
+    });
+    (pages || []).forEach((p) => {
+      if ((p.title || 'Untitled').toLowerCase().includes(q)) {
+        searchResults.push({
+          id: `page-${p.id}`,
+          label: p.title || 'Untitled Document',
+          subtitle: 'Dokumen',
+          type: 'page',
+          itemId: p.id
+        });
+      }
+    });
+  }
+
   return (
     <div
       role="dialog"
@@ -158,28 +216,67 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         </div>
 
         <div className="max-h-80 overflow-y-auto p-2 space-y-1">
-          {filtered.length === 0 ? (
+          {filtered.length === 0 && searchResults.length === 0 ? (
             <div className="py-8 text-center text-xs text-muted">
-              Tidak ada perintah yang cocok.
+              Tidak ada perintah atau item yang cocok.
             </div>
           ) : (
-            filtered.map((action) => (
-              <button
-                key={action.id}
-                type="button"
-                onClick={action.run}
-                className={cn(
-                  'flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs text-text transition-colors cursor-pointer',
-                  'hover:bg-hover hover:text-text text-left'
-                )}
-              >
-                <div className="flex items-center gap-2.5">
-                  {action.icon}
-                  <span className="font-medium">{action.label}</span>
+            <>
+              {filtered.map((action) => (
+                <button
+                  key={action.id}
+                  type="button"
+                  onClick={action.run}
+                  className={cn(
+                    'flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs text-text transition-colors cursor-pointer',
+                    'hover:bg-hover hover:text-text text-left'
+                  )}
+                >
+                  <div className="flex items-center gap-2.5">
+                    {action.icon}
+                    <span className="font-medium">{action.label}</span>
+                  </div>
+                  {action.shortcut && <Kbd>{action.shortcut}</Kbd>}
+                </button>
+              ))}
+
+              {searchResults.length > 0 && (
+                <div className="border-t border-border/50 pt-1.5 mt-1.5 space-y-0.5">
+                  <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-muted">
+                    Hasil Pencarian ({searchResults.length})
+                  </div>
+                  {searchResults.slice(0, 8).map((result) => (
+                    <button
+                      key={result.id}
+                      type="button"
+                      onClick={() => {
+                        if (result.type === 'card' && result.boardId) {
+                          onNavigateToCard?.(result.boardId, result.itemId);
+                        } else if (result.type === 'board') {
+                          onNavigateToBoard?.(result.itemId);
+                        } else if (result.type === 'page') {
+                          onNavigateToPage?.(result.itemId);
+                        }
+                        onClose();
+                      }}
+                      className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs text-text hover:bg-hover transition-colors cursor-pointer text-left"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        {result.type === 'card' ? (
+                          <CheckCircle className="h-3.5 w-3.5 text-project-solid shrink-0" />
+                        ) : result.type === 'board' ? (
+                          <Stack className="h-3.5 w-3.5 text-muted shrink-0" />
+                        ) : (
+                          <FileText className="h-3.5 w-3.5 text-muted shrink-0" />
+                        )}
+                        <span className="font-medium truncate">{result.label}</span>
+                      </div>
+                      <span className="text-[10px] text-muted shrink-0 ml-2">{result.subtitle}</span>
+                    </button>
+                  ))}
                 </div>
-                {action.shortcut && <Kbd>{action.shortcut}</Kbd>}
-              </button>
-            ))
+              )}
+            </>
           )}
         </div>
 
