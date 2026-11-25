@@ -196,9 +196,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           className="pointer-events-none absolute inset-0 opacity-40 bg-[linear-gradient(125deg,rgba(255,255,255,0.28)_0%,transparent_42%,rgba(255,255,255,0.14)_64%,transparent_88%)]"
         />
 
-        {/* Navbar */}
-        <header className="relative z-30 px-4 pt-5 mx-auto max-w-6xl sm:px-6">
-          <div className="flex justify-between items-center px-4 h-14 rounded-2xl border shadow-lg backdrop-blur-md border-white/25 bg-slate-950/25">
+        {/* Fixed Floating Navbar */}
+        <header className="fixed top-0 inset-x-0 z-50 px-4 pt-4 sm:px-6 pointer-events-none">
+          <div className="pointer-events-auto mx-auto max-w-6xl flex justify-between items-center px-4 h-14 rounded-2xl border shadow-lg backdrop-blur-md border-white/25 bg-slate-950/55">
             <a href="#top" className="flex items-center gap-2.5">
               <img src="/icon.svg" alt="Yuumotion" className="h-8 w-8 rounded-xl shadow-xs ring-1 ring-white/25" />
               <span className="text-base font-bold tracking-tight text-white font-display">
@@ -249,7 +249,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </header>
 
         {/* Hero Copy & Inline Pill CTA */}
-        <section className="relative z-20 px-4 pt-14 mx-auto max-w-5xl text-center sm:px-6 sm:pt-20">
+        <section className="relative z-20 px-4 pt-28 mx-auto max-w-5xl text-center sm:px-6 sm:pt-32">
           <div className="animate-yuu-enter inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/15 px-3.5 py-1 font-mono text-[11px] font-medium text-white backdrop-blur-sm">
             <Sparkle className="h-3.5 w-3.5 text-white" />
             <span>Workspace Hibrida Offline-First • Open Source</span>
