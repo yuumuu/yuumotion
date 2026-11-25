@@ -4,6 +4,8 @@ export type WorkspaceView = 'board' | 'calendar' | 'timeline' | 'table';
 
 export type UserRole = 'owner' | 'admin' | 'member' | 'viewer';
 
+export type WorkspaceTemplateType = 'plain' | 'board' | 'docs' | 'full';
+
 export interface CardTag {
   id: string;
   name: string;
@@ -100,6 +102,12 @@ export interface WorkspaceMember {
   color: string;
   role: UserRole;
   joinedAt: number;
+  title?: string;
+  bio?: string;
+  timezone?: string;
+  avatarUrl?: string;
+  avatarEmoji?: string;
+  presenceStatus?: 'online' | 'busy' | 'away';
 }
 
 export interface Workspace {
@@ -138,6 +146,12 @@ export interface UserPresence {
   avatar: string;
   color: string;
   lastActive: number;
+  title?: string;
+  bio?: string;
+  timezone?: string;
+  avatarUrl?: string;
+  avatarEmoji?: string;
+  presenceStatus?: 'online' | 'busy' | 'away';
 }
 
 export type SyncConnectionStatus = 'local' | 'connecting' | 'connected' | 'error';

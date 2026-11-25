@@ -154,7 +154,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const [previewView, setPreviewView] = useState<PreviewViewMode>('board');
   const [viewScrollProgress, setViewScrollProgress] = useState(0);
   const [isNavbarHidden, setIsNavbarHidden] = useState(false);
+  const [isHeroPaused, setIsHeroPaused] = useState(false);
   const viewsSectionRef = useRef<HTMLElement>(null);
+  const heroRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const heroEl = heroRef.current;
+    if (!heroEl) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsHeroPaused(!entry.isIntersecting),
+      { threshold: 0.01 }
+    );
+    observer.observe(heroEl);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -296,72 +309,53 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       </header>
 
-      {/* 1. Sky-Blue Volumetric Hero + Rich Animated Background (GPU-composited) */}
-      <div className="relative overflow-hidden bg-gradient-to-b from-[#6BB5FF] via-[#2563EB] to-[#1D4ED8] text-white">
-        {/* Subtle Dot Grid & Radial Center Glow */}
+      {/* 1. Sky-Blue Volumetric Hero + Lightweight GPU-Composited Background */}
+      <div
+        ref={heroRef}
+        className={cn(
+          'relative overflow-hidden bg-gradient-to-b from-[#6BB5FF] via-[#2563EB] to-[#1D4ED8] text-white',
+          isHeroPaused && 'yuu-hero-paused'
+        )}
+      >
+        {/* Static Lightweight Radial Aura + Subtle Dot Grid */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 opacity-25 bg-[radial-gradient(rgba(255,255,255,0.5)_1px,transparent_1px)] [background-size:28px_28px] animate-yuu-hero-glow"
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_22%_18%,rgba(255,255,255,0.28),transparent_46%),radial-gradient(circle_at_80%_25%,rgba(191,219,254,0.26),transparent_44%)]"
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -top-28 -left-20 h-[520px] w-[520px] rounded-full bg-white/30 blur-3xl animate-yuu-hero-drift"
+          className="pointer-events-none absolute inset-0 opacity-20 bg-[radial-gradient(rgba(255,255,255,0.45)_1px,transparent_1px)] [background-size:32px_32px]"
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute top-10 -right-24 h-[560px] w-[560px] rounded-full bg-sky-200/35 blur-3xl animate-yuu-hero-drift"
-          style={{ animationDelay: '-5s' }}
+          className="pointer-events-none absolute -inset-x-24 top-0 h-[420px] opacity-45 bg-[linear-gradient(115deg,transparent_28%,rgba(255,255,255,0.26)_46%,transparent_64%)] animate-yuu-hero-beam"
+        />
+        {/* 2 Thin Rotating Orbital Rings */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute left-1/2 top-[40%] h-[680px] w-[680px] rounded-full border border-dashed border-white/20 animate-yuu-hero-orbit"
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute bottom-12 left-1/3 h-[420px] w-[420px] rounded-full bg-blue-300/30 blur-3xl animate-yuu-hero-drift"
-          style={{ animationDelay: '-2.5s', animationDuration: '14s' }}
+          className="pointer-events-none absolute left-1/2 top-[40%] h-[440px] w-[440px] rounded-full border border-white/15 animate-yuu-hero-orbit"
+          style={{ animationDuration: '28s', animationDirection: 'reverse' }}
         />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -inset-x-24 top-0 h-[440px] opacity-55 bg-[linear-gradient(115deg,transparent_25%,rgba(255,255,255,0.34)_45%,transparent_65%)] animate-yuu-hero-beam"
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -inset-x-24 top-24 h-[380px] opacity-40 bg-[linear-gradient(130deg,transparent_30%,rgba(191,219,254,0.34)_50%,transparent_70%)] animate-yuu-hero-beam"
-          style={{ animationDelay: '-6s', animationDuration: '16s', animationDirection: 'reverse' }}
-        />
-        {/* Rotating Concentric Orbital Rings */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute left-1/2 top-[40%] h-[880px] w-[880px] rounded-full border border-dashed border-white/15 animate-yuu-hero-orbit"
-          style={{ animationDuration: '58s' }}
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute left-1/2 top-[40%] h-[660px] w-[660px] rounded-full border border-dashed border-white/25 animate-yuu-hero-orbit"
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute left-1/2 top-[40%] h-[440px] w-[440px] rounded-full border border-white/20 animate-yuu-hero-orbit"
-          style={{ animationDuration: '26s', animationDirection: 'reverse' }}
-        />
-        {/* Floating Spark Particles */}
+        {/* 7 Lightweight Floating Particles (transform & opacity only, no heavy box-shadow) */}
         {[
-          { top: '14%', left: '12%', size: 'h-2 w-2', delay: '0s', dur: '5.5s', alt: false },
-          { top: '26%', left: '84%', size: 'h-2.5 w-2.5', delay: '-1.8s', dur: '6.5s', alt: true },
-          { top: '48%', left: '8%', size: 'h-1.5 w-1.5', delay: '-3.1s', dur: '5s', alt: false },
-          { top: '54%', left: '89%', size: 'h-2 w-2', delay: '-2.4s', dur: '7s', alt: true },
-          { top: '20%', left: '68%', size: 'h-1.5 w-1.5', delay: '-4.2s', dur: '6s', alt: false },
-          { top: '38%', left: '22%', size: 'h-2 w-2', delay: '-0.9s', dur: '6.8s', alt: true },
-          { top: '12%', left: '42%', size: 'h-1.5 w-1.5', delay: '-2.1s', dur: '5.8s', alt: false },
-          { top: '34%', left: '76%', size: 'h-2 w-2', delay: '-3.7s', dur: '7.2s', alt: true },
-          { top: '62%', left: '16%', size: 'h-2.5 w-2.5', delay: '-1.2s', dur: '6.2s', alt: false },
-          { top: '16%', left: '92%', size: 'h-1.5 w-1.5', delay: '-4.8s', dur: '5.4s', alt: true },
-          { top: '44%', left: '56%', size: 'h-1.5 w-1.5', delay: '-0.4s', dur: '6.4s', alt: false },
-          { top: '68%', left: '78%', size: 'h-2 w-2', delay: '-2.9s', dur: '7.4s', alt: true }
+          { top: '16%', left: '14%', size: 'h-2 w-2', delay: '0s', dur: '6s', alt: false },
+          { top: '26%', left: '84%', size: 'h-2.5 w-2.5', delay: '-1.8s', dur: '7s', alt: true },
+          { top: '48%', left: '10%', size: 'h-1.5 w-1.5', delay: '-3.1s', dur: '5.5s', alt: false },
+          { top: '54%', left: '88%', size: 'h-2 w-2', delay: '-2.4s', dur: '7.2s', alt: true },
+          { top: '20%', left: '68%', size: 'h-1.5 w-1.5', delay: '-4.2s', dur: '6.2s', alt: false },
+          { top: '38%', left: '24%', size: 'h-2 w-2', delay: '-0.9s', dur: '6.8s', alt: true },
+          { top: '14%', left: '46%', size: 'h-1.5 w-1.5', delay: '-2.1s', dur: '5.8s', alt: false }
         ].map((p, idx) => (
           <span
             key={idx}
             aria-hidden="true"
             style={{ top: p.top, left: p.left, animationDelay: p.delay, animationDuration: p.dur }}
             className={cn(
-              'pointer-events-none absolute rounded-full bg-white/80 shadow-[0_0_14px_rgba(255,255,255,0.85)]',
+              'pointer-events-none absolute rounded-full bg-white/75',
               p.alt ? 'animate-yuu-hero-float-alt' : 'animate-yuu-hero-float',
               p.size
             )}
@@ -607,9 +601,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         {/* 3. Section Editorial Hitam (Layout Terbalik: Preview App Shell + Cover Docs di Kiri, Copy di Kanan) */}
         <section id="docs" className="bg-[#0B0D12] text-white py-20 sm:py-24 border-y border-white/10">
           <div data-reveal className="yuu-reveal grid grid-cols-1 gap-10 items-center px-4 mx-auto max-w-7xl sm:px-6 lg:grid-cols-12 lg:gap-12">
-            {/* Left: Larger Miniature Real App Shell Preview with Cover Image */}
-            <div className="lg:col-span-7 lg:order-1">
-              <div className="rounded-2xl border border-white/15 bg-[#12151E] shadow-2xl overflow-hidden flex h-[470px] sm:h-[530px] select-none">
+            {/* Left: Larger Miniature Real App Shell Preview with Non-Overlapping Cover Image */}
+            <div className="lg:col-span-8 lg:order-1">
+              <div className="rounded-2xl border border-white/15 bg-[#12151E] shadow-2xl overflow-hidden flex h-[520px] sm:h-[580px] select-none">
                 {/* Mini Blue Navigation Rail */}
                 <div className="w-11 bg-gradient-to-b from-[#1D4ED8] to-[#1E40AF] flex flex-col items-center py-3 gap-3 shrink-0 border-r border-white/15">
                   <img src="/icon.svg" alt="Yuumotion" className="w-6 h-6 rounded-lg ring-1 ring-white/25" />
@@ -644,26 +638,27 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 {/* Mini TipTap Canvas + Cover Banner + Sticky TOC */}
                 <div className="flex-1 bg-[#0B0D12] flex flex-col overflow-hidden">
                   {/* Cover Image Banner */}
-                  <div className="relative h-28 sm:h-32 w-full shrink-0 overflow-hidden border-b border-white/10">
+                  <div className="relative h-32 sm:h-36 w-full shrink-0 overflow-hidden border-b border-white/10">
                     <img
                       src="https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1200&auto=format&fit=crop&q=80"
                       alt="Cover Dokumen Yuumotion"
                       className="h-full w-full object-cover object-center"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0B0D12]/80 via-[#0B0D12]/20 to-transparent" />
-                    <span className="absolute right-3 top-2.5 rounded-lg border border-white/20 bg-black/40 px-2 py-0.5 text-[10px] font-medium text-white/90 backdrop-blur-sm">
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0B0D12]/70 via-transparent to-transparent" />
+                    <span className="absolute right-3 top-3 rounded-lg border border-white/20 bg-black/45 px-2.5 py-1 text-[10px] font-medium text-white/90 backdrop-blur-sm">
                       Ganti Cover
                     </span>
                   </div>
 
-                  <div className="flex-1 px-5 pb-5 flex gap-4 overflow-hidden">
-                    <div className="flex-1 space-y-3 min-w-0">
-                      <div className="-mt-6 relative z-10 flex items-end justify-between border-b border-white/10 pb-2.5">
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-[#141720] text-lg shadow-lg shrink-0">
+                  {/* Document Body (Cleanly below Cover without negative overlap) */}
+                  <div className="flex-1 px-6 py-5 flex gap-5 overflow-hidden">
+                    <div className="flex-1 space-y-3.5 min-w-0">
+                      <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-[#141720] text-lg shadow-md shrink-0">
                             📝
                           </span>
-                          <span className="text-sm sm:text-base font-bold text-white truncate font-display">
+                          <span className="text-base sm:text-lg font-bold text-white truncate font-display">
                             Arsitektur Ruang Kerja
                           </span>
                         </div>
@@ -676,28 +671,28 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                           </span>
                         ))}
                       </div>
-                      <div className="space-y-2.5 text-[11px] text-slate-300 leading-relaxed">
-                        <div className="text-xs font-bold text-white font-display">1. Ringkasan Sistem</div>
+                      <div className="space-y-2.5 text-xs text-slate-300 leading-relaxed">
+                        <div className="text-sm font-bold text-white font-display">1. Ringkasan Sistem</div>
                         <p className="text-slate-400">
                           Ketik perintah slash <span className="font-mono text-blue-400">/image</span> atau{' '}
                           <span className="font-mono text-blue-400">/code</span> untuk menyisipkan blok terstruktur secara instan.
                         </p>
-                        <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 p-2.5 text-[11px] text-blue-200">
+                        <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 p-3 text-[11px] text-blue-200">
                           TipTap terhubung langsung dengan tombol Export Markdown (.md).
                         </div>
-                        <div className="rounded-xl border border-white/10 bg-[#141720] p-2.5 font-mono text-[10px] text-slate-300">
+                        <div className="rounded-xl border border-white/10 bg-[#141720] p-3 font-mono text-[10px] text-slate-300">
                           BroadcastChannel (0ms) + Hono SSE Realtime
                         </div>
                       </div>
                     </div>
 
                     {/* Mini Sticky TOC */}
-                    <div className="hidden md:block w-32 shrink-0 mt-3 rounded-xl border border-white/10 bg-[#141720] p-2.5 h-fit">
-                      <div className="flex items-center gap-1 font-mono text-[9px] font-semibold uppercase tracking-wider text-slate-400 pb-1.5 mb-1.5 border-b border-white/10">
+                    <div className="hidden md:block w-36 shrink-0 rounded-xl border border-white/10 bg-[#141720] p-3 h-fit">
+                      <div className="flex items-center gap-1 font-mono text-[9px] font-semibold uppercase tracking-wider text-slate-400 pb-2 mb-2 border-b border-white/10">
                         <ListBullets className="w-3 h-3 text-blue-400" />
                         <span>Daftar Isi</span>
                       </div>
-                      <div className="space-y-1 text-[10px]">
+                      <div className="space-y-1.5 text-[10px]">
                         <div className="font-semibold text-white truncate">1. Ringkasan</div>
                         <div className="pl-2 truncate text-slate-400">2. Skema DB</div>
                         <div className="pl-2 truncate text-slate-400">3. RBAC Policy</div>
@@ -709,7 +704,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
 
             {/* Right: Copy Editorial */}
-            <div className="space-y-5 lg:col-span-5 lg:order-2">
+            <div className="space-y-5 lg:col-span-4 lg:order-2">
               <h2 className="text-3xl font-bold tracking-tight leading-tight font-display sm:text-4xl">
                 Tulis Spesifikasi,{' '}
                 <span className="font-serif italic font-normal text-blue-400">Simpan Otomatis</span> di Perangkat.

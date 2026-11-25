@@ -190,6 +190,10 @@
   animation: yuu-hero-pulse-glow 8s ease-in-out infinite;
 }
 
+.yuu-hero-paused * {
+  animation-play-state: paused !important;
+}
+
 .yuu-reveal {
   opacity: 0;
   transform: translate3d(0, 20px, 0);

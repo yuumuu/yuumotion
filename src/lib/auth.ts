@@ -134,18 +134,26 @@ export function getStoredWorkspaces(currentUser: AuthUser): Workspace[] {
         name: 'Aria Collaborator',
         email: 'aria@example.com',
         avatar: 'A',
-        color: '#10B981',
+        color: '#2563EB',
         role: 'member',
-        joinedAt: Date.now()
+        joinedAt: Date.now(),
+        title: 'Product Designer',
+        bio: 'Merancang alur interaksi Kanban, sistem komponen, dan dokumen spesifikasi produk.',
+        timezone: 'Asia/Jakarta (WIB)',
+        presenceStatus: 'online'
       },
       {
         id: 'usr-viewer-1',
         name: 'Client Reviewer',
         email: 'client@example.com',
         avatar: 'C',
-        color: '#F59E0B',
+        color: '#0EA5E9',
         role: 'viewer',
-        joinedAt: Date.now()
+        joinedAt: Date.now(),
+        title: 'Stakeholder & QA',
+        bio: 'Meninjau progres sprint mingguan serta memberikan catatan pada dokumen rilis.',
+        timezone: 'Asia/Singapore (SGT)',
+        presenceStatus: 'away'
       }
     ],
     boards: [INITIAL_BOARD],

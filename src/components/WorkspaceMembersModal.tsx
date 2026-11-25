@@ -3,6 +3,7 @@ import { Workspace, WorkspaceMember, UserRole, AuthUser } from '../types/board';
 import { canManageMembers } from '../lib/auth';
 import { CustomSelect, Dialog, Button, Input, toast } from './ui';
 import { Users, UserPlus, Shield, Trash, Crown } from '@phosphor-icons/react';
+import { MemberProfileModal, ProfileDetailTarget } from './MemberProfileModal';
 
 interface WorkspaceMembersModalProps {
   workspace: Workspace;
@@ -29,6 +30,7 @@ export const WorkspaceMembersModal: React.FC<WorkspaceMembersModalProps> = ({
   const [newMemberEmail, setNewMemberEmail] = useState('');
   const [newMemberRole, setNewMemberRole] = useState<UserRole>('member');
   const [isAddingMember, setIsAddingMember] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<ProfileDetailTarget | null>(null);
 
   const currentUserRole =
     workspace.members.find((m) => m.id === currentUser.id)?.role || workspace.currentRole;
@@ -182,23 +184,32 @@ export const WorkspaceMembersModal: React.FC<WorkspaceMembersModalProps> = ({
 
               return (
                 <div key={member.id} className="flex items-center justify-between p-3 text-xs">
-                  <div className="flex items-center gap-2.5 min-w-0">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedMember(member)}
+                    title="Lihat detail profil anggota"
+                    className="flex items-center gap-2.5 min-w-0 text-left hover:opacity-85 transition-opacity cursor-pointer"
+                  >
                     <div
                       style={{ backgroundColor: member.color }}
-                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white shadow-2xs"
+                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white shadow-2xs overflow-hidden"
                     >
-                      {member.avatar}
+                      {member.avatarUrl ? (
+                        <img src={member.avatarUrl} alt={member.name} className="h-full w-full object-cover" />
+                      ) : (
+                        member.avatarEmoji || member.avatar
+                      )}
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5 font-medium text-text">
-                        <span className="truncate">{member.name}</span>
+                        <span className="truncate hover:underline">{member.name}</span>
                         {isSelf && (
                           <span className="text-[10px] text-project-solid font-normal">(Kamu)</span>
                         )}
                       </div>
                       {member.email && <div className="text-[10px] text-muted truncate">{member.email}</div>}
                     </div>
-                  </div>
+                  </button>
 
                   <div className="flex items-center gap-2 shrink-0">
                     {isManager && !isMemberOwner && !isSelf ? (
@@ -235,6 +246,11 @@ export const WorkspaceMembersModal: React.FC<WorkspaceMembersModalProps> = ({
           </div>
         </div>
       </div>
+
+      <MemberProfileModal
+        member={selectedMember}
+        onClose={() => setSelectedMember(null)}
+      />
     </Dialog>
   );
 };

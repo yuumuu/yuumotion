@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
-import { Workspace, AuthUser } from '../types/board';
+import { Workspace, AuthUser, WorkspaceTemplateType } from '../types/board';
 import { Moon, Sun, Gear, Plus, SidebarSimple, Trash } from '@phosphor-icons/react';
 import { usePreferences } from '../context/PreferencesContext';
 import { cn } from '../lib/cn';
 import { ConfirmDialog } from './ui';
 import { ContextMenu } from './ui/ContextMenu';
 import { SettingsTab } from './SettingsHubModal';
+import { CreateWorkspaceModal } from './CreateWorkspaceModal';
 
 interface NavigationRailProps {
   workspaces: Workspace[];
   activeWorkspaceId: string;
   onSelectWorkspace: (workspaceId: string) => void;
-  onCreateWorkspace?: (name: string, icon: string) => void;
+  onCreateWorkspace?: (name: string, icon: string, template?: WorkspaceTemplateType) => void;
   onDeleteWorkspace?: (workspaceId: string) => void;
   onOpenWorkspaceSettings?: (workspaceId: string) => void;
   isSidebarOpen?: boolean;
@@ -205,16 +206,12 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
         }}
       />
 
-      <ConfirmDialog
+      <CreateWorkspaceModal
         isOpen={isAddWsOpen}
         onClose={() => setIsAddWsOpen(false)}
-        title="Buat Workspace Baru"
-        mode="prompt"
-        placeholder="Misal: Tim Desain Produk..."
-        confirmLabel="Buat Workspace"
-        onConfirm={(name) => {
-          if (name && onCreateWorkspace) {
-            onCreateWorkspace(name, name.charAt(0).toUpperCase());
+        onCreate={(name, icon, template) => {
+          if (onCreateWorkspace) {
+            onCreateWorkspace(name, icon, template);
           }
         }}
       />

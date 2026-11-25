@@ -20,9 +20,10 @@ import {
   Trash,
   SignOut,
   Lock,
-  Bell
+  Bell,
+  Plus
 } from '@phosphor-icons/react';
-import { Dialog, Button, Input, Switch, Kbd, toast } from './ui';
+import { Dialog, Button, Input, Switch, Kbd, CustomSelect, toast } from './ui';
 import { cn } from '../lib/cn';
 import { usePreferences } from '../context/PreferencesContext';
 import { AppTheme, AppDensity, CardOpenMode, ProjectAccentTheme } from '../types/preferences';
@@ -46,8 +47,13 @@ interface SettingsHubModalProps {
   onLogout?: () => void;
 }
 
-const AVATAR_COLORS = ['#6366F1', '#2563EB', '#10B981', '#F59E0B', '#EC4899', '#06B6D4'];
+const AVATAR_COLORS = ['#2563EB', '#1D4ED8', '#0B0D12', '#3B82F6', '#0EA5E9', '#64748B'];
 const AVATAR_EMOJIS = ['🚀', '🎨', '⚡', '🦊', '✨', '💻'];
+const ALL_AVATAR_EMOJIS = [
+  '🚀', '🎨', '⚡', '🦊', '✨', '💻', '🧠', '🔥',
+  '🎯', '📋', '🌿', '🌊', '🎧', '🛠️', '📦', '🛡️',
+  '🌟', '🧩', '📐', '🔭', '🦉', '🐳', '🏔️', '☕'
+];
 const TIMEZONE_OPTIONS = [
   'Asia/Jakarta (WIB)',
   'Asia/Makassar (WITA)',
@@ -109,6 +115,7 @@ export const SettingsHubModal: React.FC<SettingsHubModalProps> = ({
   );
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
 
   const [supabaseUrl, setSupabaseUrl] = useState(cloudConfig.supabaseUrl);
   const [supabaseKey, setSupabaseKey] = useState(cloudConfig.supabaseAnonKey);
@@ -321,7 +328,7 @@ export const SettingsHubModal: React.FC<SettingsHubModalProps> = ({
 
               {/* Avatar Emoji & Color */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
+                <div className="space-y-2 relative">
                   <label className="text-xs font-semibold text-text">Preset Emoji Avatar</label>
                   <div className="flex flex-wrap gap-2">
                     {AVATAR_EMOJIS.map((em) => (
@@ -331,6 +338,7 @@ export const SettingsHubModal: React.FC<SettingsHubModalProps> = ({
                         onClick={() => {
                           setProfileAvatarEmoji(em);
                           setProfileAvatarUrl('');
+                          setIsEmojiPickerOpen(false);
                         }}
                         className={cn(
                           'flex h-8 w-8 items-center justify-center rounded-lg border text-sm transition-transform cursor-pointer',
@@ -342,7 +350,56 @@ export const SettingsHubModal: React.FC<SettingsHubModalProps> = ({
                         {em}
                       </button>
                     ))}
+                    <button
+                      type="button"
+                      onClick={() => setIsEmojiPickerOpen((v) => !v)}
+                      title="Pilih dari semua emoji & ikon"
+                      className={cn(
+                        'flex h-8 w-8 items-center justify-center rounded-lg border text-xs font-semibold transition-colors cursor-pointer',
+                        isEmojiPickerOpen
+                          ? 'border-project-accent bg-project-soft text-project-solid'
+                          : 'border-dashed border-border bg-bg text-muted hover:text-text hover:bg-hover'
+                      )}
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                    </button>
                   </div>
+
+                  {isEmojiPickerOpen && (
+                    <div className="mt-2 rounded-xl border border-border bg-surface p-2.5 shadow-popover">
+                      <div className="mb-1.5 flex items-center justify-between text-[10px] font-semibold uppercase tracking-wider text-muted">
+                        <span>Semua Emoji &amp; Ikon</span>
+                        <button
+                          type="button"
+                          onClick={() => setIsEmojiPickerOpen(false)}
+                          className="text-muted hover:text-text cursor-pointer"
+                        >
+                          Tutup
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-8 gap-1">
+                        {ALL_AVATAR_EMOJIS.map((em) => (
+                          <button
+                            key={em}
+                            type="button"
+                            onClick={() => {
+                              setProfileAvatarEmoji(em);
+                              setProfileAvatarUrl('');
+                              setIsEmojiPickerOpen(false);
+                            }}
+                            className={cn(
+                              'flex h-7 w-7 items-center justify-center rounded-md text-sm transition-colors cursor-pointer',
+                              profileAvatarEmoji === em && !profileAvatarUrl
+                                ? 'bg-project-soft ring-1 ring-project-accent'
+                                : 'hover:bg-hover'
+                            )}
+                          >
+                            {em}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -396,17 +453,13 @@ export const SettingsHubModal: React.FC<SettingsHubModalProps> = ({
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-text">Zona Waktu</label>
-                  <select
+                  <CustomSelect
                     value={profileTimezone}
-                    onChange={(e) => setProfileTimezone(e.target.value)}
-                    className="h-9 w-full rounded-xl border border-border bg-bg px-3 text-xs text-text focus:outline-none focus:ring-2 focus:ring-project-accent/40 cursor-pointer"
-                  >
-                    {TIMEZONE_OPTIONS.map((tz) => (
-                      <option key={tz} value={tz}>
-                        {tz}
-                      </option>
-                    ))}
-                  </select>
+                    options={TIMEZONE_OPTIONS.map((tz) => ({ value: tz, label: tz }))}
+                    onChange={(val) => setProfileTimezone(val)}
+                    size="md"
+                    className="w-full"
+                  />
                 </div>
               </div>
 
@@ -472,18 +525,18 @@ export const SettingsHubModal: React.FC<SettingsHubModalProps> = ({
                   <Lock className="h-4 w-4 text-project-solid" />
                   <span>Keamanan Akun &amp; Sesi</span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div className="space-y-2.5 max-w-sm">
                   <Input
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Password baru (min. 6)"
+                    placeholder="Password baru (min. 6 karakter)"
                   />
                   <Input
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Konfirmasi password"
+                    placeholder="Konfirmasi password baru"
                   />
                   <Button type="button" variant="secondary" size="sm" onClick={handlePasswordUpdate}>
                     Perbarui Password

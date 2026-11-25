@@ -31,6 +31,7 @@ interface HeaderProps {
   onNavigateToLanding: () => void;
   onOpenCommandPalette?: () => void;
   onOpenSettings?: (tab: SettingsTab) => void;
+  onSelectOnlineUser?: (user: UserPresence) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -46,7 +47,8 @@ export const Header: React.FC<HeaderProps> = ({
   onLogout,
   onNavigateToLanding,
   onOpenCommandPalette,
-  onOpenSettings
+  onOpenSettings,
+  onSelectOnlineUser
 }) => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [menuPos, setMenuPos] = useState({ top: 56, right: 16 });
@@ -131,14 +133,16 @@ export const Header: React.FC<HeaderProps> = ({
         {onlineUsers.length > 0 && (
           <div className="hidden xl:flex items-center -space-x-1.5">
             {onlineUsers.slice(0, 3).map((user) => (
-              <div
+              <button
                 key={user.id}
-                className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-bar text-white text-[9px] font-bold shadow-2xs"
+                type="button"
+                onClick={() => onSelectOnlineUser?.(user)}
+                className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-bar text-white text-[9px] font-bold shadow-2xs hover:scale-110 transition-transform cursor-pointer"
                 style={{ backgroundColor: user.color }}
-                title={`${user.name} sedang online`}
+                title={`${user.name} · Klik untuk lihat profil`}
               >
-                {user.avatar}
-              </div>
+                {user.avatarEmoji || user.avatar}
+              </button>
             ))}
           </div>
         )}

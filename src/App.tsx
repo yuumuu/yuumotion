@@ -11,6 +11,7 @@ import {
   UserPresence,
   UserRole,
   Workspace,
+  WorkspaceTemplateType,
   WorkspaceView
 } from './types/board';
 import { INITIAL_BOARD } from './lib/constants';
@@ -53,6 +54,7 @@ import { SettingsHubModal, SettingsTab } from './components/SettingsHubModal';
 import { BoardTemplateModal } from './components/BoardTemplateModal';
 import { ShareModal } from './components/ShareModal';
 import { EntitySettingsModal } from './components/EntitySettingsModal';
+import { MemberProfileModal, ProfileDetailTarget } from './components/MemberProfileModal';
 import { BoardTemplate } from './data/boardTemplates';
 import { ActivityService } from './services/activityService';
 import { ToastContainer, ConfirmDialog, toast } from './components/ui';
@@ -67,6 +69,7 @@ export const App: React.FC = () => {
   const [isQuickTaskPromptOpen, setIsQuickTaskPromptOpen] = useState(false);
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [selectedProfileMember, setSelectedProfileMember] = useState<ProfileDetailTarget | null>(null);
   const [entitySettings, setEntitySettings] = useState<{ open: boolean; type: 'workspace' | 'board' }>({
     open: false,
     type: 'board'
@@ -433,9 +436,19 @@ export const App: React.FC = () => {
     }
   };
 
-  const handleCreateWorkspace = (name: string, icon: string) => {
+  const handleCreateWorkspace = (
+    name: string,
+    icon: string,
+    template: WorkspaceTemplateType = 'full'
+  ) => {
+    const wsId = `ws-${Date.now()}`;
+    const includeBoard = template === 'full' || template === 'board';
+    const includeDocs = template === 'full' || template === 'docs';
+    const starterBoardId = `board-${Date.now()}`;
+    const starterPageId = `page-${Date.now()}`;
+
     const newWs: Workspace = {
-      id: `ws-${Date.now()}`,
+      id: wsId,
       name,
       icon,
       ownerId: currentUser.id,
@@ -448,24 +461,53 @@ export const App: React.FC = () => {
           avatar: currentUser.avatar,
           color: currentUser.color,
           role: 'owner',
-          joinedAt: Date.now()
+          joinedAt: Date.now(),
+          title: currentUser.title,
+          bio: currentUser.bio,
+          timezone: currentUser.timezone,
+          avatarUrl: currentUser.avatarUrl,
+          avatarEmoji: currentUser.avatarEmoji,
+          presenceStatus: currentUser.presenceStatus
         }
       ],
-      boards: [
-        {
-          ...INITIAL_BOARD,
-          id: `board-${Date.now()}`,
-          title: `${name} Roadmap`,
-          updatedAt: Date.now()
-        }
-      ],
-      pages: [],
+      boards: includeBoard
+        ? [
+            {
+              ...INITIAL_BOARD,
+              id: starterBoardId,
+              workspaceId: wsId,
+              title: `${name} Roadmap`,
+              updatedAt: Date.now()
+            }
+          ]
+        : [],
+      pages: includeDocs
+        ? [
+            {
+              id: starterPageId,
+              workspaceId: wsId,
+              title: `Panduan ${name}`,
+              icon: '📝',
+              coverImage:
+                'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1200&auto=format&fit=crop&q=80',
+              contentHtml: `<h1>Selamat datang di ${name}</h1><p>Mulai tulis catatan, spesifikasi PRD, atau dokumentasi tim di sini. Ketik <code>/</code> untuk membuka menu blok cepat.</p>`,
+              createdAt: Date.now(),
+              updatedAt: Date.now()
+            }
+          ]
+        : [],
       createdAt: Date.now(),
       updatedAt: Date.now()
     };
 
     setWorkspaces((prev) => [...prev, newWs]);
-    handleSelectWorkspace(newWs.id);
+    setActiveWorkspaceIdState(wsId);
+    setActiveWorkspaceId(wsId);
+    if (includeBoard) {
+      setActiveTarget({ type: 'board', id: starterBoardId });
+    } else if (includeDocs) {
+      setActiveTarget({ type: 'page', id: starterPageId });
+    }
     toast.success(`Workspace "${name}" berhasil dibuat.`);
   };
 
@@ -1181,6 +1223,7 @@ export const App: React.FC = () => {
           onNavigateToLanding={() => goToRoute('landing')}
           onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
           onOpenSettings={openSettingsTab}
+          onSelectOnlineUser={(u) => setSelectedProfileMember(u)}
         />
 
         {/* Split-View Container for Main Canvas & Push Inspector */}
@@ -1367,7 +1410,31 @@ export const App: React.FC = () => {
         onClose={() => setIsSettingsOpen(false)}
         initialTab={settingsTab}
         currentUser={currentUser}
-        onUserChange={setCurrentUser}
+        onUserChange={(updated) => {
+          setCurrentUser(updated);
+          setWorkspaces((prev) =>
+            prev.map((ws) => ({
+              ...ws,
+              members: ws.members.map((m) =>
+                m.id === updated.id
+                  ? {
+                      ...m,
+                      name: updated.name,
+                      email: updated.email,
+                      avatar: updated.avatar,
+                      color: updated.color,
+                      title: updated.title,
+                      bio: updated.bio,
+                      timezone: updated.timezone,
+                      avatarUrl: updated.avatarUrl,
+                      avatarEmoji: updated.avatarEmoji,
+                      presenceStatus: updated.presenceStatus
+                    }
+                  : m
+              )
+            }))
+          );
+        }}
         cloudConfig={cloudConfig}
         syncStatus={syncStatus}
         onSaveCloudConfig={(next) => {
@@ -1378,6 +1445,11 @@ export const App: React.FC = () => {
         onExportBackup={handleExport}
         onImportBackup={handleImport}
         onLogout={handleLogout}
+      />
+
+      <MemberProfileModal
+        member={selectedProfileMember}
+        onClose={() => setSelectedProfileMember(null)}
       />
 
       <CommandPalette
