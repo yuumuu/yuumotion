@@ -11,7 +11,15 @@ interface KanbanColumnProps {
   onCardClick: (card: Card) => void;
   onAddCard: (columnId: string, title: string) => void;
   onDeleteColumn: (columnId: string) => void;
-  onDropCard: (cardId: string, targetColumnId: string) => void;
+  onQuickComplete?: (card: Card) => void;
+  draggingCardId?: string | null;
+  draggingCardHeight?: number;
+  isDropTarget?: boolean;
+  keyboardDragCardId?: string | null;
+  onCardPointerDown: (card: Card, columnId: string, e: React.PointerEvent<HTMLElement>) => void;
+  onKeyboardDragToggle: (card: Card, columnId: string) => void;
+  onKeyboardMove: (card: Card, direction: 'left' | 'right') => void;
+  onKeyboardCancel: () => void;
 }
 
 export const KanbanColumn: React.FC<KanbanColumnProps> = ({
@@ -20,11 +28,18 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
   onCardClick,
   onAddCard,
   onDeleteColumn,
-  onDropCard
+  onQuickComplete,
+  draggingCardId,
+  draggingCardHeight,
+  isDropTarget,
+  keyboardDragCardId,
+  onCardPointerDown,
+  onKeyboardDragToggle,
+  onKeyboardMove,
+  onKeyboardCancel
 }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [newTitle, setNewTitle] = useState('');
-  const [isDragOver, setIsDragOver] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
 
   const handleCreate = (e: React.FormEvent) => {
@@ -36,35 +51,17 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
     }
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(true);
-  };
-
-  const handleDragLeave = () => {
-    setIsDragOver(false);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    const cardId = e.dataTransfer.getData('text/plain');
-    if (cardId) {
-      onDropCard(cardId, column.id);
-    }
-  };
-
   const isDoneColumn =
     column.title.toLowerCase().includes('done') ||
-    column.title.toLowerCase().includes('selesai');
+    column.title.toLowerCase().includes('selesai') ||
+    column.title.toLowerCase().includes('completed');
 
   return (
     <section
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
+      data-column-id={column.id}
       className={cn(
-        'flex h-full w-80 flex-shrink-0 flex-col transition-all duration-200 select-none'
+        'flex h-full w-80 flex-shrink-0 flex-col rounded-2xl transition-[background-color,box-shadow] duration-200 select-none p-2 -m-2',
+        isDropTarget && 'bg-project-soft/20 ring-1 ring-project-ring/60'
       )}
     >
       {/* Column Header: Minimalist & Crisp */}
@@ -131,16 +128,26 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
             key={card.id}
             card={card}
             isDoneColumn={isDoneColumn}
-            onClick={() => onCardClick(card)}
-            onDragStart={(e) => {
-              e.dataTransfer.setData('text/plain', card.id);
+            isOriginPlaceholder={draggingCardId === card.id}
+            placeholderHeight={draggingCardHeight}
+            isKeyboardDragging={keyboardDragCardId === card.id}
+            onClick={() => {
+              if (!draggingCardId) onCardClick(card);
             }}
+            onPointerDown={(e) => onCardPointerDown(card, column.id, e)}
+            onQuickComplete={onQuickComplete}
+            onKeyboardDragToggle={() => onKeyboardDragToggle(card, column.id)}
+            onKeyboardMove={(dir) => onKeyboardMove(card, dir)}
+            onKeyboardCancel={onKeyboardCancel}
           />
         ))}
 
         {/* Drop Target Placeholder (Zero Layout Shift) */}
-        {isDragOver && (
-          <div className="h-24 rounded-2xl border-2 border-dashed border-project-accent bg-project-soft animate-pulse transition-all duration-200" />
+        {isDropTarget && (
+          <div
+            style={{ height: draggingCardHeight ? `${Math.min(draggingCardHeight, 120)}px` : '88px' }}
+            className="rounded-2xl border-2 border-dashed border-project-solid/50 bg-project-soft/25 transition-[height,opacity] duration-150"
+          />
         )}
 
         {/* Inline Add Card Form */}

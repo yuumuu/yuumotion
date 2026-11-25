@@ -1,10 +1,6 @@
 import React, { useState } from 'react';
 import { Board, SyncConnectionStatus, UserPresence, WorkspaceView, UserRole, NotionPage } from '../types/board';
 import {
-  Kanban,
-  CalendarBlank,
-  Clock,
-  Table as TableIcon,
   MagnifyingGlass,
   Radio,
   CheckCircle,
@@ -12,15 +8,12 @@ import {
   Spinner,
   Database,
   List as MenuIcon,
-  ShieldCheck,
-  Crown,
   SignOut,
   Keyboard,
   Gear,
   House
 } from '@phosphor-icons/react';
-import { Badge, Kbd } from './ui';
-import { cn } from '../lib/cn';
+import { Kbd } from './ui';
 
 interface HeaderProps {
   board?: Board;
@@ -67,11 +60,11 @@ export const Header: React.FC<HeaderProps> = ({
   onlineUsers,
   currentUser: _currentUser,
   syncStatus,
-  activeView,
-  onViewChange,
+  activeView: _activeView,
+  onViewChange: _onViewChange,
   onOpenSyncSettings,
   onOpenDbBridge,
-  onOpenMembersModal,
+  onOpenMembersModal: _onOpenMembersModal,
   isDark: _isDark,
   onToggleTheme: _onToggleTheme,
   searchQuery: _searchQuery,
@@ -88,21 +81,14 @@ export const Header: React.FC<HeaderProps> = ({
   const [showUserMenu, setShowUserMenu] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  const viewItems: { id: WorkspaceView; label: string; icon: React.ReactNode }[] = [
-    { id: 'board', label: 'Kanban', icon: <Kanban className="h-3.5 w-3.5" /> },
-    { id: 'table', label: 'Table', icon: <TableIcon className="h-3.5 w-3.5" /> },
-    { id: 'calendar', label: 'Kalender', icon: <CalendarBlank className="h-3.5 w-3.5" /> },
-    { id: 'timeline', label: 'Timeline', icon: <Clock className="h-3.5 w-3.5" /> }
-  ];
-
   return (
-    <header className="flex sticky top-0 z-30 justify-between items-center px-4 h-14 border-b border-border bg-bar/80 backdrop-blur-md sm:px-6 shrink-0 select-none">
-      {/* Left: Sidebar Toggle & Linear Breadcrumb */}
+    <header className="flex sticky top-0 z-30 justify-between items-center px-4 h-14 border-b border-border bg-bar/80 backdrop-blur-md sm:px-6 shrink-0 select-none gap-4">
+      {/* Left: Sidebar Toggle & Compact Breadcrumb */}
       <div className="flex gap-3 items-center min-w-0">
         <button
           type="button"
           onClick={onToggleSidebar}
-          className="flex justify-center items-center w-8 h-8 rounded-lg cursor-pointer text-muted hover:bg-hover hover:text-text transition-colors"
+          className="flex justify-center items-center w-8 h-8 rounded-lg cursor-pointer text-muted hover:bg-hover hover:text-text transition-colors shrink-0"
           title="Toggle Sidebar ([)"
         >
           <MenuIcon className="w-4 h-4" />
@@ -113,75 +99,29 @@ export const Header: React.FC<HeaderProps> = ({
             {workspaceName}
           </span>
           <span className="hidden text-muted/60 lg:inline">/</span>
-          <div className="flex items-center gap-1.5 min-w-0">
-            <span className="h-2 w-2 rounded-full bg-project-solid shrink-0" />
-            <h1 className="font-display font-bold tracking-tight truncate text-text text-sm">
-              {currentMode === 'board' ? board?.title || 'Board' : activePage?.title || 'Dokumen'}
-            </h1>
-          </div>
-
-          <Badge
-            variant={currentUserRole === 'owner' ? 'project' : 'neutral'}
-            dot
-            onClick={onOpenMembersModal}
-            className="hidden sm:inline-flex uppercase text-[10px] cursor-pointer"
-          >
-            {currentUserRole === 'owner' ? (
-              <span className="inline-flex items-center gap-1">
-                <Crown className="h-2.5 w-2.5" /> {currentUserRole}
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1">
-                <ShieldCheck className="h-2.5 w-2.5" /> {currentUserRole}
-              </span>
-            )}
-          </Badge>
+          <span className="font-display font-semibold truncate text-text text-sm">
+            {currentMode === 'board' ? board?.title || 'Board' : activePage?.title || 'Dokumen'}
+          </span>
         </div>
       </div>
 
-      {/* Center: Linear-Style Segmented View Switcher */}
-      {currentMode === 'board' && (
-        <div className="hidden md:flex items-center bg-hover/60 border border-border/80 p-0.5 rounded-xl text-xs">
-          {viewItems.map((v) => {
-            const isActive = activeView === v.id;
-            return (
-              <button
-                key={v.id}
-                type="button"
-                onClick={() => onViewChange(v.id)}
-                className={cn(
-                  'flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-[background-color,color,box-shadow,transform] duration-150 active:scale-[0.97] cursor-pointer',
-                  isActive
-                    ? 'bg-surface text-text font-bold shadow-card-sm'
-                    : 'text-muted hover:text-text hover:bg-surface/50'
-                )}
-              >
-                <span className={isActive ? 'text-project-solid' : 'text-muted'}>{v.icon}</span>
-                <span>{v.label}</span>
-              </button>
-            );
-          })}
+      {/* Center: Clean Search Pill (ala Weihu) */}
+      <div
+        onClick={onOpenCommandPalette}
+        className="hidden md:flex items-center rounded-xl border border-border bg-surface/90 px-3.5 py-1.5 text-xs text-muted hover:border-project-ring hover:bg-hover/60 transition-[background-color,border-color] duration-150 cursor-pointer w-full max-w-sm justify-between shadow-2xs"
+        title="Buka Command Palette (⌘K)"
+      >
+        <div className="flex items-center gap-2 truncate">
+          <MagnifyingGlass className="h-3.5 w-3.5 text-muted shrink-0" />
+          <span className="truncate">Cari tugas, dokumen, atau perintah...</span>
         </div>
-      )}
+        <Kbd>⌘K</Kbd>
+      </div>
 
-      {/* Right: Quick Search, Collaborators & Profile Menu */}
-      <div className="flex gap-2.5 items-center">
-        {/* Command Palette Trigger */}
-        <div
-          onClick={onOpenCommandPalette}
-          className="relative hidden sm:flex items-center rounded-xl border border-border/80 bg-surface px-3 py-1.5 text-xs text-muted hover:border-project-ring hover:bg-hover transition-all cursor-pointer w-44 justify-between shadow-2xs"
-          title="Buka Command Palette (⌘K)"
-        >
-          <div className="flex items-center gap-1.5 truncate">
-            <MagnifyingGlass className="h-3.5 w-3.5 text-muted shrink-0" />
-            <span className="truncate">Cari tugas...</span>
-          </div>
-          <Kbd>/</Kbd>
-        </div>
-
-        {/* Realtime Collaborator Avatars */}
+      {/* Right: Compact Sync Status & Profile Menu */}
+      <div className="flex gap-2.5 items-center shrink-0">
         {onlineUsers.length > 0 && (
-          <div className="hidden lg:flex items-center -space-x-1.5">
+          <div className="hidden xl:flex items-center -space-x-1.5">
             {onlineUsers.slice(0, 3).map((user) => (
               <div
                 key={user.id}

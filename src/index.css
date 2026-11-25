@@ -133,9 +133,24 @@
   animation: yuu-crossfade 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+@keyframes yuu-check-draw {
+  from {
+    stroke-dashoffset: 24;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-yuu-check {
+  stroke-dasharray: 24;
+  animation: yuu-check-draw 320ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-yuu-enter,
-  .animate-yuu-crossfade {
+  .animate-yuu-crossfade,
+  .animate-yuu-check {
     animation: none !important;
     transition: none !important;
   }

@@ -6,6 +6,7 @@ import {
   ShieldCheck,
   Globe,
   ArrowRight,
+  ArrowUpRight,
   Sun,
   Moon,
   Stack,
@@ -14,15 +15,14 @@ import {
   CalendarBlank,
   Clock,
   CheckCircle,
-  MagnifyingGlass,
-  Gear,
   Compass,
   Code,
   CheckSquare,
   Info,
-  CaretRight,
-  FolderOpen,
-  Sparkle
+  Radio,
+  Users,
+  Sparkle,
+  PaperPlaneTilt
 } from '@phosphor-icons/react';
 import { AuthUser } from '../types/board';
 import { cn } from '../lib/cn';
@@ -35,6 +35,7 @@ interface LandingPageProps {
   onToggleTheme: () => void;
 }
 
+type PersonaTab = 'personal' | 'product' | 'engineering';
 type PreviewViewMode = 'board' | 'table' | 'calendar' | 'timeline';
 
 function useRevealOnScroll() {
@@ -43,7 +44,10 @@ function useRevealOnScroll() {
 
   useEffect(() => {
     const el = ref.current;
-    if (!el) return;
+    if (!el || typeof IntersectionObserver === 'undefined') {
+      setIsVisible(true);
+      return;
+    }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -69,766 +73,671 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   isDark,
   onToggleTheme
 }) => {
+  const [personaTab, setPersonaTab] = useState<PersonaTab>('product');
   const [previewView, setPreviewView] = useState<PreviewViewMode>('board');
+  const [emailInput, setEmailInput] = useState('');
+  const [subscribed, setSubscribed] = useState(false);
 
-  const ch1 = useRevealOnScroll();
-  const ch2 = useRevealOnScroll();
-  const ch3 = useRevealOnScroll();
-  const ch4 = useRevealOnScroll();
-  const preFooter = useRevealOnScroll();
+  const sec1 = useRevealOnScroll();
+  const sec2 = useRevealOnScroll();
+  const sec3 = useRevealOnScroll();
+  const sec4 = useRevealOnScroll();
+
+  const handleSubscribe = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!emailInput.trim()) return;
+    setSubscribed(true);
+    setEmailInput('');
+  };
 
   return (
-    <div className="flex flex-col min-h-screen font-sans bg-bg text-text selection:bg-project-soft selection:text-project-solid">
-      {/* 1. Sticky Navigation Header */}
-      <header className="sticky top-0 z-40 w-full border-b backdrop-blur-md border-border bg-bar/85">
-        <div className="flex justify-between items-center px-4 mx-auto max-w-6xl h-16 sm:px-6">
-          <div className="flex gap-3 items-center">
-            <img
-              src="/icon.svg"
-              alt="Yuumotion Logo"
-              className="w-8 h-8 rounded-xl shadow-tactile-btn"
-            />
-            <div className="flex gap-2 items-center">
-              <span className="text-base font-bold tracking-tight font-display text-text">
+    <div className="min-h-screen bg-[#FAF9F6] dark:bg-[#111113] text-text flex flex-col font-sans selection:bg-blue-500/20 selection:text-blue-600">
+      {/* 1. Sky-Blue Volumetric Hero + Floating Glassmorphism Navbar */}
+      <div className="relative overflow-hidden bg-gradient-to-b from-[#6BB5FF] via-[#2F80ED] to-[#1D63FF] text-white">
+        {/* Diagonal Soft Light Rays */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 opacity-45 bg-[linear-gradient(125deg,rgba(255,255,255,0.28)_0%,transparent_42%,rgba(255,255,255,0.16)_64%,transparent_88%)]"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -top-32 left-1/2 h-[480px] w-[820px] -translate-x-1/2 rounded-full bg-white/20 blur-3xl"
+        />
+
+        {/* Floating Glassmorphism Navbar */}
+        <header className="relative z-30 mx-auto max-w-6xl px-4 pt-5 sm:px-6">
+          <div className="flex h-14 items-center justify-between rounded-2xl border border-white/25 bg-white/15 px-4 backdrop-blur-md shadow-lg">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-white p-1 shadow-xs">
+                <img src="/icon.svg" alt="Yuumotion" className="h-full w-full" />
+              </div>
+              <span className="font-display text-base font-bold tracking-tight text-white">
                 Yuumotion
               </span>
-              <span className="rounded-full border border-border bg-hover/70 px-2 py-0.5 font-mono text-[10px] font-medium text-muted">
-                v0.2 edge
-              </span>
-            </div>
-          </div>
-
-          <nav className="hidden gap-7 items-center text-xs font-medium md:flex text-muted">
-            <a href="#kanban" className="transition-colors duration-150 hover:text-text">
-              Papan Kanban
-            </a>
-            <a href="#docs" className="transition-colors duration-150 hover:text-text">
-              Dokumen PRD
-            </a>
-            <a href="#views" className="transition-colors duration-150 hover:text-text">
-              Multi-Views
-            </a>
-            <a href="#architecture" className="transition-colors duration-150 hover:text-text">
-              Arsitektur Edge
-            </a>
-          </nav>
-
-          <div className="flex gap-2 items-center">
-            <button
-              type="button"
-              onClick={onToggleTheme}
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-transparent text-muted transition-[background-color,border-color,color,transform] duration-150 hover:border-border hover:bg-hover hover:text-text active:scale-[0.95] cursor-pointer"
-              title="Ganti Tema (Terang / Gelap)"
-            >
-              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </button>
-
-            <button
-              type="button"
-              onClick={onOpenAuth}
-              className="hidden sm:inline-flex items-center rounded-xl border border-border bg-surface px-3.5 py-2 text-xs font-medium text-text shadow-2xs transition-[background-color,transform] duration-150 hover:bg-hover active:scale-[0.97] cursor-pointer"
-            >
-              {currentUser ? 'Akun' : 'Masuk'}
-            </button>
-
-            <button
-              type="button"
-              onClick={onEnterApp}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-project-solid px-4 py-2 text-xs font-semibold text-white shadow-tactile-btn transition-[opacity,transform] duration-150 hover:opacity-95 active:scale-[0.97] cursor-pointer"
-            >
-              <span>Buka Workspace</span>
-              <ArrowRight className="h-3.5 w-3.5" />
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <main className="flex-1">
-        {/* 2. Hero Section: Staggered Physics Entrance */}
-        <section className="overflow-hidden relative pt-14 pb-20 sm:pt-20 sm:pb-28">
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[520px] bg-[radial-gradient(60%_50%_at_50%_0%,var(--project-soft),transparent)]"
-          />
-
-          <div className="px-4 mx-auto max-w-6xl text-center sm:px-6">
-            <div
-              className="animate-yuu-enter inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3.5 py-1 text-[11px] font-mono text-muted shadow-2xs"
-              style={{ animationDelay: '0ms' }}
-            >
-              <span className="w-2 h-2 bg-emerald-500 rounded-full" />
-              <span>Offline-First Workspace • Wasmer Edge &amp; Supabase Realtime</span>
             </div>
 
-            <h1
-              className="animate-yuu-enter mx-auto mt-6 max-w-3xl font-display text-3xl font-extrabold tracking-tight text-text sm:text-5xl lg:text-[56px] lg:leading-[1.08] text-balance"
-              style={{ animationDelay: '60ms' }}
-            >
-              Satu ruang kerja presisi untuk ide, dokumen, dan alur tugas tim.
-            </h1>
+            <nav className="hidden md:flex items-center gap-7 text-xs font-medium text-white/85">
+              <a href="#personas" className="transition-colors duration-150 hover:text-white">
+                Solusi Tim
+              </a>
+              <a href="#docs" className="transition-colors duration-150 hover:text-white">
+                Dokumen PRD
+              </a>
+              <a href="#sync" className="transition-colors duration-150 hover:text-white">
+                Realtime Sync
+              </a>
+              <a href="#views" className="transition-colors duration-150 hover:text-white">
+                Multi-View
+              </a>
+            </nav>
 
-            <p
-              className="mx-auto mt-5 max-w-2xl text-sm leading-relaxed animate-yuu-enter text-muted sm:text-base"
-              style={{ animationDelay: '120ms' }}
-            >
-              Menggabungkan kejelasan papan Kanban dengan ketenangan kanvas dokumen TipTap.
-              Berjalan instan secara lokal di peramban dan sinkron realtime antar perangkat tanpa biaya server bulanan.
-            </p>
-
-            <div
-              className="flex flex-wrap gap-3 justify-center items-center mt-8 animate-yuu-enter"
-              style={{ animationDelay: '180ms' }}
-            >
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onToggleTheme}
+                className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/20 bg-white/10 text-white transition-[background-color,transform] duration-150 hover:bg-white/20 active:scale-[0.95] cursor-pointer"
+                title="Ganti Tema Aplikasi"
+              >
+                {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </button>
               <button
                 type="button"
                 onClick={onEnterApp}
-                className="inline-flex items-center gap-2 rounded-xl bg-project-solid px-6 py-3 text-sm font-semibold text-white shadow-card-hover transition-[transform,opacity,box-shadow] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:opacity-95 active:translate-y-0 active:scale-[0.98] cursor-pointer"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-[#0F172A] px-3.5 py-2 text-xs font-semibold text-white shadow-md transition-[transform,opacity] duration-150 hover:opacity-90 active:scale-[0.97] cursor-pointer"
               >
-                <span>Masuk ke Dashboard</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={onOpenAuth}
-                className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface px-5 py-3 text-sm font-medium text-text shadow-2xs transition-[background-color,transform] duration-150 hover:bg-hover active:scale-[0.98] cursor-pointer"
-              >
-                <span>Kelola Profil &amp; Akses</span>
+                <span>{currentUser ? 'Buka Workspace' : 'Masuk'}</span>
+                <ArrowRight className="h-3.5 w-3.5" />
               </button>
             </div>
+          </div>
+        </header>
 
-            {/* Hero Real UI Mockup: Triple-Panel Shell */}
-            <div
-              className="overflow-hidden mx-auto mt-14 max-w-5xl text-left rounded-2xl border shadow-2xl animate-yuu-enter border-border bg-surface"
-              style={{ animationDelay: '240ms' }}
+        {/* Hero Copy & Inline Pill CTA */}
+        <section className="relative z-20 mx-auto max-w-5xl px-4 pt-14 pb-8 text-center sm:px-6 sm:pt-20">
+          <div
+            className="animate-yuu-enter inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/15 px-3.5 py-1 font-mono text-[11px] font-medium text-white backdrop-blur-sm"
+            style={{ animationDelay: '0ms' }}
+          >
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />
+            <span>Workspace Hibrida Offline-First • v0.2 Edge</span>
+          </div>
+
+          <h1
+            className="animate-yuu-enter mx-auto mt-5 max-w-3xl font-display text-3xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-[54px] lg:leading-[1.08] text-balance"
+            style={{ animationDelay: '60ms' }}
+          >
+            Kelola Tugas dan Dokumen Tim Lebih Cepat, dengan Yuumotion
+          </h1>
+
+          <p
+            className="animate-yuu-enter mx-auto mt-4 max-w-xl text-sm leading-relaxed text-white/85 sm:text-base"
+            style={{ animationDelay: '120ms' }}
+          >
+            Satukan ketajaman papan Kanban dengan ketenangan editor dokumen TipTap. Sinkron instan antar perangkat tanpa biaya server bulanan.
+          </p>
+
+          {/* Inline Pill CTA Bar (ala Gambar 1) */}
+          <div
+            className="animate-yuu-enter mx-auto mt-7 inline-flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-white/30 bg-white/20 p-1.5 backdrop-blur-md shadow-xl"
+            style={{ animationDelay: '180ms' }}
+          >
+            <button
+              type="button"
+              onClick={onOpenAuth}
+              className="rounded-xl px-4 py-2 text-xs font-medium text-white transition-[background-color] duration-150 hover:bg-white/15 cursor-pointer"
             >
-              <div className="flex items-center justify-between border-b border-border bg-bar px-4 py-2.5">
-                <div className="flex gap-2 items-center">
-                  <span className="h-2.5 w-2.5 rounded-full bg-rose-400/80" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-amber-400/80" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-400/80" />
+              Masuk / Atur Profil
+            </button>
+            <button
+              type="button"
+              onClick={onEnterApp}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-[#0F172A] px-5 py-2.5 text-xs font-semibold text-white shadow-md transition-[transform,opacity] duration-150 hover:opacity-90 active:scale-[0.97] cursor-pointer"
+            >
+              <span>Mulai Workspace Gratis</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </button>
+          </div>
+
+          {/* 3 Floating Product UI Cards (ala Gambar 1) */}
+          <div
+            className="animate-yuu-enter relative mx-auto mt-14 grid max-w-5xl grid-cols-1 items-end gap-4 sm:grid-cols-3 text-left"
+            style={{ animationDelay: '240ms' }}
+          >
+            {/* Floating Left Card: TipTap Doc */}
+            <div className="hidden sm:block rounded-t-2xl border border-white/40 bg-white/95 p-5 text-slate-800 shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
+                  <FileText className="h-4 w-4" />
+                </div>
+                <span className="font-display text-xs font-bold">Dokumen PRD</span>
+              </div>
+              <div className="space-y-2 text-[11px] text-slate-600">
+                <div className="rounded-lg bg-slate-100 px-2.5 py-1.5 font-medium text-slate-800">
+                  /callout Tips Arsitektur
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckSquare className="h-3.5 w-3.5 text-emerald-600" />
+                  <span>Sinkronisasi Offline PWA</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckSquare className="h-3.5 w-3.5 text-blue-600" />
+                  <span>Outline Daftar Isi Sticky</span>
                 </div>
               </div>
+            </div>
 
-              <div className="flex h-[380px] sm:h-[420px] bg-bg">
-                <div className="hidden flex-col justify-between items-center py-3 w-12 border-r sm:flex border-border bg-bar/80 shrink-0">
-                  <div className="flex flex-col items-center gap-2.5">
-                    <div className="flex justify-center items-center w-7 h-7 text-xs font-bold text-white rounded-lg bg-project-solid font-display">
-                      M
-                    </div>
-                    <div className="flex justify-center items-center w-7 h-7 rounded-lg text-muted">
-                      <MagnifyingGlass className="h-3.5 w-3.5" />
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-center gap-2.5">
-                    <div className="flex justify-center items-center w-7 h-7 rounded-lg text-muted">
-                      <Gear className="h-3.5 w-3.5" />
-                    </div>
-                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-white text-[10px] font-bold">
-                      Y
-                    </div>
-                  </div>
+            {/* Floating Center Hero Card: Elevated Roadmap Board */}
+            <div className="rounded-t-2xl border border-white/60 bg-white p-6 text-slate-900 shadow-[0_24px_60px_-15px_rgba(15,23,42,0.35)] sm:-mt-6 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1.5">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <span className="h-2.5 w-2.5 rounded-full bg-blue-600" />
+                  <span className="font-display text-sm font-bold">Roadmap Q4</span>
                 </div>
-
-                <div className="hidden flex-col p-3 w-48 border-r md:flex border-border bg-bar/40 shrink-0">
-                  <div className="flex gap-2 items-center pb-3 mb-3 border-b border-border">
-                    <span className="w-2 h-2 rounded-full bg-project-solid" />
-                    <span className="text-xs font-bold truncate font-display text-text">
-                      Main Workspace
-                    </span>
-                  </div>
-
-                  <div className="space-y-3 text-[11px]">
-                    <div className="space-y-1">
-                      <div className="px-1.5 font-mono text-[10px] uppercase tracking-wider text-muted">
-                        Papan Sprint
-                      </div>
-                      <div className="flex items-center justify-between rounded-lg bg-project-soft px-2 py-1.5 font-semibold text-project-solid border border-project-ring">
-                        <span className="truncate">Product Roadmap</span>
-                        <span className="font-mono text-[10px]">3</span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-1">
-                      <div className="px-1.5 font-mono text-[10px] uppercase tracking-wider text-muted">
-                        Dokumen PRD
-                      </div>
-                      <div className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-muted">
-                        <FileText className="w-3 h-3 shrink-0" />
-                        <span className="truncate">Architecture Specs</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-muted">
-                        <FileText className="w-3 h-3 shrink-0" />
-                        <span className="truncate">Release Checklist</span>
-                      </div>
-                    </div>
-                  </div>
+                <span className="rounded-full bg-blue-50 px-2 py-0.5 font-mono text-[10px] font-semibold text-blue-600">
+                  YUU-108
+                </span>
+              </div>
+              <p className="text-xs font-semibold text-slate-800 mb-3">
+                Peluncuran Multi-View Engine &amp; ClickUp Drag Physics
+              </p>
+              <div className="flex items-center gap-1.5 mb-4">
+                <span className="rounded-md bg-sky-100 px-2 py-0.5 text-[10px] font-semibold text-sky-700">
+                  #frontend
+                </span>
+                <span className="rounded-md bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-700">
+                  #design
+                </span>
+              </div>
+              <div className="space-y-1.5 pt-3 border-t border-slate-100">
+                <div className="flex justify-between text-[10px] font-mono text-slate-500">
+                  <span>Progres</span>
+                  <span>80%</span>
                 </div>
-
-                <div className="overflow-hidden flex-1 p-4 bg-bg">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 h-full">
-                    <div className="flex flex-col p-3 rounded-xl border border-border bg-surface/60">
-                      <div className="flex justify-between items-center mb-3">
-                        <div className="flex gap-2 items-center">
-                          <span className="w-2 h-2 rounded-full bg-project-solid" />
-                          <span className="text-xs font-semibold text-text">To Do</span>
-                        </div>
-                        <span className="font-mono text-[11px] text-muted">2</span>
-                      </div>
-
-                      <div className="space-y-2.5">
-                        <div className="rounded-xl border border-border bg-surface p-3 shadow-card-sm transition-[transform,box-shadow] duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:-translate-y-0.5 hover:shadow-card-hover">
-                          <div className="flex items-center justify-between mb-1.5">
-                            <span className="font-mono text-[10px] font-semibold text-muted">YUU-1</span>
-                            <span className="rounded-md bg-status-high-bg px-1.5 py-0.5 text-[10px] font-semibold text-status-high">
-                              Tinggi
-                            </span>
-                          </div>
-                          <p className="mb-2 text-xs font-semibold leading-snug text-text">
-                            Sistem Token &amp; Tema Dinamis per Project
-                          </p>
-                          <div className="flex items-center justify-between text-[10px] text-muted pt-1.5 border-t border-border/60">
-                            <span className="font-mono">3/3 selesai</span>
-                            <span className="h-4 w-4 rounded-full bg-project-solid text-white flex items-center justify-center text-[9px] font-bold">
-                              H
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="rounded-xl border border-border bg-surface p-3 shadow-card-sm transition-[transform,box-shadow] duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:-translate-y-0.5 hover:shadow-card-hover">
-                          <div className="flex items-center justify-between mb-1.5">
-                            <span className="font-mono text-[10px] font-semibold text-muted">YUU-4</span>
-                            <span className="rounded-md bg-status-medium-bg px-1.5 py-0.5 text-[10px] font-semibold text-status-medium">
-                              Sedang
-                            </span>
-                          </div>
-                          <p className="text-xs font-semibold leading-snug text-text">
-                            Panel Outline TOC Sticky pada Dokumen
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="hidden flex-col p-3 rounded-xl border sm:flex border-border bg-surface/60">
-                      <div className="flex justify-between items-center mb-3">
-                        <div className="flex gap-2 items-center">
-                          <span className="w-2 h-2 bg-amber-500 rounded-full" />
-                          <span className="text-xs font-semibold text-text">In Progress</span>
-                        </div>
-                        <span className="font-mono text-[11px] text-muted">1</span>
-                      </div>
-
-                      <div className="rounded-xl border border-project-ring bg-surface p-3 shadow-card-hover transition-[transform,box-shadow] duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:-translate-y-0.5">
-                        <div className="flex items-center justify-between mb-1.5">
-                          <span className="font-mono text-[10px] font-semibold text-muted">YUU-2</span>
-                          <span className="rounded-md bg-status-urgent-bg px-1.5 py-0.5 text-[10px] font-semibold text-status-urgent">
-                            Urgent
-                          </span>
-                        </div>
-                        <p className="mb-2 text-xs font-semibold leading-snug text-text">
-                          Multi-View Engine: Board, Table, Kalender &amp; Gantt
-                        </p>
-                        <div className="flex flex-wrap gap-1 mb-2">
-                          <span className="rounded-md bg-hover px-1.5 py-0.5 text-[10px] text-muted">
-                            Frontend
-                          </span>
-                          <span className="rounded-md bg-hover px-1.5 py-0.5 text-[10px] text-muted">
-                            Architecture
-                          </span>
-                        </div>
-                        <div className="overflow-hidden w-full h-1 rounded-full bg-hover">
-                          <div className="w-2/3 h-full rounded-full bg-project-solid" />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="hidden flex-col p-3 rounded-xl border sm:flex border-border bg-surface/60">
-                      <div className="flex justify-between items-center mb-3">
-                        <div className="flex gap-2 items-center">
-                          <span className="w-2 h-2 bg-emerald-500 rounded-full" />
-                          <span className="text-xs font-semibold text-text">Completed</span>
-                        </div>
-                        <span className="font-mono text-[11px] text-muted">1</span>
-                      </div>
-
-                      <div className="rounded-xl border border-border bg-surface p-3 shadow-card-sm opacity-90 transition-[transform,opacity,box-shadow] duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:-translate-y-0.5 hover:opacity-100 hover:shadow-card-hover">
-                        <div className="flex items-center justify-between mb-1.5">
-                          <span className="font-mono text-[10px] font-semibold text-muted">YUU-3</span>
-                          <CheckCircle className="h-3.5 w-3.5 text-status-done" weight="fill" />
-                        </div>
-                        <p className="mb-2 text-xs font-semibold leading-snug text-text">
-                          Wasmer Edge &amp; Local MySQL Hybrid Bridge
-                        </p>
-                        <div className="flex items-center justify-between text-[10px] text-status-done font-medium pt-1.5 border-t border-border/60">
-                          <span>100% Terverifikasi</span>
-                          <span className="font-mono">11-24</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                <div className="flex gap-1">
+                  {[...Array(10)].map((_, i) => (
+                    <span
+                      key={i}
+                      className={cn(
+                        'h-2 flex-1 rounded-full',
+                        i < 8 ? 'bg-blue-600' : 'bg-slate-200'
+                      )}
+                    />
+                  ))}
                 </div>
+              </div>
+            </div>
+
+            {/* Floating Right Card: Realtime Sync */}
+            <div className="hidden sm:block rounded-t-2xl border border-white/40 bg-white/95 p-5 text-slate-800 shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1">
+              <div className="flex items-center justify-between mb-3">
+                <span className="font-display text-xs font-bold">Realtime Presence</span>
+                <span className="flex h-2 w-2 rounded-full bg-emerald-500" />
+              </div>
+              <div className="flex -space-x-2 mb-3">
+                {['Y', 'A', 'C'].map((ch, idx) => (
+                  <div
+                    key={ch}
+                    className={cn(
+                      'flex h-7 w-7 items-center justify-center rounded-full border-2 border-white text-[10px] font-bold text-white',
+                      idx === 0 ? 'bg-blue-600' : idx === 1 ? 'bg-emerald-500' : 'bg-amber-500'
+                    )}
+                  >
+                    {ch}
+                  </div>
+                ))}
+              </div>
+              <div className="rounded-lg bg-emerald-50 px-2.5 py-1.5 font-mono text-[10px] font-medium text-emerald-700">
+                0ms BroadcastChannel Active
               </div>
             </div>
           </div>
         </section>
+      </div>
 
-        {/* 3. Chapter 1: Papan Kanban Taktil */}
-        <section id="kanban" className="py-20 border-t border-border bg-surface/50 sm:py-24">
-          <div
-            ref={ch1.ref}
-            className={cn(
-              'mx-auto max-w-6xl px-4 sm:px-6 transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
-              ch1.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'
-            )}
-          >
-            <div className="grid grid-cols-1 gap-10 items-center lg:grid-cols-12 lg:gap-14">
-              <div className="space-y-5 lg:col-span-5">
-                <div className="inline-flex items-center gap-2 rounded-lg border border-border bg-bg px-2.5 py-1 font-mono text-[11px] font-medium text-muted">
-                  <Kanban className="h-3.5 w-3.5 text-project-solid" />
-                  <span>BAB 01 • ALUR TUGAS TAKTIL</span>
-                </div>
-                <h2 className="text-2xl font-bold tracking-tight font-display text-text sm:text-3xl text-balance">
-                  Anatomi kartu yang tenang, informatif, dan responsif tanpa pergeseran layout.
-                </h2>
-                <p className="text-sm leading-relaxed text-muted">
-                  Setiap kartu dirancang dengan hierarki informasi yang bersih: kode ID monospaced, indikator prioritas terkalibrasi, label tag maksimal tiga item, dan bilah progres checklist mini.
-                </p>
-                <ul className="pt-2 space-y-3 text-xs text-text">
-                  <li className="flex items-start gap-2.5">
-                    <CheckCircle className="h-4 w-4 text-project-solid shrink-0 mt-0.5" />
-                    <span>Tiga mode pembukaan detail kartu: Side Peek Drawer, Center Modal, atau Full Page Doc.</span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <CheckCircle className="h-4 w-4 text-project-solid shrink-0 mt-0.5" />
-                    <span>Drag-and-drop mulus dengan placeholder presisi agar kolom di sekitarnya tidak melompat.</span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <CheckCircle className="h-4 w-4 text-project-solid shrink-0 mt-0.5" />
-                    <span>Dukungan penuh pintasan keyboard untuk navigasi cepat dan aksesibilitas.</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div className="lg:col-span-7">
-                <div className="p-6 rounded-2xl border border-border bg-bg shadow-card-sm">
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div className="rounded-2xl border border-project-ring bg-surface p-4 shadow-card-hover transition-[transform,box-shadow] duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:-translate-y-0.5">
-                      <div className="flex justify-center items-center mb-3 w-full h-20 bg-gradient-to-br from-indigo-50 to-purple-100 rounded-xl border dark:from-indigo-950/60 dark:to-purple-950/40 border-border/50">
-                        <Stack className="w-6 h-6 text-project-solid/70" />
-                      </div>
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="font-mono text-[11px] font-semibold text-muted">YUU-108</span>
-                        <span className="rounded-md bg-status-urgent-bg px-2 py-0.5 text-[10px] font-semibold text-status-urgent">
-                          Urgent
-                        </span>
-                      </div>
-                      <h3 className="text-sm font-semibold text-text mb-2.5">
-                        Migrasi Ikon ke Phosphor Icons &amp; Audit Kontras WCAG AA
-                      </h3>
-                      <div className="flex gap-1.5 mb-3">
-                        <span className="rounded-md bg-hover px-2 py-0.5 text-[10px] font-medium text-muted">
-                          Design System
-                        </span>
-                        <span className="rounded-md bg-hover px-2 py-0.5 text-[10px] font-medium text-muted">
-                          UI Polish
-                        </span>
-                      </div>
-                      <div className="space-y-1.5 pt-2.5 border-t border-border">
-                        <div className="flex items-center justify-between text-[11px] text-muted">
-                          <span className="flex gap-1 items-center">
-                            <CheckSquare className="h-3.5 w-3.5 text-status-done" />
-                            <span className="font-mono">4/5</span>
-                          </span>
-                          <span className="font-mono">Besok</span>
-                        </div>
-                        <div className="h-1.5 w-full rounded-full bg-hover overflow-hidden">
-                          <div className="w-4/5 h-full rounded-full bg-status-done" />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col gap-3 justify-center">
-                      <div className="p-4 text-center rounded-xl border border-dashed border-project-solid/50 bg-project-soft/30">
-                        <span className="font-mono text-[11px] text-project-solid font-medium">
-                          Drop Slot Presisi (Zero Layout Shift)
-                        </span>
-                      </div>
-                      <div className="rounded-xl border border-border bg-surface p-3.5 shadow-card-sm transition-[transform,box-shadow] duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:-translate-y-0.5 hover:shadow-card-hover">
-                        <div className="flex items-center justify-between mb-1.5">
-                          <span className="font-mono text-[10px] text-muted">YUU-109</span>
-                          <span className="rounded-md bg-status-done-bg px-1.5 py-0.5 text-[10px] font-semibold text-status-done">
-                            Selesai
-                          </span>
-                        </div>
-                        <p className="text-xs font-medium text-text">
-                          Sanitasi Cache LocalStorage &amp; ErrorBoundary
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+      {/* 2. Social Proof / Tech Stack Strip (ala Gambar 1) */}
+      <section className="border-b border-border bg-surface py-10">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 text-center">
+          <p className="font-display text-sm font-semibold text-text">
+            Dibangun di atas Ekosistem Modern untuk{' '}
+            <span className="text-[#1D63FF]">Kecepatan Maksimal</span>
+          </p>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3 sm:gap-5">
+            {[
+              'React 18',
+              'TypeScript',
+              'TipTap Editor',
+              'Supabase Realtime',
+              'Wasmer Edge',
+              'Tailwind CSS'
+            ].map((tech) => (
+              <span
+                key={tech}
+                className="rounded-xl border border-border bg-bg px-4 py-2 font-mono text-xs font-medium text-muted shadow-2xs"
+              >
+                {tech}
+              </span>
+            ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* 4. Chapter 2: TipTap Document Ecosystem */}
-        <section id="docs" className="py-20 border-t border-border bg-bg sm:py-24">
+      <main className="flex-1">
+        {/* 3. Section 1: 3-Persona Cards with Highlighted Center (ala Gambar 1) */}
+        <section id="personas" className="py-20 sm:py-24">
           <div
-            ref={ch2.ref}
+            ref={sec1.ref}
             className={cn(
               'mx-auto max-w-6xl px-4 sm:px-6 transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
-              ch2.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'
+              sec1.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
             )}
           >
-            <div className="grid grid-cols-1 gap-10 items-center lg:grid-cols-12 lg:gap-14">
-              <div className="order-2 lg:col-span-7 lg:order-1">
-                <div className="p-5 rounded-2xl border border-border bg-surface sm:p-6 shadow-card-sm">
-                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-12">
-                    <div className="space-y-4 sm:col-span-8">
-                      <div className="flex items-center gap-2.5">
-                        <div className="flex justify-center items-center w-8 h-8 rounded-lg bg-project-soft text-project-solid">
-                          <Compass className="w-4 h-4" />
-                        </div>
-                        <h3 className="text-lg font-bold font-display text-text">
-                          Spesifikasi Arsitektur Edge
-                        </h3>
-                      </div>
+            <div className="text-center max-w-2xl mx-auto">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-[#1D63FF]">
+                <Sparkle className="h-3 w-3" />
+                <span>Dirancang Fleksibel</span>
+              </span>
+              <h2 className="mt-4 font-display text-2xl font-bold tracking-tight text-text sm:text-4xl text-balance">
+                Ruang Kerja Paling Andal untuk{' '}
+                <span className="text-[#1D63FF]">Semua Skala Tim</span>
+              </h2>
 
-                      <div className="rounded-xl border border-border bg-project-soft/40 p-3 flex items-start gap-2.5 text-xs text-text">
-                        <Info className="h-4 w-4 text-project-solid shrink-0 mt-0.5" />
-                        <span>
-                          Semua dokumen tersimpan otomatis di peramban dan mendukung kolaborasi langsung tanpa konflik.
-                        </span>
-                      </div>
-
-                      <div className="p-2 space-y-1 max-w-xs rounded-xl border border-border bg-surface shadow-popover">
-                        <div className="px-2 py-1 font-mono text-[10px] text-muted uppercase tracking-wider">
-                          Perintah Slash (/)
-                        </div>
-                        <div className="flex items-center gap-2.5 rounded-lg bg-project-soft px-2.5 py-1.5 text-xs text-project-solid font-medium">
-                          <CheckSquare className="h-3.5 w-3.5" />
-                          <span>To-do Checklist</span>
-                        </div>
-                        <div className="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs text-text">
-                          <Code className="h-3.5 w-3.5 text-muted" />
-                          <span>Blok Kode Syntax</span>
-                        </div>
-                        <div className="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs text-text">
-                          <Info className="h-3.5 w-3.5 text-muted" />
-                          <span>Callout Pastel</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="pt-4 space-y-2 border-t sm:col-span-4 sm:border-t-0 sm:border-l border-border sm:pt-0 sm:pl-4">
-                      <div className="font-mono text-[10px] font-semibold uppercase tracking-wider text-muted">
-                        Daftar Isi (TOC)
-                      </div>
-                      <div className="space-y-1.5 text-xs">
-                        <div className="flex gap-1 items-center font-medium text-project-solid">
-                          <CaretRight className="w-3 h-3" />
-                          <span>Ringkasan Sistem</span>
-                        </div>
-                        <div className="pl-3 text-muted">Protokol Sync</div>
-                        <div className="pl-3 text-muted">Keamanan RBAC</div>
-                        <div className="pl-3 text-muted">Deploy Wasmer</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="order-1 space-y-5 lg:col-span-5 lg:order-2">
-                <div className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-2.5 py-1 font-mono text-[11px] font-medium text-muted">
-                  <FileText className="h-3.5 w-3.5 text-project-solid" />
-                  <span>BAB 02 • EKOSISTEM DOKUMEN TIPTAP</span>
-                </div>
-                <h2 className="text-2xl font-bold tracking-tight font-display text-text sm:text-3xl text-balance">
-                  Kanvas penulisan bebas distraksi dengan perintah slash dan daftar isi otomatis.
-                </h2>
-                <p className="text-sm leading-relaxed text-muted">
-                  Susun PRD, catatan rapat, hingga dokumentasi teknis secara terstruktur. Beralih kapan saja antara mode baca terpusat (740px) atau lebar penuh dengan panel Outline TOC di sisi kanan.
-                </p>
-                <div className="flex flex-wrap gap-2 pt-1">
-                  <span className="rounded-lg border border-border bg-surface px-2.5 py-1 font-mono text-[11px] text-muted">
-                    Slash Command (/)
-                  </span>
-                  <span className="rounded-lg border border-border bg-surface px-2.5 py-1 font-mono text-[11px] text-muted">
-                    Full-Width Toggle
-                  </span>
-                  <span className="rounded-lg border border-border bg-surface px-2.5 py-1 font-mono text-[11px] text-muted">
-                    Viewer Read-Only Lock
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* 5. Chapter 3: Multi-View Engine (Interactive View Switcher with Crossfade) */}
-        <section id="views" className="py-20 border-t border-border bg-surface/50 sm:py-24">
-          <div
-            ref={ch3.ref}
-            className={cn(
-              'mx-auto max-w-6xl px-4 sm:px-6 transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
-              ch3.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'
-            )}
-          >
-            <div className="flex flex-col gap-6 justify-between mb-10 md:flex-row md:items-end">
-              <div className="space-y-3 max-w-2xl">
-                <div className="inline-flex items-center gap-2 rounded-lg border border-border bg-bg px-2.5 py-1 font-mono text-[11px] font-medium text-muted">
-                  <Stack className="h-3.5 w-3.5 text-project-solid" />
-                  <span>BAB 03 • MULTI-VIEW ENGINE</span>
-                </div>
-                <h2 className="text-2xl font-bold tracking-tight font-display text-text sm:text-3xl">
-                  Satu sumber data, empat sudut pandang kerja.
-                </h2>
-                <p className="text-sm text-muted">
-                  Ubah tampilan papan sprint seketika tanpa menyalin ulang data tugas. Klik tab di samping untuk melihat pratinjau langsung.
-                </p>
-              </div>
-
-              <div className="inline-flex self-start p-1 rounded-xl border border-border bg-bg">
+              {/* 3 Persona Tabs */}
+              <div className="mt-6 inline-flex rounded-xl border border-border bg-surface p-1 shadow-2xs">
                 {(
                   [
-                    { id: 'board', label: 'Kanban', icon: <Kanban className="h-3.5 w-3.5" /> },
-                    { id: 'table', label: 'Tabel', icon: <TableIcon className="h-3.5 w-3.5" /> },
-                    { id: 'calendar', label: 'Kalender', icon: <CalendarBlank className="h-3.5 w-3.5" /> },
-                    { id: 'timeline', label: 'Timeline', icon: <Clock className="h-3.5 w-3.5" /> }
+                    { id: 'personal', label: 'Kreator Mandiri' },
+                    { id: 'product', label: 'Tim Produk' },
+                    { id: 'engineering', label: 'Engineering' }
                   ] as const
-                ).map((tab) => (
+                ).map((t) => (
                   <button
-                    key={tab.id}
+                    key={t.id}
                     type="button"
-                    onClick={() => setPreviewView(tab.id)}
+                    onClick={() => setPersonaTab(t.id)}
                     className={cn(
-                      'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-[background-color,color,box-shadow,transform] duration-150 active:scale-[0.97] cursor-pointer',
-                      previewView === tab.id
-                        ? 'bg-surface text-text shadow-2xs border border-border'
+                      'rounded-lg px-3.5 py-1.5 text-xs font-medium transition-[background-color,color] duration-150 cursor-pointer',
+                      personaTab === t.id
+                        ? 'bg-[#1D63FF] text-white shadow-xs'
                         : 'text-muted hover:text-text'
                     )}
                   >
-                    {tab.icon}
-                    <span>{tab.label}</span>
+                    {t.label}
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="rounded-2xl border border-border bg-surface p-5 sm:p-6 shadow-card-sm min-h-[240px]">
-              <div key={previewView} className="animate-yuu-crossfade">
-                {previewView === 'board' && (
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                    {[
-                      { col: 'To Do', items: ['YUU-11: Audit Kontras AA', 'YUU-12: Shortcut Keyboard'] },
-                      { col: 'In Progress', items: ['YUU-13: TipTap Outline TOC'] },
-                      { col: 'Done', items: ['YUU-10: Migrasi Phosphor Icons'] }
-                    ].map((group) => (
-                      <div key={group.col} className="rounded-xl border border-border bg-bg p-3.5 space-y-2.5">
-                        <div className="flex justify-between items-center text-xs font-semibold text-text">
-                          <span>{group.col}</span>
-                          <span className="font-mono text-[11px] text-muted">{group.items.length}</span>
-                        </div>
-                        {group.items.map((item) => (
-                          <div key={item} className="rounded-lg border border-border bg-surface p-2.5 text-xs font-medium text-text shadow-2xs">
-                            {item}
+            {/* 3 Cards Grid (Center Elevated Blue Gradient Card) */}
+            <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+              <div className="rounded-2xl border border-border bg-surface p-7 shadow-card-sm transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-card-hover">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/50 text-[#1D63FF] mb-5">
+                  <Compass className="h-5 w-5" />
+                </div>
+                <h3 className="font-display text-lg font-bold text-text mb-2">
+                  Kreator &amp; Freelancer
+                </h3>
+                <p className="text-xs leading-relaxed text-muted mb-6">
+                  Kelola daftar proyek klien, catatan ide, dan tenggat waktu dalam satu papan lokal tanpa perlu koneksi internet terus-menerus.
+                </p>
+                <button
+                  type="button"
+                  onClick={onEnterApp}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#1D63FF] hover:underline cursor-pointer"
+                >
+                  <span>Coba Sekarang</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </button>
+              </div>
+
+              {/* Highlighted Center Blue Card */}
+              <div className="rounded-2xl bg-gradient-to-br from-[#3B82F6] via-[#2563EB] to-[#1D4ED8] p-8 text-white shadow-[0_20px_50px_-12px_rgba(37,99,235,0.45)] md:-my-3 transition-[transform,box-shadow] duration-200 hover:-translate-y-1">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/20 text-white mb-5 backdrop-blur-sm">
+                  <Kanban className="h-5 w-5" />
+                </div>
+                <h3 className="font-display text-xl font-bold mb-2">
+                  Tim Produk &amp; Desain
+                </h3>
+                <p className="text-xs leading-relaxed text-white/85 mb-6">
+                  Gabungkan spesifikasi PRD TipTap dengan alur sprint Kanban taktil. Beralih ke Kalender atau Gantt Timeline dalam sekali klik.
+                </p>
+                <button
+                  type="button"
+                  onClick={onEnterApp}
+                  className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs font-semibold text-[#1D4ED8] shadow-md transition-transform duration-150 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+                >
+                  <span>Buka Workspace Tim</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </button>
+              </div>
+
+              <div className="rounded-2xl border border-border bg-surface p-7 shadow-card-sm transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-card-hover">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/50 text-[#1D63FF] mb-5">
+                  <Code className="h-5 w-5" />
+                </div>
+                <h3 className="font-display text-lg font-bold text-text mb-2">
+                  Tim Engineering
+                </h3>
+                <p className="text-xs leading-relaxed text-muted mb-6">
+                  Blok kode syntax, ekspor SQL ke MySQL/SQLite lokal, serta deployment instan di Wasmer Edge CDN tanpa setup backend rumit.
+                </p>
+                <button
+                  type="button"
+                  onClick={onEnterApp}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#1D63FF] hover:underline cursor-pointer"
+                >
+                  <span>Lihat Arsitektur</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 4. Section 2: Centered TipTap Docs Showcase (ala Gambar 1) */}
+        <section id="docs" className="border-t border-border bg-surface/50 py-20 sm:py-24">
+          <div
+            ref={sec2.ref}
+            className={cn(
+              'mx-auto max-w-5xl px-4 sm:px-6 text-center transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
+              sec2.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+            )}
+          >
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-[#1D63FF]">
+              <FileText className="h-3 w-3" />
+              <span>Ekosistem Dokumen TipTap</span>
+            </span>
+            <h2 className="mt-4 font-display text-2xl font-bold tracking-tight text-text sm:text-4xl text-balance">
+              Catatan Terstruktur yang{' '}
+              <span className="text-[#1D63FF]">Selalu Terhubung</span> dengan Tugas
+            </h2>
+            <p className="mx-auto mt-3 max-w-xl text-xs sm:text-sm text-muted">
+              Ketik perintah slash (/) untuk menyisipkan checklist, blok kode, atau callout pastel yang rapi dalam hitungan detik.
+            </p>
+
+            {/* Centered Large Showcase Card */}
+            <div className="mx-auto mt-10 max-w-2xl rounded-2xl border border-border bg-surface p-6 shadow-xl text-left">
+              <div className="flex items-center justify-between border-b border-border pb-4 mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#1D63FF] text-white">
+                    <FileText className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <div className="font-display text-sm font-bold text-text">
+                      Spesifikasi Produk &amp; Edge Sync
+                    </div>
+                    <div className="font-mono text-[10px] text-muted">
+                      Diperbarui otomatis secara lokal
+                    </div>
+                  </div>
+                </div>
+                <span className="rounded-lg bg-emerald-500/10 px-2.5 py-1 font-mono text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                  Tersimpan
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                <div className="rounded-xl border border-border bg-bg p-3 text-xs">
+                  <div className="font-mono text-[10px] text-muted mb-1">Perintah Cepat</div>
+                  <div className="font-semibold text-text">/todo, /code, /callout</div>
+                </div>
+                <div className="rounded-xl border border-border bg-bg p-3 text-xs">
+                  <div className="font-mono text-[10px] text-muted mb-1">Kontrol Akses</div>
+                  <div className="font-semibold text-text">Owner, Member, Viewer Lock</div>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-blue-200 dark:border-blue-900/50 bg-blue-50/70 dark:bg-blue-950/30 p-3.5 flex items-start gap-2.5 text-xs text-text">
+                <Info className="h-4 w-4 text-[#1D63FF] shrink-0 mt-0.5" />
+                <span>
+                  Setiap dokumen mendukung mode baca terpusat (740px) maupun lebar penuh dengan Daftar Isi (TOC) otomatis.
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 5. Section 3: Hub-and-Spoke Realtime Sync Diagram (ala Gambar 1) */}
+        <section id="sync" className="border-t border-border py-20 sm:py-24">
+          <div
+            ref={sec3.ref}
+            className={cn(
+              'mx-auto max-w-6xl px-4 sm:px-6 text-center transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
+              sec3.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+            )}
+          >
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-[#1D63FF]">
+              <Radio className="h-3 w-3" />
+              <span>Keamanan &amp; Sinkronisasi</span>
+            </span>
+            <h2 className="mt-4 font-display text-2xl font-bold tracking-tight text-text sm:text-4xl text-balance">
+              Data Aman di Perangkat,{' '}
+              <span className="text-[#1D63FF]">Sinkron Setiap Saat</span>
+            </h2>
+            <p className="mx-auto mt-3 max-w-xl text-xs sm:text-sm text-muted">
+              Kombinasi BroadcastChannel lokal (0ms) dan Supabase Realtime memastikan tim selalu berada di halaman yang sama.
+            </p>
+
+            {/* Hub-and-Spoke Layout */}
+            <div className="mt-12 grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+              <div className="md:col-span-3 space-y-4">
+                <div className="rounded-2xl border border-border bg-surface p-4 shadow-card-sm text-left flex items-center gap-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-600 font-bold text-xs">
+                    <Lightning className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-text">Tab Lokal 0ms</div>
+                    <div className="font-mono text-[10px] text-muted">BroadcastChannel</div>
+                  </div>
+                </div>
+                <div className="rounded-2xl border border-border bg-surface p-4 shadow-card-sm text-left flex items-center gap-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-500/15 text-[#1D63FF] font-bold text-xs">
+                    <ShieldCheck className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-text">RBAC Guardrails</div>
+                    <div className="font-mono text-[10px] text-muted">Viewer Read-Only</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Center Hub Card */}
+              <div className="md:col-span-6">
+                <div className="rounded-2xl border-2 border-[#1D63FF]/30 bg-surface p-6 shadow-xl">
+                  <div className="flex items-center justify-between border-b border-border pb-3 mb-4">
+                    <div className="flex items-center gap-2">
+                      <img src="/icon.svg" alt="Yuumotion" className="h-6 w-6 rounded-md" />
+                      <span className="font-display text-sm font-bold text-text">
+                        Yuumotion Sync Engine
+                      </span>
+                    </div>
+                    <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 font-mono text-[10px] font-semibold text-emerald-600">
+                      Online
+                    </span>
+                  </div>
+                  <div className="font-display text-2xl font-extrabold text-text mb-1">
+                    100% Offline-First
+                  </div>
+                  <p className="text-xs text-muted mb-4">
+                    Tetap bekerja tanpa internet; perubahan otomatis dikirim saat koneksi kembali tersambung.
+                  </p>
+                  <div className="grid grid-cols-2 gap-3 text-left">
+                    <div className="rounded-xl bg-bg p-3 border border-border">
+                      <div className="font-mono text-[10px] text-muted">Cadangan</div>
+                      <div className="text-xs font-semibold text-text">JSON &amp; SQL Dump</div>
+                    </div>
+                    <div className="rounded-xl bg-bg p-3 border border-border">
+                      <div className="font-mono text-[10px] text-muted">Hosting</div>
+                      <div className="text-xs font-semibold text-text">Wasmer Edge CDN</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="md:col-span-3 space-y-4">
+                <div className="rounded-2xl border border-border bg-surface p-4 shadow-card-sm text-left flex items-center gap-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-violet-500/15 text-violet-600 font-bold text-xs">
+                    <Users className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-text">Kolaborasi Live</div>
+                    <div className="font-mono text-[10px] text-muted">Supabase Realtime</div>
+                  </div>
+                </div>
+                <div className="rounded-2xl border border-border bg-surface p-4 shadow-card-sm text-left flex items-center gap-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500/15 text-amber-600 font-bold text-xs">
+                    <Database className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-text">Database Bridge</div>
+                    <div className="font-mono text-[10px] text-muted">MySQL &amp; SQLite</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 6. Section 4: Split Layout Multi-View Engine (ala Gambar 1) */}
+        <section id="views" className="border-t border-border bg-surface/50 py-20 sm:py-24">
+          <div
+            ref={sec4.ref}
+            className={cn(
+              'mx-auto max-w-6xl px-4 sm:px-6 transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
+              sec4.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+            )}
+          >
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+              <div className="lg:col-span-5 space-y-5">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-[#1D63FF]">
+                  <Stack className="h-3 w-3" />
+                  <span>Multi-View Engine</span>
+                </span>
+                <h2 className="font-display text-2xl font-bold tracking-tight text-text sm:text-4xl text-balance">
+                  Satu Sumber Data dalam{' '}
+                  <span className="text-[#1D63FF]">Hitungan Detik</span>
+                </h2>
+                <p className="text-sm leading-relaxed text-muted">
+                  Lihat papan yang sama sebagai kolom Kanban, tabel Spreadsheet, kalender bulanan, maupun jadwal Gantt Timeline tanpa menyalin data ulang.
+                </p>
+
+                {/* 4 Interactive View Pills */}
+                <div className="grid grid-cols-2 gap-2.5 pt-2">
+                  {(
+                    [
+                      { id: 'board', label: 'Kanban Board', icon: <Kanban className="h-3.5 w-3.5" /> },
+                      { id: 'table', label: 'Tabel Data', icon: <TableIcon className="h-3.5 w-3.5" /> },
+                      { id: 'calendar', label: 'Kalender', icon: <CalendarBlank className="h-3.5 w-3.5" /> },
+                      { id: 'timeline', label: 'Gantt Timeline', icon: <Clock className="h-3.5 w-3.5" /> }
+                    ] as const
+                  ).map((v) => (
+                    <button
+                      key={v.id}
+                      type="button"
+                      onClick={() => setPreviewView(v.id)}
+                      className={cn(
+                        'flex items-center gap-2 rounded-xl border px-3.5 py-2.5 text-xs font-semibold transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.98] cursor-pointer',
+                        previewView === v.id
+                          ? 'border-[#1D63FF] bg-[#1D63FF]/10 text-[#1D63FF]'
+                          : 'border-border bg-surface text-muted hover:text-text'
+                      )}
+                    >
+                      {v.icon}
+                      <span>{v.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="lg:col-span-7">
+                <div className="rounded-2xl border border-border bg-surface p-5 sm:p-6 shadow-xl min-h-[260px]">
+                  <div key={previewView} className="animate-yuu-crossfade">
+                    {previewView === 'board' && (
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                        {[
+                          { col: 'To Do', bg: 'bg-sky-50 dark:bg-sky-950/30', item: 'YUU-11: Audit Kontras AA' },
+                          { col: 'In Progress', bg: 'bg-amber-50 dark:bg-amber-950/30', item: 'YUU-13: ClickUp Drag Physics' },
+                          { col: 'Done', bg: 'bg-emerald-50 dark:bg-emerald-950/30', item: 'YUU-10: Phosphor Icons' }
+                        ].map((c) => (
+                          <div key={c.col} className="rounded-xl border border-border bg-bg p-3 space-y-2.5">
+                            <div className="text-xs font-bold text-text">{c.col}</div>
+                            <div className={cn('rounded-xl border border-border/70 p-3 text-xs font-medium text-text', c.bg)}>
+                              {c.item}
+                            </div>
                           </div>
                         ))}
                       </div>
-                    ))}
-                  </div>
-                )}
+                    )}
 
-                {previewView === 'table' && (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-xs text-left border-collapse">
-                      <thead>
-                        <tr className="border-b border-border text-muted font-mono text-[11px]">
-                          <th className="py-2.5 px-3">ID</th>
-                          <th className="py-2.5 px-3">Judul Tugas</th>
-                          <th className="py-2.5 px-3">Status</th>
-                          <th className="py-2.5 px-3">Prioritas</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-border">
-                        <tr>
-                          <td className="py-2.5 px-3 font-mono text-muted">YUU-10</td>
-                          <td className="py-2.5 px-3 font-medium text-text">Migrasi Phosphor Icons</td>
-                          <td className="py-2.5 px-3"><span className="rounded bg-status-done-bg px-2 py-0.5 text-status-done font-medium">Done</span></td>
-                          <td className="py-2.5 px-3 text-muted">Sedang</td>
-                        </tr>
-                        <tr>
-                          <td className="py-2.5 px-3 font-mono text-muted">YUU-11</td>
-                          <td className="py-2.5 px-3 font-medium text-text">Audit Kontras AA &amp; Token CSS</td>
-                          <td className="py-2.5 px-3"><span className="rounded bg-hover px-2 py-0.5 text-text font-medium">To Do</span></td>
-                          <td className="py-2.5 px-3 text-status-high font-medium">Tinggi</td>
-                        </tr>
-                        <tr>
-                          <td className="py-2.5 px-3 font-mono text-muted">YUU-13</td>
-                          <td className="py-2.5 px-3 font-medium text-text">TipTap Outline TOC Sticky</td>
-                          <td className="py-2.5 px-3"><span className="rounded bg-project-soft px-2 py-0.5 text-project-solid font-medium">In Progress</span></td>
-                          <td className="py-2.5 px-3 text-status-urgent font-medium">Urgent</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+                    {previewView === 'table' && (
+                      <table className="w-full text-left border-collapse text-xs">
+                        <thead>
+                          <tr className="border-b border-border text-muted font-mono text-[11px]">
+                            <th className="py-2 px-3">ID</th>
+                            <th className="py-2 px-3">Tugas</th>
+                            <th className="py-2 px-3">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border">
+                          <tr>
+                            <td className="py-2.5 px-3 font-mono text-muted">YUU-10</td>
+                            <td className="py-2.5 px-3 font-medium">Migrasi Phosphor Icons</td>
+                            <td className="py-2.5 px-3"><span className="rounded bg-emerald-500/15 px-2 py-0.5 text-emerald-600 font-semibold">Done</span></td>
+                          </tr>
+                          <tr>
+                            <td className="py-2.5 px-3 font-mono text-muted">YUU-13</td>
+                            <td className="py-2.5 px-3 font-medium">ClickUp Drag &amp; Drop</td>
+                            <td className="py-2.5 px-3"><span className="rounded bg-blue-500/15 px-2 py-0.5 text-[#1D63FF] font-semibold">In Progress</span></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    )}
 
-                {previewView === 'calendar' && (
-                  <div className="grid grid-cols-7 gap-2 text-xs text-center">
-                    {['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'].map((day) => (
-                      <div key={day} className="font-mono text-[11px] text-muted pb-1">{day}</div>
-                    ))}
-                    {[23, 24, 25, 26, 27, 28, 29].map((date) => (
-                      <div key={date} className={cn(
-                        'rounded-xl border border-border p-2.5 min-h-[72px] text-left',
-                        date === 25 ? 'bg-project-soft/40 border-project-ring' : 'bg-bg'
-                      )}>
-                        <span className="font-mono text-[11px] font-semibold text-text">{date}</span>
-                        {date === 25 && (
-                          <div className="mt-1.5 rounded bg-project-solid px-1.5 py-0.5 text-[10px] text-white truncate">
-                            YUU-13 Release
-                          </div>
-                        )}
-                        {date === 28 && (
-                          <div className="mt-1.5 rounded bg-status-done-bg px-1.5 py-0.5 text-[10px] text-status-done truncate">
-                            YUU-11 QA
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {previewView === 'timeline' && (
-                  <div className="py-2 space-y-3">
-                    {[
-                      { id: 'YUU-10', label: 'Migrasi Phosphor Icons', left: '5%', width: '35%', color: 'bg-status-done' },
-                      { id: 'YUU-13', label: 'TipTap Outline TOC & Full Width', left: '30%', width: '45%', color: 'bg-project-solid' },
-                      { id: 'YUU-14', label: 'Wasmer Edge Production Deploy', left: '60%', width: '35%', color: 'bg-amber-500' }
-                    ].map((bar) => (
-                      <div key={bar.id} className="flex gap-4 items-center text-xs">
-                        <span className="w-20 font-mono text-[11px] text-muted shrink-0">{bar.id}</span>
-                        <div className="flex overflow-hidden relative flex-1 items-center h-8 rounded-lg border bg-bg border-border">
+                    {previewView === 'calendar' && (
+                      <div className="grid grid-cols-7 gap-2 text-center text-xs">
+                        {['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'].map((d) => (
+                          <div key={d} className="font-mono text-[10px] text-muted">{d}</div>
+                        ))}
+                        {[23, 24, 25, 26, 27, 28, 29].map((date) => (
                           <div
-                            className={cn('absolute h-6 rounded-md px-2.5 flex items-center text-[11px] font-medium text-white shadow-2xs', bar.color)}
-                            style={{ left: bar.left, width: bar.width }}
+                            key={date}
+                            className={cn(
+                              'rounded-xl border border-border p-2 min-h-[68px] text-left',
+                              date === 25 ? 'border-[#1D63FF] bg-[#1D63FF]/10' : 'bg-bg'
+                            )}
                           >
-                            <span className="truncate">{bar.label}</span>
+                            <span className="font-mono text-[10px] font-bold">{date}</span>
+                            {date === 25 && (
+                              <div className="mt-1 rounded bg-[#1D63FF] px-1 py-0.5 text-[9px] text-white truncate">
+                                YUU-13
+                              </div>
+                            )}
                           </div>
-                        </div>
+                        ))}
                       </div>
-                    ))}
+                    )}
+
+                    {previewView === 'timeline' && (
+                      <div className="space-y-3 py-3">
+                        {[
+                          { id: 'YUU-10', label: 'Phosphor Icons', left: '5%', width: '35%', color: 'bg-emerald-500' },
+                          { id: 'YUU-13', label: 'ClickUp Drag Physics', left: '30%', width: '48%', color: 'bg-[#1D63FF]' },
+                          { id: 'YUU-14', label: 'Wasmer Deploy', left: '62%', width: '33%', color: 'bg-amber-500' }
+                        ].map((bar) => (
+                          <div key={bar.id} className="flex items-center gap-3 text-xs">
+                            <span className="w-16 font-mono text-[10px] text-muted">{bar.id}</span>
+                            <div className="relative flex-1 h-7 rounded-lg bg-bg border border-border flex items-center">
+                              <div
+                                className={cn('absolute h-5 rounded-md px-2 text-[10px] font-medium text-white flex items-center', bar.color)}
+                                style={{ left: bar.left, width: bar.width }}
+                              >
+                                <span className="truncate">{bar.label}</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* 6. Chapter 4: Arsitektur Edge & Zero Server Fees */}
-        <section id="architecture" className="py-20 border-t border-border bg-bg sm:py-24">
-          <div
-            ref={ch4.ref}
-            className={cn(
-              'mx-auto max-w-6xl px-4 sm:px-6 transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
-              ch4.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'
-            )}
-          >
-            <div className="mb-12 space-y-3 max-w-2xl">
-              <div className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-2.5 py-1 font-mono text-[11px] font-medium text-muted">
-                <Globe className="h-3.5 w-3.5 text-project-solid" />
-                <span>BAB 04 • ARSITEKTUR EDGE &amp; OFFLINE-FIRST</span>
-              </div>
-              <h2 className="text-2xl font-bold tracking-tight font-display text-text sm:text-3xl">
-                Dirancang tangguh untuk produktivitas tanpa ketergantungan server mahal.
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-              <div className="rounded-2xl border border-border bg-surface p-6 shadow-card-sm transition-[transform,box-shadow] duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:-translate-y-0.5 hover:shadow-card-hover">
-                <div className="flex justify-center items-center mb-4 w-10 h-10 rounded-xl bg-project-soft text-project-solid">
-                  <Lightning className="w-5 h-5" />
-                </div>
-                <h3 className="mb-2 text-base font-bold font-display text-text">
-                  Sinkronisasi Dual-Layer
-                </h3>
-                <p className="text-xs leading-relaxed text-muted">
-                  Kombinasi BroadcastChannel lokal (latensi 0ms antar tab) dan Supabase Realtime broadcast untuk kolaborasi lintas perangkat secara langsung.
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-border bg-surface p-6 shadow-card-sm transition-[transform,box-shadow] duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:-translate-y-0.5 hover:shadow-card-hover">
-                <div className="flex justify-center items-center mb-4 w-10 h-10 rounded-xl bg-status-done-bg text-status-done">
-                  <ShieldCheck className="w-5 h-5" />
-                </div>
-                <h3 className="mb-2 text-base font-bold font-display text-text">
-                  Kontrol Akses RBAC Ketat
-                </h3>
-                <p className="text-xs leading-relaxed text-muted">
-                  Pembagian peran Owner, Admin, Member, dan Viewer dengan penguncian kanvas otomatis untuk memastikan dokumen aman saat dibagikan.
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-border bg-surface p-6 shadow-card-sm transition-[transform,box-shadow] duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:-translate-y-0.5 hover:shadow-card-hover">
-                <div className="flex justify-center items-center mb-4 w-10 h-10 rounded-xl bg-status-medium-bg text-status-medium">
-                  <Database className="w-5 h-5" />
-                </div>
-                <h3 className="mb-2 text-base font-bold font-display text-text">
-                  Database Bridge &amp; Wasmer Edge
-                </h3>
-                <p className="text-xs leading-relaxed text-muted">
-                  Ekspor dump SQL terstruktur untuk MySQL atau SQLite kapan saja, serta konfigurasi siap pakai untuk deploy ke CDN global Wasmer Edge.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* 7. Pre-Footer CTA Band */}
-        <section className="py-16 border-t border-border bg-surface/40 sm:py-20">
-          <div
-            ref={preFooter.ref}
-            className={cn(
-              'mx-auto max-w-6xl px-4 sm:px-6 transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
-              preFooter.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'
-            )}
-          >
-            <div className="overflow-hidden relative p-8 rounded-3xl border border-border bg-surface sm:p-12 shadow-card-sm">
-              <div
-                aria-hidden="true"
-                className="absolute -top-24 -right-24 w-64 h-64 rounded-full blur-3xl pointer-events-none bg-project-soft/60"
-              />
-              <div className="flex relative flex-col gap-8 justify-between md:flex-row md:items-center">
-                <div className="space-y-3 max-w-xl">
-                  <div className="inline-flex items-center gap-1.5 font-mono text-[11px] font-medium text-project-solid">
-                    <Sparkle className="h-3.5 w-3.5" />
-                    <span>SIAP DIPAKAI SEKARANG</span>
-                  </div>
-                  <h2 className="text-2xl font-bold tracking-tight font-display text-text sm:text-3xl text-balance">
-                    Mulai atur sprint dan dokumentasi tim tanpa setup yang rumit.
-                  </h2>
-                  <p className="text-sm leading-relaxed text-muted">
-                    Seluruh data tersimpan aman secara lokal dan siap disinkronkan ke cloud kapan pun kamu membutuhkannya.
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap gap-3 items-center shrink-0">
-                  <button
-                    type="button"
-                    onClick={onOpenAuth}
-                    className="rounded-xl border border-border bg-bg px-5 py-3 text-xs font-semibold text-text transition-[background-color,transform] duration-150 hover:bg-hover active:scale-[0.97] cursor-pointer"
-                  >
-                    Masuk / Daftar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={onEnterApp}
-                    className="inline-flex items-center gap-2 rounded-xl bg-project-solid px-6 py-3 text-xs font-semibold text-white shadow-card-hover transition-[transform,opacity] duration-150 hover:-translate-y-0.5 hover:opacity-95 active:translate-y-0 active:scale-[0.97] cursor-pointer"
-                  >
-                    <span>Buka Ruang Kerja</span>
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </button>
                 </div>
               </div>
             </div>
@@ -836,36 +745,129 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </section>
       </main>
 
-      {/* 8. Ultra-Minimalist Editorial Footer */}
-      <footer className="pt-14 pb-10 border-t border-border bg-bar">
-        <div className="px-4 mx-auto max-w-6xl sm:px-6">
-          <div className="grid grid-cols-1 gap-10 pb-12 border-b sm:grid-cols-12 border-border">
-            <div className="space-y-3 sm:col-span-5">
+      {/* 7. Pre-Footer CTA & Minimalist Krafft-Style Electric Blue Footer (Mengacu Gambar 2) */}
+      <div className="relative overflow-hidden bg-gradient-to-b from-[#FAF9F6] via-[#86B6FF] via-35% to-[#0B45D6] dark:from-[#111113] dark:via-[#1D4ED8] dark:via-40% dark:to-[#0B3AB5]">
+        {/* Pre-Footer CTA Section */}
+        <section className="mx-auto max-w-4xl px-4 pt-20 pb-24 text-center sm:px-6">
+          <span className="inline-flex items-center rounded-full border border-border bg-white/90 dark:bg-surface/90 px-3.5 py-1 text-[11px] font-medium text-text shadow-2xs">
+            Mari Mulai Bekerja Bersama
+          </span>
+
+          <h2 className="mt-6 font-display text-3xl font-bold tracking-tight text-[#111113] dark:text-white sm:text-5xl leading-[1.12] text-balance">
+            Dirancang untuk <span className="font-serif italic font-normal">tim yang serius</span>{' '}
+            membangun produk.
+          </h2>
+
+          <p className="mx-auto mt-4 max-w-md text-xs sm:text-sm text-[#3F424A] dark:text-white/80 leading-relaxed">
+            Dari catatan cepat hingga roadmap peluncuran berskala besar, mulai tata ruang kerja Yuumotion dalam hitungan detik.
+          </p>
+
+          <div className="mt-7">
+            <button
+              type="button"
+              onClick={onEnterApp}
+              className="inline-flex items-center gap-2 rounded-xl bg-[#2563EB] px-6 py-3 text-xs font-semibold text-white shadow-[0_12px_28px_-6px_rgba(37,99,235,0.55)] transition-[transform,opacity] duration-150 hover:-translate-y-0.5 hover:opacity-95 active:translate-y-0 active:scale-[0.97] cursor-pointer"
+            >
+              <span>Buka Dashboard</span>
+              <ArrowUpRight className="h-4 w-4" />
+            </button>
+          </div>
+        </section>
+
+        {/* Minimalist Krafft-Style Electric Blue Footer (Tanpa 3 Kolom Navigasi) */}
+        <footer className="mx-auto max-w-6xl px-4 pt-8 pb-8 sm:px-6 text-white">
+          <div className="flex flex-col md:flex-row md:items-start justify-between gap-10 pb-12">
+            {/* Left: Brand Identity & Social Pill Icons */}
+            <div className="space-y-4 max-w-xs">
               <div className="flex items-center gap-2.5">
-                <img src="/icon.svg" alt="Yuumotion" className="w-6 h-6 rounded-lg" />
-                <span className="text-sm font-bold font-display text-text">Yuumotion</span>
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-white p-1">
+                  <img src="/icon.svg" alt="Yuumotion" className="h-full w-full" />
+                </div>
+                <span className="font-display text-lg font-bold tracking-tight">Yuumotion</span>
               </div>
-              <p className="max-w-xs text-xs leading-relaxed text-muted">
-                Ruang kerja hibrida yang menyatukan kejelasan Kanban dengan ketenangan kanvas dokumen TipTap secara offline-first.
+              <p className="text-xs leading-relaxed text-white/85">
+                Partner ruang kerja hibrida untuk ketenangan dokumen dan ketajaman alur tugas tim.
               </p>
+              <div className="flex items-center gap-2.5 pt-1">
+                <button
+                  type="button"
+                  onClick={onEnterApp}
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-white/25 bg-white/10 text-white transition-colors hover:bg-white/20 cursor-pointer"
+                  title="Buka Kanban"
+                >
+                  <Kanban className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={onOpenAuth}
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-white/25 bg-white/10 text-white transition-colors hover:bg-white/20 cursor-pointer"
+                  title="Kelola Akun"
+                >
+                  <Users className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={onToggleTheme}
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-white/25 bg-white/10 text-white transition-colors hover:bg-white/20 cursor-pointer"
+                  title="Ganti Tema"
+                >
+                  {isDark ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+                </button>
+                <a
+                  href="#architecture"
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-white/25 bg-white/10 text-white transition-colors hover:bg-white/20"
+                  title="Arsitektur Edge"
+                >
+                  <Globe className="h-3.5 w-3.5" />
+                </a>
+              </div>
             </div>
-            
-          
-          <div
-            aria-hidden="true"
-            className="mt-8 select-none overflow-hidden text-center font-display text-[clamp(3rem,10vw,7.5rem)] font-extrabold leading-none tracking-tighter text-text/[0.035] dark:text-text/[0.04]"
-          >
-            YUUMOTION
-          </div>
+
+            {/* Right: Minimalist Release Newsletter Widget (ala Gambar 2) */}
+            <div className="w-full max-w-xs space-y-2.5">
+              <div className="text-xs font-semibold text-white">
+                Berlangganan pembaruan rilis
+              </div>
+              {subscribed ? (
+                <div className="rounded-xl border border-white/30 bg-white/15 px-4 py-3 text-xs font-medium text-white backdrop-blur-sm flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-emerald-300 shrink-0" />
+                  <span>Terima kasih! Email kamu telah tercatat.</span>
+                </div>
+              ) : (
+                <form onSubmit={handleSubscribe} className="space-y-2">
+                  <input
+                    type="email"
+                    required
+                    value={emailInput}
+                    onChange={(e) => setEmailInput(e.target.value)}
+                    placeholder="Alamat Email"
+                    className="w-full rounded-xl border border-white/25 bg-white/15 px-3.5 py-2.5 text-xs text-white placeholder:text-white/70 focus:border-white focus:outline-none backdrop-blur-sm"
+                  />
+                  <button
+                    type="submit"
+                    className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-white py-2.5 text-xs font-semibold text-[#0B45D6] shadow-md transition-[transform,opacity] duration-150 hover:opacity-95 active:scale-[0.98] cursor-pointer"
+                  >
+                    <PaperPlaneTilt className="h-3.5 w-3.5" />
+                    <span>Langganan</span>
+                  </button>
+                </form>
+              )}
+            </div>
           </div>
 
-          {/* Editorial Bottom Row & Subtle Typographic Watermark */}
-          <div className="pt-8 flex flex-col sm:flex-row items-center justify-end gap-4 text-[11px] text-muted">
-            <span>© {new Date().getFullYear()} Yuumotion Workspace.</span>
+          {/* Giant Brand Wordmark (ala Krafft Footer Gambar 2) */}
+          <div className="mt-4 flex items-center justify-center gap-4 sm:gap-7 select-none overflow-hidden pt-4">
+            <div className="flex h-16 w-16 sm:h-28 sm:w-28 items-center justify-center rounded-2xl sm:rounded-3xl bg-white/20 p-2 sm:p-3 backdrop-blur-md border border-white/30 shadow-2xl shrink-0">
+              <div className="flex h-full w-full items-center justify-center rounded-xl sm:rounded-2xl bg-white p-2 sm:p-3">
+                <img src="/icon.svg" alt="Yuumotion Wordmark Icon" className="h-full w-full" />
+              </div>
+            </div>
+            <span className="font-display text-[clamp(3.25rem,11vw,8.5rem)] font-extrabold leading-none tracking-tight text-white">
+              Yuumotion
+            </span>
           </div>
-
-        </div>
-      </footer>
+        </footer>
+      </div>
     </div>
   );
 };

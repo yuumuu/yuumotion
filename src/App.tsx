@@ -29,6 +29,7 @@ import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { NavigationRail } from './components/NavigationRail';
 import { ProjectExplorer } from './components/ProjectExplorer';
+import { ProjectBanner } from './components/ProjectBanner';
 import { KanbanBoard } from './components/KanbanBoard';
 import { CalendarView } from './components/CalendarView';
 import { TimelineGanttView } from './components/TimelineGanttView';
@@ -45,9 +46,11 @@ import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
 import { CommandPalette } from './components/CommandPalette';
 import { PreferencesModal } from './components/PreferencesModal';
 import { ToastContainer, toast } from './components/ui';
+import { Plus, Kanban, FileText, UserPlus } from '@phosphor-icons/react';
 
 export const App: React.FC = () => {
   const [appRoute, setAppRoute] = useState<'app' | 'landing' | 'auth'>('app');
+  const [isFabOpen, setIsFabOpen] = useState(false);
   const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isPreferencesModalOpen, setIsPreferencesModalOpen] = useState(false);
@@ -883,6 +886,21 @@ export const App: React.FC = () => {
               />
             ) : (
               <>
+                <ProjectBanner
+                  workspaceName={activeWorkspace?.name || 'Workspace'}
+                  board={activeBoard}
+                  members={activeWorkspace?.members || []}
+                  currentUserRole={currentUserRole}
+                  activeView={activeView}
+                  onViewChange={setActiveView}
+                  onOpenMembersModal={() => setIsMembersModalOpen(true)}
+                  canEdit={canEdit}
+                  onQuickCreateTask={() => {
+                    const firstCol = activeBoard.columns[0];
+                    if (firstCol) handleAddCard(firstCol.id, 'Tugas Baru');
+                  }}
+                />
+
                 {activeView === 'board' && (
                   <KanbanBoard
                     board={activeBoard}
@@ -935,6 +953,64 @@ export const App: React.FC = () => {
               onDelete={handleDeleteCard}
             />
           )}
+        </div>
+
+        {/* Floating Action Button (+) ala Quickit */}
+        <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-2.5 select-none">
+          {isFabOpen && (
+            <div className="w-48 rounded-2xl border border-border bg-surface/95 p-1.5 shadow-popover backdrop-blur-md animate-yuu-crossfade">
+              {canEdit && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const firstCol = activeBoard.columns[0];
+                    if (firstCol) handleAddCard(firstCol.id, 'Tugas Baru');
+                    setIsFabOpen(false);
+                  }}
+                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-text hover:bg-hover transition-colors cursor-pointer"
+                >
+                  <Kanban className="h-4 w-4 text-project-solid" />
+                  <span>Buat Tugas Baru</span>
+                </button>
+              )}
+              {canEdit && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleAddPage();
+                    setIsFabOpen(false);
+                  }}
+                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-text hover:bg-hover transition-colors cursor-pointer"
+                >
+                  <FileText className="h-4 w-4 text-sky-500" />
+                  <span>Buat Dokumen PRD</span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMembersModalOpen(true);
+                  setIsFabOpen(false);
+                }}
+                className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-text hover:bg-hover transition-colors cursor-pointer"
+              >
+                <UserPlus className="h-4 w-4 text-emerald-500" />
+                <span>Undang Anggota</span>
+              </button>
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={() => setIsFabOpen(!isFabOpen)}
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-project-solid text-white shadow-[0_12px_28px_-6px_var(--project-ring)] transition-[transform,opacity] duration-200 hover:scale-105 active:scale-95 cursor-pointer"
+            title="Aksi Cepat"
+          >
+            <Plus
+              className={`h-5 w-5 transition-transform duration-200 ${isFabOpen ? 'rotate-45' : ''}`}
+              weight="bold"
+            />
+          </button>
         </div>
       </div>
 
