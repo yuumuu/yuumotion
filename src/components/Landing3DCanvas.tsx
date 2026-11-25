@@ -1,11 +1,17 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
+export type Landing3DVariant = 'kanban-matrix' | 'mobius-wave' | 'exploded-layers';
+
 interface Landing3DCanvasProps {
   isDark?: boolean;
+  variant?: Landing3DVariant;
 }
 
-export const Landing3DCanvas: React.FC<Landing3DCanvasProps> = ({ isDark = true }) => {
+export const Landing3DCanvas: React.FC<Landing3DCanvasProps> = ({
+  isDark = true,
+  variant = 'kanban-matrix'
+}) => {
   const mountRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -14,94 +20,140 @@ export const Landing3DCanvas: React.FC<Landing3DCanvasProps> = ({ isDark = true 
 
     const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const width = container.clientWidth || 1200;
-    const height = container.clientHeight || 520;
+    const height = container.clientHeight || 560;
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
-    camera.position.set(0, 0.4, 7.5);
+    const camera = new THREE.PerspectiveCamera(42, width / height, 0.1, 100);
+    camera.position.set(0, 0.3, 8.2);
 
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'low-power' });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     container.appendChild(renderer.domElement);
 
-    const ambient = new THREE.AmbientLight(0xffffff, isDark ? 0.6 : 0.85);
+    const ambient = new THREE.AmbientLight(0xffffff, isDark ? 0.85 : 1.0);
     scene.add(ambient);
 
-    const blueLight = new THREE.DirectionalLight(0x3b82f6, 2.2);
-    blueLight.position.set(5, 6, 5);
+    const blueLight = new THREE.DirectionalLight(0x60a5fa, 2.6);
+    blueLight.position.set(6, 7, 6);
     scene.add(blueLight);
 
-    const rimLight = new THREE.DirectionalLight(0x93c5fd, 1.4);
-    rimLight.position.set(-6, -3, 4);
+    const rimLight = new THREE.DirectionalLight(0xffffff, 1.8);
+    rimLight.position.set(-4, -2, 5);
     scene.add(rimLight);
 
-    const rootGroup = new THREE.Group();
-    scene.add(rootGroup);
+    // Fokus komposisi di sisi kanan section agar tidak bertabrakan dengan teks kiri
+    const rightAnchor = new THREE.Group();
+    rightAnchor.position.set(2.6, 0, 0);
+    scene.add(rightAnchor);
 
-    // 1. Flowing Architectural Wave Ribbon (full-bleed horizontal span)
-    const waveGeo = new THREE.PlaneGeometry(18, 6.5, 44, 16);
-    const posAttr = waveGeo.attributes.position;
-    for (let i = 0; i < posAttr.count; i++) {
-      const x = posAttr.getX(i);
-      const y = posAttr.getY(i);
-      const z = Math.sin(x * 0.45) * 0.75 + Math.cos(y * 0.65) * 0.45;
-      posAttr.setZ(i, z);
-    }
-    waveGeo.computeVertexNormals();
+    const disposables: Array<{ dispose: () => void }> = [];
+    const animTargets: Array<(t: number) => void> = [];
 
-    const waveMat = new THREE.MeshBasicMaterial({
-      color: isDark ? 0x2563eb : 0x3b82f6,
-      wireframe: true,
-      transparent: true,
-      opacity: isDark ? 0.22 : 0.18
-    });
-    const waveMesh = new THREE.Mesh(waveGeo, waveMat);
-    waveMesh.rotation.x = -0.68;
-    waveMesh.position.set(0, -1.2, -1.8);
-    rootGroup.add(waveMesh);
-
-    // 2. Floating Kanban & Document Panels (Blue / Black / White palette)
-    const panelGeo = new THREE.BoxGeometry(1.45, 0.92, 0.06);
     const matBlue = new THREE.MeshStandardMaterial({
       color: 0x2563eb,
-      roughness: 0.25,
-      metalness: 0.15,
-      transparent: true,
-      opacity: 0.88
+      roughness: 0.22,
+      metalness: 0.18
     });
-    const matDark = new THREE.MeshStandardMaterial({
-      color: 0x0f172a,
-      roughness: 0.35,
-      metalness: 0.2,
-      transparent: true,
-      opacity: 0.9
+    const matSkyBlue = new THREE.MeshStandardMaterial({
+      color: 0x60a5fa,
+      roughness: 0.2,
+      metalness: 0.15
     });
     const matWhite = new THREE.MeshStandardMaterial({
       color: 0xf8fafc,
-      roughness: 0.2,
-      metalness: 0.05,
+      roughness: 0.18,
+      metalness: 0.05
+    });
+    const matDark = new THREE.MeshStandardMaterial({
+      color: 0x1e293b,
+      roughness: 0.35,
+      metalness: 0.25
+    });
+    const edgeLineMat = new THREE.LineBasicMaterial({
+      color: 0x93c5fd,
       transparent: true,
-      opacity: isDark ? 0.82 : 0.94
+      opacity: 0.65
     });
+    disposables.push(matBlue, matSkyBlue, matWhite, matDark, edgeLineMat);
 
-    const panelSpecs = [
-      { x: 3.4, y: 1.5, z: -0.4, rx: 0.2, ry: -0.35, rz: 0.08, mat: matBlue },
-      { x: 4.9, y: 0.2, z: 0.3, rx: -0.15, ry: -0.45, rz: -0.06, mat: matWhite },
-      { x: 2.3, y: -1.1, z: 0.1, rx: 0.12, ry: -0.25, rz: 0.12, mat: matDark },
-      { x: 5.5, y: -1.6, z: -0.8, rx: 0.25, ry: -0.5, rz: -0.1, mat: matBlue },
-      { x: -4.2, y: 1.6, z: -1.2, rx: 0.18, ry: 0.35, rz: -0.08, mat: matDark },
-      { x: -5.4, y: -0.8, z: -0.6, rx: -0.1, ry: 0.4, rz: 0.06, mat: matBlue }
-    ];
+    if (variant === 'kanban-matrix') {
+      const boxGeo = new THREE.BoxGeometry(1.55, 0.95, 0.12);
+      const edgesGeo = new THREE.EdgesGeometry(boxGeo);
+      disposables.push(boxGeo, edgesGeo);
 
-    const panels: { mesh: THREE.Mesh; baseY: number; speed: number; phase: number }[] = [];
-    panelSpecs.forEach((spec, idx) => {
-      const mesh = new THREE.Mesh(panelGeo, spec.mat);
-      mesh.position.set(spec.x, spec.y, spec.z);
-      mesh.rotation.set(spec.rx, spec.ry, spec.rz);
-      rootGroup.add(mesh);
-      panels.push({ mesh, baseY: spec.y, speed: 0.6 + idx * 0.12, phase: idx * 1.1 });
-    });
+      const specs = [
+        { x: -0.4, y: 1.55, z: 0.3, mat: matBlue },
+        { x: 1.55, y: 1.25, z: -0.2, mat: matWhite },
+        { x: 0.2, y: 0.25, z: 0.65, mat: matWhite },
+        { x: 2.1, y: -0.1, z: 0.1, mat: matBlue },
+        { x: -0.6, y: -1.1, z: 0.25, mat: matDark },
+        { x: 1.4, y: -1.35, z: -0.3, mat: matSkyBlue }
+      ];
+
+      rightAnchor.rotation.set(0.22, -0.42, -0.06);
+      specs.forEach((s, i) => {
+        const card = new THREE.Mesh(boxGeo, s.mat);
+        card.position.set(s.x, s.y, s.z);
+        card.add(new THREE.LineSegments(edgesGeo, edgeLineMat));
+        rightAnchor.add(card);
+        const baseY = s.y;
+        animTargets.push((t) => {
+          card.position.y = baseY + Math.sin(t * 1.1 + i * 0.9) * 0.13;
+        });
+      });
+
+      const ringGeo = new THREE.TorusGeometry(2.5, 0.035, 12, 72);
+      const ringMat = new THREE.MeshBasicMaterial({ color: 0x60a5fa, transparent: true, opacity: 0.55 });
+      disposables.push(ringGeo, ringMat);
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.rotation.set(1.1, 0.3, 0);
+      rightAnchor.add(ring);
+      animTargets.push((t) => {
+        ring.rotation.z = t * 0.18;
+      });
+    } else if (variant === 'mobius-wave') {
+      const knotGeo = new THREE.TorusKnotGeometry(1.75, 0.42, 120, 20, 2, 3);
+      const knotWireMat = new THREE.MeshBasicMaterial({
+        color: 0x93c5fd,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.35
+      });
+      disposables.push(knotGeo, knotWireMat);
+
+      const solidKnot = new THREE.Mesh(knotGeo, matBlue);
+      const wireKnot = new THREE.Mesh(knotGeo, knotWireMat);
+      wireKnot.scale.setScalar(1.04);
+      rightAnchor.add(solidKnot, wireKnot);
+      rightAnchor.position.set(2.9, 0, 0);
+
+      animTargets.push((t) => {
+        solidKnot.rotation.y = t * 0.25;
+        solidKnot.rotation.x = Math.sin(t * 0.3) * 0.25;
+        wireKnot.rotation.copy(solidKnot.rotation);
+      });
+    } else {
+      // exploded-layers: 3 lapisan layar arsitektur (UI, Sync, Database)
+      const layerGeo = new THREE.BoxGeometry(3.4, 2.1, 0.08);
+      const layerEdges = new THREE.EdgesGeometry(layerGeo);
+      disposables.push(layerGeo, layerEdges);
+
+      const layerMats = [matWhite, matBlue, matDark];
+      rightAnchor.rotation.set(0.45, -0.55, 0.15);
+      rightAnchor.position.set(2.7, -0.1, 0);
+
+      layerMats.forEach((m, i) => {
+        const layer = new THREE.Mesh(layerGeo, m);
+        const baseZ = (1 - i) * 1.15;
+        layer.position.set(0, 0, baseZ);
+        layer.add(new THREE.LineSegments(layerEdges, edgeLineMat));
+        rightAnchor.add(layer);
+        animTargets.push((t) => {
+          layer.position.z = baseZ + Math.sin(t * 1.1 + i * 1.2) * 0.12;
+        });
+      });
+    }
 
     let targetX = 0;
     let targetY = 0;
@@ -115,14 +167,13 @@ export const Landing3DCanvas: React.FC<Landing3DCanvasProps> = ({ isDark = true 
     const onResize = () => {
       if (!container) return;
       const w = container.clientWidth || 1200;
-      const h = container.clientHeight || 520;
+      const h = container.clientHeight || 560;
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
     };
     window.addEventListener('resize', onResize);
 
-    // Pause render loop automatically when section is off-screen
     let isInView = true;
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -139,13 +190,10 @@ export const Landing3DCanvas: React.FC<Landing3DCanvasProps> = ({ isDark = true 
       if (!isInView) return;
 
       if (!prefersReduced) {
-        elapsed += 0.014;
-        waveMesh.rotation.z = Math.sin(elapsed * 0.25) * 0.05;
-        rootGroup.rotation.y += (targetX - rootGroup.rotation.y) * 0.04;
-        rootGroup.rotation.x += (targetY - rootGroup.rotation.x) * 0.04;
-        panels.forEach((p) => {
-          p.mesh.position.y = p.baseY + Math.sin(elapsed * p.speed + p.phase) * 0.14;
-        });
+        elapsed += 0.015;
+        animTargets.forEach((fn) => fn(elapsed));
+        scene.rotation.y += (targetX - scene.rotation.y) * 0.04;
+        scene.rotation.x += (targetY - scene.rotation.x) * 0.04;
       }
       renderer.render(scene, camera);
     };
@@ -156,18 +204,13 @@ export const Landing3DCanvas: React.FC<Landing3DCanvasProps> = ({ isDark = true 
       observer.disconnect();
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('resize', onResize);
-      waveGeo.dispose();
-      waveMat.dispose();
-      panelGeo.dispose();
-      matBlue.dispose();
-      matDark.dispose();
-      matWhite.dispose();
+      disposables.forEach((d) => d.dispose());
       renderer.dispose();
       if (renderer.domElement.parentNode === container) {
         container.removeChild(renderer.domElement);
       }
     };
-  }, [isDark]);
+  }, [isDark, variant]);
 
   return <div ref={mountRef} aria-hidden="true" className="w-full h-full" />;
 };

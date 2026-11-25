@@ -39,7 +39,7 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({
       <div className="flex flex-col gap-10 justify-between pb-12 md:flex-row md:items-start">
         <div className="space-y-4 max-w-xs">
           <div className="flex items-center gap-2.5">
-            <img src="/icon.svg" alt="Yuumotion" className="h-7 w-7 rounded-lg shadow-xs ring-1 ring-white/25" />
+            <img src="/icon.svg" alt="Yuumotion" className="w-7 h-7 rounded-lg ring-1 shadow-xs ring-white/25" />
             <span className="text-lg font-bold tracking-tight font-display">Yuumotion</span>
           </div>
           <p className="text-xs leading-relaxed text-white/85">
@@ -119,14 +119,9 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({
         </div>
       </div>
 
-      <div className="flex overflow-hidden gap-4 justify-center items-center pt-4 mt-4 select-none sm:gap-7">
-        <img
-          src="/icon.svg"
-          alt="Yuumotion"
-          className="h-14 w-14 sm:h-24 sm:w-24 rounded-2xl sm:rounded-3xl shadow-2xl ring-2 ring-white/30 shrink-0"
-        />
-        <span className="font-display text-[clamp(3.25rem,11vw,8.5rem)] font-extrabold leading-none tracking-tight text-white">
-          Yuumotion
+      <div className="flex overflow-hidden justify-center items-center pt-6 mt-2 select-none w-full">
+        <span className="font-display text-[clamp(4.5rem,17.5vw,16rem)] font-extrabold leading-[0.86] tracking-tighter text-white">
+          Yuumotion.
         </span>
       </div>
     </footer>

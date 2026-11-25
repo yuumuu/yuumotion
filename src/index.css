@@ -104,6 +104,25 @@
   border: 1px solid var(--border);
 }
 
+@keyframes yuu-hero-drift {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(3%, -3%, 0) scale(1.06);
+  }
+}
+
+.animate-yuu-hero-drift {
+  animation: yuu-hero-drift 14s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-yuu-hero-drift {
+    animation: none;
+  }
+}
+
 @keyframes yuu-enter {
   from {
     opacity: 0;
