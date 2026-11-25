@@ -16,7 +16,8 @@ import {
   Crown,
   SignOut,
   Keyboard,
-  Gear
+  Gear,
+  House
 } from '@phosphor-icons/react';
 import { Badge, Kbd } from './ui';
 import { cn } from '../lib/cn';
@@ -78,7 +79,7 @@ export const Header: React.FC<HeaderProps> = ({
   onExport,
   onImport,
   onLogout,
-  onNavigateToLanding: _onNavigateToLanding,
+  onNavigateToLanding,
   onOpenAuthModal: _onOpenAuthModal,
   onOpenShortcutsModal,
   onOpenCommandPalette,
@@ -149,7 +150,7 @@ export const Header: React.FC<HeaderProps> = ({
                 type="button"
                 onClick={() => onViewChange(v.id)}
                 className={cn(
-                  'flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer',
+                  'flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-[background-color,color,box-shadow,transform] duration-150 active:scale-[0.97] cursor-pointer',
                   isActive
                     ? 'bg-surface text-text font-bold shadow-card-sm'
                     : 'text-muted hover:text-text hover:bg-surface/50'
@@ -313,6 +314,18 @@ export const Header: React.FC<HeaderProps> = ({
               />
 
               <div className="my-1 border-t border-border" />
+
+              <button
+                type="button"
+                onClick={() => {
+                  onNavigateToLanding();
+                  setShowUserMenu(false);
+                }}
+                className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs text-text hover:bg-hover transition-colors cursor-pointer"
+              >
+                <House className="h-3.5 w-3.5 text-muted" />
+                <span>Halaman Utama (Landing)</span>
+              </button>
 
               <button
                 type="button"

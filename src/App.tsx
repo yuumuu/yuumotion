@@ -792,6 +792,7 @@ export const App: React.FC = () => {
         workspaces={workspaces}
         activeWorkspaceId={activeWorkspaceId}
         onSelectWorkspace={handleSelectWorkspace}
+        onCreateWorkspace={handleCreateWorkspace}
         onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
         onOpenPreferences={() => setIsPreferencesModalOpen(true)}
         currentUser={currentUser}

@@ -45,12 +45,14 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
     if (title?.trim()) onAddBoard(title.trim());
   };
 
-  if (!isOpen) return null;
-
   return (
     <aside
       aria-label="Project Explorer"
-      className="hidden md:flex h-full w-56 flex-col border-r border-border bg-bar/40 select-none shrink-0 z-20"
+      aria-hidden={!isOpen}
+      className={cn(
+        'hidden md:flex h-full flex-col border-border bg-bar/40 select-none shrink-0 z-20 transition-[width,opacity] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]',
+        isOpen ? 'w-56 opacity-100 border-r' : 'w-0 opacity-0 border-r-0 overflow-hidden pointer-events-none'
+      )}
     >
       {/* Top Header: Project Name & Collapse button */}
       <div className="flex h-14 items-center justify-between border-b border-border px-3.5 shrink-0">

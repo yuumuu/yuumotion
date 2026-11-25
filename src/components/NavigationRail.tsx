@@ -1,6 +1,6 @@
 import React from 'react';
 import { Workspace, AuthUser } from '../types/board';
-import { MagnifyingGlass, Moon, Sun, Gear } from '@phosphor-icons/react';
+import { MagnifyingGlass, Moon, Sun, Gear, Plus } from '@phosphor-icons/react';
 import { usePreferences } from '../context/PreferencesContext';
 import { cn } from '../lib/cn';
 
@@ -8,6 +8,7 @@ interface NavigationRailProps {
   workspaces: Workspace[];
   activeWorkspaceId: string;
   onSelectWorkspace: (workspaceId: string) => void;
+  onCreateWorkspace?: (name: string, icon: string) => void;
   onOpenCommandPalette?: () => void;
   onOpenPreferences?: () => void;
   currentUser: AuthUser;
@@ -17,6 +18,7 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
   workspaces,
   activeWorkspaceId,
   onSelectWorkspace,
+  onCreateWorkspace,
   onOpenCommandPalette,
   onOpenPreferences,
   currentUser
@@ -69,7 +71,7 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
                 type="button"
                 onClick={() => onSelectWorkspace(ws.id)}
                 className={cn(
-                  'relative flex h-8 w-8 items-center justify-center rounded-xl text-xs font-semibold transition-all cursor-pointer',
+                  'relative flex h-8 w-8 items-center justify-center rounded-xl text-xs font-semibold transition-[background-color,color,border-color,transform] duration-150 active:scale-[0.95] cursor-pointer',
                   isActive
                     ? 'bg-project-soft text-project-solid border border-project-ring shadow-2xs'
                     : 'text-muted hover:text-text hover:bg-hover'
@@ -83,6 +85,20 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
               </button>
             );
           })}
+
+          {onCreateWorkspace && (
+            <button
+              type="button"
+              onClick={() => {
+                const name = prompt('Nama Workspace Baru:');
+                if (name?.trim()) onCreateWorkspace(name.trim(), 'W');
+              }}
+              className="flex h-8 w-8 items-center justify-center rounded-xl border border-dashed border-border text-muted transition-[background-color,color,border-color,transform] duration-150 hover:border-project-ring hover:bg-hover hover:text-text active:scale-[0.95] cursor-pointer"
+              title="Buat Workspace Baru"
+            >
+              <Plus className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
       </div>
 
