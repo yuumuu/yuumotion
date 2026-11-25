@@ -22,7 +22,8 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
   currentUser
 }) => {
   const { preferences, updatePreferences } = usePreferences();
-  const activeWorkspace = workspaces.find((w) => w.id === activeWorkspaceId) || workspaces[0];
+  const safeWorkspaces = workspaces || [];
+  const activeWorkspace = safeWorkspaces.find((w) => w.id === activeWorkspaceId) || safeWorkspaces[0];
 
   return (
     <nav
@@ -35,8 +36,9 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
         <button
           type="button"
           onClick={() => {
-            const nextIdx = (workspaces.findIndex((w) => w.id === activeWorkspaceId) + 1) % workspaces.length;
-            if (workspaces[nextIdx]) onSelectWorkspace(workspaces[nextIdx].id);
+            if (safeWorkspaces.length === 0) return;
+            const nextIdx = (safeWorkspaces.findIndex((w) => w.id === activeWorkspaceId) + 1) % safeWorkspaces.length;
+            if (safeWorkspaces[nextIdx]) onSelectWorkspace(safeWorkspaces[nextIdx].id);
           }}
           className="group relative flex h-9 w-9 items-center justify-center rounded-xl bg-project-solid text-white font-bold text-xs shadow-2xs hover:scale-105 active:scale-95 transition-all cursor-pointer"
           title={`Workspace: ${activeWorkspace?.name || 'Workspace'}`}
@@ -59,7 +61,7 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({
 
         {/* Project Switcher Icons */}
         <div className="flex flex-col items-center gap-2 pt-1 w-full px-2">
-          {workspaces.map((ws) => {
+          {safeWorkspaces.map((ws) => {
             const isActive = ws.id === activeWorkspaceId;
             return (
               <button

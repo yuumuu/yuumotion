@@ -94,7 +94,7 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
           </div>
 
           <div className="space-y-0.5">
-            {boards.map((b) => {
+            {(boards || []).map((b) => {
               const isActive = activeTarget.type === 'board' && activeTarget.id === b.id;
               const cardCount = Object.keys(b.cards || {}).length;
 
@@ -138,12 +138,12 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
           </div>
 
           <div className="space-y-0.5">
-            {pages.length === 0 ? (
+            {(!pages || pages.length === 0) ? (
               <div className="px-2 py-1.5 text-[11px] text-muted italic">
                 Belum ada dokumen.
               </div>
             ) : (
-              pages.map((p) => {
+              (pages || []).map((p) => {
                 const isActive = activeTarget.type === 'page' && activeTarget.id === p.id;
 
                 return (

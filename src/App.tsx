@@ -58,20 +58,32 @@ export const App: React.FC = () => {
   );
 
   const activeWorkspace = useMemo(() => {
-    return workspaces.find((w) => w.id === activeWorkspaceId) || workspaces[0];
-  }, [workspaces, activeWorkspaceId]);
+    return workspaces?.find((w) => w.id === activeWorkspaceId) || workspaces?.[0] || {
+      id: 'ws-default',
+      name: 'Main Workspace',
+      icon: '🚀',
+      ownerId: currentUser.id,
+      currentRole: 'owner' as UserRole,
+      members: [],
+      boards: [INITIAL_BOARD],
+      pages: [],
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    };
+  }, [workspaces, activeWorkspaceId, currentUser]);
 
   const currentUserRole: UserRole = useMemo(() => {
-    if (!activeWorkspace) return 'owner';
-    const member = activeWorkspace.members.find((m) => m.id === currentUser.id);
+    if (!activeWorkspace || !Array.isArray(activeWorkspace.members)) return 'owner';
+    const member = activeWorkspace.members.find((m) => m?.id === currentUser?.id);
     return member?.role || activeWorkspace.currentRole || 'member';
   }, [activeWorkspace, currentUser]);
 
   const canEdit = canEditContent(currentUserRole);
 
   const [activeTarget, setActiveTarget] = useState<{ type: 'board' | 'page'; id: string }>(() => {
-    if (activeWorkspace?.boards && activeWorkspace.boards.length > 0) {
-      return { type: 'board', id: activeWorkspace.boards[0].id };
+    const boards = activeWorkspace?.boards || [];
+    if (boards.length > 0) {
+      return { type: 'board', id: boards[0].id };
     }
     return { type: 'board', id: 'yuumotion-primary-board' };
   });
@@ -96,16 +108,18 @@ export const App: React.FC = () => {
   const syncManagerRef = useRef<ReturnType<typeof createSyncManager> | null>(null);
 
   const activeBoard = useMemo(() => {
+    const boards = activeWorkspace?.boards || [INITIAL_BOARD];
     if (activeTarget.type === 'board') {
-      const b = activeWorkspace.boards.find((x) => x.id === activeTarget.id);
-      return b || activeWorkspace.boards[0] || INITIAL_BOARD;
+      const b = boards.find((x) => x?.id === activeTarget.id);
+      return b || boards[0] || INITIAL_BOARD;
     }
-    return activeWorkspace.boards[0] || INITIAL_BOARD;
+    return boards[0] || INITIAL_BOARD;
   }, [activeWorkspace, activeTarget]);
 
   const activePage = useMemo(() => {
+    const pages = activeWorkspace?.pages || [];
     if (activeTarget.type === 'page') {
-      return activeWorkspace.pages.find((p) => p.id === activeTarget.id) || activeWorkspace.pages[0];
+      return pages.find((p) => p?.id === activeTarget.id) || pages[0];
     }
     return undefined;
   }, [activeWorkspace, activeTarget]);
@@ -353,7 +367,7 @@ export const App: React.FC = () => {
     setActiveWorkspaceIdState(newWsId);
     setActiveWorkspaceId(newWsId);
     const targetWs = workspaces.find((w) => w.id === newWsId);
-    if (targetWs && targetWs.boards.length > 0) {
+    if (targetWs && Array.isArray(targetWs.boards) && targetWs.boards.length > 0) {
       setActiveTarget({ type: 'board', id: targetWs.boards[0].id });
     }
   };
@@ -787,11 +801,11 @@ export const App: React.FC = () => {
       <ProjectExplorer
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
-        projectName={activeWorkspace.name}
+        projectName={activeWorkspace?.name || 'Workspace'}
         activeTarget={activeTarget}
         onSelectTarget={setActiveTarget}
-        boards={activeWorkspace.boards}
-        pages={activeWorkspace.pages}
+        boards={activeWorkspace?.boards || []}
+        pages={activeWorkspace?.pages || []}
         onAddBoard={handleAddBoard}
         onAddPage={handleAddPage}
         onDeletePage={handleDeletePage}
@@ -809,8 +823,8 @@ export const App: React.FC = () => {
           onCreateWorkspace={handleCreateWorkspace}
           activeTarget={activeTarget}
           onSelectTarget={setActiveTarget}
-          pages={activeWorkspace.pages}
-          boards={activeWorkspace.boards}
+          pages={activeWorkspace?.pages || []}
+          boards={activeWorkspace?.boards || []}
           onAddPage={handleAddPage}
           onDeletePage={handleDeletePage}
           onAddBoard={handleAddBoard}
