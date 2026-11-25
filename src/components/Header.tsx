@@ -18,7 +18,8 @@ import {
   Keyboard,
   Settings
 } from 'lucide-react';
-import { Tabs, Badge, Separator, Kbd } from './ui';
+import { Badge, Kbd } from './ui';
+import { cn } from '../lib/cn';
 
 interface HeaderProps {
   board?: Board;
@@ -58,12 +59,12 @@ export const Header: React.FC<HeaderProps> = ({
   currentMode,
   workspaceName,
   currentUserRole,
-  isSidebarOpen,
+  isSidebarOpen: _isSidebarOpen,
   onToggleSidebar,
   currentRoom: _currentRoom,
   onRoomChange: _onRoomChange,
   onlineUsers,
-  currentUser,
+  currentUser: _currentUser,
   syncStatus,
   activeView,
   onViewChange,
@@ -78,7 +79,7 @@ export const Header: React.FC<HeaderProps> = ({
   onImport,
   onLogout,
   onNavigateToLanding: _onNavigateToLanding,
-  onOpenAuthModal,
+  onOpenAuthModal: _onOpenAuthModal,
   onOpenShortcutsModal,
   onOpenCommandPalette,
   onOpenPreferences
@@ -86,32 +87,33 @@ export const Header: React.FC<HeaderProps> = ({
   const [showUserMenu, setShowUserMenu] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  const viewItems = [
+  const viewItems: { id: WorkspaceView; label: string; icon: React.ReactNode }[] = [
     { id: 'board', label: 'Kanban', icon: <Kanban className="h-3.5 w-3.5" /> },
+    { id: 'table', label: 'Table', icon: <TableIcon className="h-3.5 w-3.5" /> },
     { id: 'calendar', label: 'Kalender', icon: <Calendar className="h-3.5 w-3.5" /> },
-    { id: 'timeline', label: 'Timeline', icon: <Clock className="h-3.5 w-3.5" /> },
-    { id: 'table', label: 'Tabel', icon: <TableIcon className="h-3.5 w-3.5" /> }
+    { id: 'timeline', label: 'Timeline', icon: <Clock className="h-3.5 w-3.5" /> }
   ];
 
   return (
-    <header className="flex sticky top-0 z-30 justify-between items-center px-4 h-14 border-b border-border bg-bar/95 backdrop-blur-md sm:px-5 shrink-0 select-none">
-      {/* Left: Sidebar Toggle & Breadcrumbs */}
+    <header className="flex sticky top-0 z-30 justify-between items-center px-4 h-14 border-b border-border bg-bar/80 backdrop-blur-md sm:px-6 shrink-0 select-none">
+      {/* Left: Sidebar Toggle & Linear Breadcrumb */}
       <div className="flex gap-3 items-center min-w-0">
         <button
           type="button"
           onClick={onToggleSidebar}
           className="flex justify-center items-center w-8 h-8 rounded-lg cursor-pointer text-muted hover:bg-hover hover:text-text transition-colors"
-          title={isSidebarOpen ? 'Lipat Sidebar ([)' : 'Buka Sidebar ([)'}
+          title="Toggle Sidebar ([)"
         >
           <Menu className="w-4 h-4" />
         </button>
 
-        <div className="flex gap-2 items-center min-w-0">
-          <div className="flex items-center gap-1.5 truncate text-xs">
-            <span className="hidden text-muted lg:inline truncate">
-              {workspaceName}
-            </span>
-            <span className="hidden text-muted lg:inline">/</span>
+        <div className="flex gap-2 items-center min-w-0 text-xs">
+          <span className="hidden text-muted font-medium lg:inline truncate">
+            {workspaceName}
+          </span>
+          <span className="hidden text-muted/60 lg:inline">/</span>
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className="h-2 w-2 rounded-full bg-project-solid shrink-0" />
             <h1 className="font-display font-bold tracking-tight truncate text-text text-sm">
               {currentMode === 'board' ? board?.title || 'Board' : activePage?.title || 'Dokumen'}
             </h1>
@@ -121,7 +123,7 @@ export const Header: React.FC<HeaderProps> = ({
             variant={currentUserRole === 'owner' ? 'project' : 'neutral'}
             dot
             onClick={onOpenMembersModal}
-            className="hidden sm:inline-flex uppercase text-[10px]"
+            className="hidden sm:inline-flex uppercase text-[10px] cursor-pointer"
           >
             {currentUserRole === 'owner' ? (
               <span className="inline-flex items-center gap-1">
@@ -136,23 +138,37 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* Center: Multi-Views Segmented Switch (Khusus Board Mode) */}
+      {/* Center: Linear-Style Segmented View Switcher */}
       {currentMode === 'board' && (
-        <div className="hidden md:flex items-center">
-          <Tabs
-            items={viewItems}
-            activeId={activeView}
-            onChange={(id) => onViewChange(id as WorkspaceView)}
-          />
+        <div className="hidden md:flex items-center bg-hover/60 border border-border/80 p-0.5 rounded-xl text-xs">
+          {viewItems.map((v) => {
+            const isActive = activeView === v.id;
+            return (
+              <button
+                key={v.id}
+                type="button"
+                onClick={() => onViewChange(v.id)}
+                className={cn(
+                  'flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer',
+                  isActive
+                    ? 'bg-surface text-text font-bold shadow-card-sm'
+                    : 'text-muted hover:text-text hover:bg-surface/50'
+                )}
+              >
+                <span className={isActive ? 'text-project-solid' : 'text-muted'}>{v.icon}</span>
+                <span>{v.label}</span>
+              </button>
+            );
+          })}
         </div>
       )}
 
       {/* Right: Quick Search, Collaborators & Profile Menu */}
-      <div className="flex gap-2 items-center">
-        {/* Global Search & Command Palette shortcut */}
+      <div className="flex gap-2.5 items-center">
+        {/* Command Palette Trigger */}
         <div
           onClick={onOpenCommandPalette}
-          className="relative hidden sm:flex items-center rounded-lg border border-border bg-surface px-2.5 py-1 text-xs text-muted hover:border-border-strong hover:bg-hover transition-colors cursor-pointer w-48 justify-between"
+          className="relative hidden sm:flex items-center rounded-xl border border-border/80 bg-surface px-3 py-1.5 text-xs text-muted hover:border-project-ring hover:bg-hover transition-all cursor-pointer w-44 justify-between shadow-2xs"
           title="Buka Command Palette (⌘K)"
         >
           <div className="flex items-center gap-1.5 truncate">
@@ -168,7 +184,7 @@ export const Header: React.FC<HeaderProps> = ({
             {onlineUsers.slice(0, 3).map((user) => (
               <div
                 key={user.id}
-                className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-surface text-white text-[9px] font-bold shadow-2xs"
+                className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-bar text-white text-[9px] font-bold shadow-2xs"
                 style={{ backgroundColor: user.color }}
                 title={`${user.name} sedang online`}
               >
@@ -182,8 +198,8 @@ export const Header: React.FC<HeaderProps> = ({
         <button
           type="button"
           onClick={onOpenSyncSettings}
-          className="hidden md:flex items-center gap-1.5 rounded-lg border border-border px-2 py-1 text-[11px] font-medium text-muted hover:bg-hover transition-colors cursor-pointer"
-          title="Pengaturan Sinkronisasi Supabase Realtime"
+          className="hidden md:flex items-center gap-1.5 rounded-xl border border-border px-2.5 py-1 text-[11px] font-medium text-muted hover:bg-hover transition-colors cursor-pointer"
+          title="Status Sinkronisasi"
         >
           {syncStatus === 'connected' && (
             <span className="flex items-center gap-1 text-status-done font-medium">
@@ -200,7 +216,7 @@ export const Header: React.FC<HeaderProps> = ({
           {syncStatus === 'local' && (
             <span className="flex items-center gap-1 text-muted">
               <Radio className="h-3 w-3" />
-              <span>Lokal (PWA)</span>
+              <span>Offline (PWA)</span>
             </span>
           )}
           {syncStatus === 'error' && (
@@ -216,116 +232,99 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             type="button"
             onClick={() => setShowUserMenu(!showUserMenu)}
-            className="flex items-center gap-1.5 p-1 rounded-lg hover:bg-hover transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 p-1 rounded-xl hover:bg-hover transition-colors cursor-pointer"
           >
-            <div
-              className="flex h-7 w-7 items-center justify-center rounded-full text-white font-bold text-xs shadow-xs"
-              style={{ backgroundColor: currentUser.color || 'var(--project-solid)' }}
-            >
-              {currentUser.avatar || 'U'}
+            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-project-solid text-white text-xs font-bold shadow-2xs">
+              {currentUserRole === 'owner' ? '★' : '●'}
             </div>
           </button>
 
           {showUserMenu && (
-            <div className="absolute right-0 top-10 z-50 w-56 rounded-xl border border-border bg-surface p-1.5 shadow-card-hover animate-in fade-in zoom-in-95 duration-100">
-              <div className="px-2.5 py-2 border-b border-border">
-                <div className="text-xs font-semibold text-text truncate">{currentUser.name}</div>
-                <div className="text-[10px] text-muted capitalize truncate">{currentUserRole}</div>
+            <div className="absolute right-0 top-10 z-50 w-56 rounded-2xl border border-border bg-surface p-1.5 shadow-popover animate-in fade-in zoom-in-95 duration-100">
+              <div className="px-3 py-2 text-xs font-bold text-text border-b border-border mb-1">
+                Akun & Cadangan
               </div>
 
-              <div className="py-1 space-y-0.5">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowUserMenu(false);
-                    onOpenPreferences?.();
-                  }}
-                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-text hover:bg-hover cursor-pointer"
-                >
-                  <Settings className="h-3.5 w-3.5 text-muted" />
-                  <span>Preferensi Tampilan</span>
-                </button>
+              <button
+                type="button"
+                onClick={() => {
+                  onOpenPreferences?.();
+                  setShowUserMenu(false);
+                }}
+                className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs text-text hover:bg-hover transition-colors cursor-pointer"
+              >
+                <Settings className="h-3.5 w-3.5 text-muted" />
+                <span>Pengaturan Preferensi</span>
+              </button>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowUserMenu(false);
-                    onOpenShortcutsModal();
-                  }}
-                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-text hover:bg-hover cursor-pointer"
-                >
-                  <Keyboard className="h-3.5 w-3.5 text-muted" />
-                  <span>Pintasan Keyboard</span>
-                </button>
+              <button
+                type="button"
+                onClick={() => {
+                  onOpenDbBridge();
+                  setShowUserMenu(false);
+                }}
+                className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs text-text hover:bg-hover transition-colors cursor-pointer"
+              >
+                <Database className="h-3.5 w-3.5 text-muted" />
+                <span>Koneksi Supabase</span>
+              </button>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowUserMenu(false);
-                    onOpenDbBridge();
-                  }}
-                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-text hover:bg-hover cursor-pointer"
-                >
-                  <Database className="h-3.5 w-3.5 text-muted" />
-                  <span>Database Export & Bridge</span>
-                </button>
+              <button
+                type="button"
+                onClick={() => {
+                  onOpenShortcutsModal();
+                  setShowUserMenu(false);
+                }}
+                className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs text-text hover:bg-hover transition-colors cursor-pointer"
+              >
+                <Keyboard className="h-3.5 w-3.5 text-muted" />
+                <span>Daftar Pintasan (Keyboard)</span>
+              </button>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowUserMenu(false);
-                    onExport();
-                  }}
-                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-text hover:bg-hover cursor-pointer"
-                >
-                  <span>Ekspor Cadangan JSON</span>
-                </button>
+              <div className="my-1 border-t border-border" />
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowUserMenu(false);
-                    fileInputRef.current?.click();
-                  }}
-                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-text hover:bg-hover cursor-pointer"
-                >
-                  <span>Impor Cadangan JSON</span>
-                </button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".json"
-                  onChange={onImport}
-                  className="hidden"
-                />
+              <button
+                type="button"
+                onClick={() => {
+                  onExport();
+                  setShowUserMenu(false);
+                }}
+                className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs text-text hover:bg-hover transition-colors cursor-pointer"
+              >
+                <span>Unduh Cadangan (JSON)</span>
+              </button>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowUserMenu(false);
-                    onOpenAuthModal();
-                  }}
-                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-text hover:bg-hover cursor-pointer"
-                >
-                  <span>Ganti Akun / Sesi</span>
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs text-text hover:bg-hover transition-colors cursor-pointer"
+              >
+                <span>Pulihkan Cadangan (JSON)</span>
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".json"
+                onChange={(e) => {
+                  onImport(e);
+                  setShowUserMenu(false);
+                }}
+                className="hidden"
+              />
 
-              <Separator className="my-1" />
+              <div className="my-1 border-t border-border" />
 
-              <div className="py-0.5">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowUserMenu(false);
-                    onLogout();
-                  }}
-                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-danger hover:bg-status-urgent-bg cursor-pointer"
-                >
-                  <LogOut className="h-3.5 w-3.5" />
-                  <span>Keluar Akun</span>
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  onLogout();
+                  setShowUserMenu(false);
+                }}
+                className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs text-danger hover:bg-danger/10 transition-colors cursor-pointer font-medium"
+              >
+                <LogOut className="h-3.5 w-3.5" />
+                <span>Keluar Akun</span>
+              </button>
             </div>
           )}
         </div>

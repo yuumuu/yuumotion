@@ -54,7 +54,9 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
     }
   };
 
-  const isDoneColumn = column.title.toLowerCase().includes('done') || column.title.toLowerCase().includes('selesai');
+  const isDoneColumn =
+    column.title.toLowerCase().includes('done') ||
+    column.title.toLowerCase().includes('selesai');
 
   return (
     <section
@@ -62,55 +64,68 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       className={cn(
-        'flex h-full w-[var(--space-col-w)] flex-shrink-0 flex-col rounded-2xl border border-border bg-bar transition-all duration-200 select-none',
-        isDragOver && 'border-project-accent ring-2 ring-project-ring shadow-card-hover'
+        'flex h-full w-80 flex-shrink-0 flex-col transition-all duration-200 select-none'
       )}
     >
-      {/* Column Header */}
-      <div className="flex items-center justify-between px-3.5 py-3 border-b border-border/80">
+      {/* Column Header: Minimalist & Crisp */}
+      <div className="flex items-center justify-between pb-3 px-1">
         <div className="flex items-center gap-2">
           <span
-            className="h-2.5 w-2.5 rounded-full shrink-0"
-            style={{ backgroundColor: column.color || 'var(--project-solid)' }}
+            className={cn(
+              'h-2.5 w-2.5 rounded-full shrink-0 shadow-xs',
+              isDoneColumn ? 'bg-status-done' : 'bg-project-solid'
+            )}
+            style={column.color ? { backgroundColor: column.color } : undefined}
           />
           <h2 className="font-display text-xs font-bold uppercase tracking-wider text-text">
             {column.title}
           </h2>
-          <span className="flex h-4 min-w-4 items-center justify-center rounded-md border border-border bg-surface px-1.5 font-mono text-[10px] font-semibold text-muted">
+          <span className="font-mono text-xs px-1.5 py-0.2 rounded-md bg-hover text-muted font-bold">
             {cards.length}
           </span>
         </div>
 
-        <div className="relative">
+        <div className="flex items-center gap-1">
           <button
             type="button"
-            onClick={() => setShowMenu(!showMenu)}
-            className="flex h-6 w-6 items-center justify-center rounded-md text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer"
-            title="Menu Kolom"
+            onClick={() => setIsAdding(true)}
+            className="flex h-6 w-6 items-center justify-center rounded-lg text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer"
+            title="Tambah Kartu (+)"
           >
-            <MoreHorizontal className="h-3.5 w-3.5" />
+            <Plus className="h-3.5 w-3.5" />
           </button>
 
-          {showMenu && (
-            <div className="absolute right-0 top-7 z-20 w-36 rounded-xl border border-border bg-surface p-1 shadow-card-hover animate-in fade-in zoom-in-95 duration-100">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowMenu(false);
-                  onDeleteColumn(column.id);
-                }}
-                className="flex w-full items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs text-danger hover:bg-status-urgent-bg transition-colors cursor-pointer"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-                <span>Hapus Kolom</span>
-              </button>
-            </div>
-          )}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowMenu(!showMenu)}
+              className="flex h-6 w-6 items-center justify-center rounded-lg text-muted hover:text-text hover:bg-hover transition-colors cursor-pointer"
+              title="Menu Kolom"
+            >
+              <MoreHorizontal className="h-3.5 w-3.5" />
+            </button>
+
+            {showMenu && (
+              <div className="absolute right-0 top-7 z-20 w-36 rounded-xl border border-border bg-surface p-1 shadow-popover animate-in fade-in zoom-in-95 duration-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowMenu(false);
+                    onDeleteColumn(column.id);
+                  }}
+                  className="flex w-full items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs text-danger hover:bg-danger/10 transition-colors cursor-pointer font-medium"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  <span>Hapus Kolom</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Cards List Area */}
-      <div className="flex-1 space-y-[var(--space-card-gap)] overflow-y-auto px-2.5 py-3">
+      {/* Cards List Stack */}
+      <div className="flex-1 space-y-3 overflow-y-auto pr-1 pb-4">
         {cards.map((card) => (
           <KanbanCard
             key={card.id}
@@ -125,15 +140,18 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
 
         {/* Drop Target Placeholder (Zero Layout Shift) */}
         {isDragOver && (
-          <div className="h-24 rounded-xl border-2 border-dashed border-project-accent/60 bg-project-soft/50 animate-pulse transition-all duration-200" />
+          <div className="h-24 rounded-2xl border-2 border-dashed border-project-accent bg-project-soft animate-pulse transition-all duration-200" />
         )}
 
         {/* Inline Add Card Form */}
-        {isAdding ? (
-          <form onSubmit={handleCreate} className="rounded-xl border border-project-accent bg-surface p-2.5 shadow-card-rest animate-in fade-in duration-150">
+        {isAdding && (
+          <form
+            onSubmit={handleCreate}
+            className="rounded-2xl border border-project-accent bg-surface p-3.5 shadow-card-hover animate-in fade-in duration-150 space-y-2.5"
+          >
             <textarea
               autoFocus
-              placeholder="Tulis judul kartu baru..."
+              placeholder="Tulis judul tugas..."
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               onKeyDown={(e) => {
@@ -144,9 +162,9 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
                 if (e.key === 'Escape') setIsAdding(false);
               }}
               rows={2}
-              className="w-full resize-none bg-transparent text-xs text-text placeholder:text-muted focus:outline-none font-sans"
+              className="w-full resize-none bg-transparent text-xs font-medium text-text placeholder:text-muted focus:outline-none"
             />
-            <div className="mt-2 flex items-center justify-end gap-1.5">
+            <div className="flex items-center justify-end gap-1.5 pt-1">
               <Button size="xs" variant="ghost" type="button" onClick={() => setIsAdding(false)}>
                 Batal
               </Button>
@@ -155,15 +173,6 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
               </Button>
             </div>
           </form>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setIsAdding(true)}
-            className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-border py-2 text-xs font-medium text-muted hover:border-project-accent hover:bg-project-soft hover:text-project-accent transition-all cursor-pointer"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            <span>Tambah Kartu</span>
-          </button>
         )}
       </div>
     </section>

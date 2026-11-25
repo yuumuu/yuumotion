@@ -46,15 +46,17 @@ export default {
         }
       },
       fontFamily: {
-        display: ['"Bricolage Grotesque"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
-        sans: ['"Onest"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
-        mono: ['"Commit Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+        display: ['"Plus Jakarta Sans"', '"Bricolage Grotesque"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        sans: ['"Plus Jakarta Sans"', '"Onest"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        mono: ['"JetBrains Mono"', '"Commit Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
       boxShadow: {
-        'card-rest': '0 1px 2px rgba(24, 24, 27, 0.05)',
-        'card-hover': '0 6px 18px rgba(24, 24, 27, 0.09)',
-        'card-drag': '0 18px 36px rgba(24, 24, 27, 0.18), 0 0 0 2px var(--project-accent)',
-        'tactile-btn': 'inset 0 -2px 0 rgba(0, 0, 0, 0.16)',
+        'card-sm': '0 1px 2px rgba(0, 0, 0, 0.04), 0 0 0 1px var(--border)',
+        'card-rest': '0 1px 2px rgba(0, 0, 0, 0.04), 0 0 0 1px var(--border)',
+        'card-hover': '0 10px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px var(--project-ring)',
+        'card-drag': '0 20px 40px -8px rgba(0, 0, 0, 0.22), 0 0 0 2px var(--project-accent)',
+        'popover': '0 16px 36px -8px rgba(0, 0, 0, 0.16), 0 0 0 1px var(--border)',
+        'tactile-btn': '0 1px 2px rgba(0, 0, 0, 0.06)',
         'focus-project': '0 0 0 3px var(--project-ring)',
       },
       transitionTimingFunction: {

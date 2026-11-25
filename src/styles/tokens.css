@@ -1,79 +1,81 @@
-/* src/styles/tokens.css */
+/* src/styles/tokens.css - Linear Playful Design System */
 :root {
-  --bg: #FAF9F6;
-  --bar: #F3F1EC;
+  --bg: #F8F9FA;
+  --bar: #FFFFFF;
   --surface: #FFFFFF;
-  --hover: #EAE7E0;
-  --border: #E3DFD7;
-  --border-strong: #CFC9BE;
-  --text: #18181B;
-  --muted: #5F5E5B;
-  --danger: #DC2626;
+  --hover: #F1F3F5;
+  --border: rgba(0, 0, 0, 0.08);
+  --border-strong: rgba(0, 0, 0, 0.14);
+  --text: #1E2024;
+  --muted: #6E7380;
+  --danger: #EF4444;
 
-  --urgent: #9F1239; --urgent-bg: #FFE4E6;
-  --high: #92400E; --high-bg: #FEF3C7;
-  --medium: #1E40AF; --medium-bg: #DBEAFE;
-  --done: #065F46; --done-bg: #D1FAE5;
+  --urgent: #E11D48; --urgent-bg: #FFE4E6;
+  --high: #F59E0B; --high-bg: #FEF3C7;
+  --medium: #0EA5E9; --medium-bg: #E0F2FE;
+  --done: #10B981; --done-bg: #D1FAE5;
 
-  /* Default Project Accent: Violet */
-  --project-solid: #6D28D9;
-  --project-accent: #6D28D9;
-  --project-soft: #F3EEFF;
-  --project-ring: rgba(109, 40, 217, 0.22);
+  /* Default Project Accent: Playful Violet */
+  --project-solid: #6366F1;
+  --project-accent: #6366F1;
+  --project-soft: rgba(99, 102, 241, 0.10);
+  --project-ring: rgba(99, 102, 241, 0.28);
 
-  /* Default Density: Comfortable */
-  --space-card-p: 14px;
-  --space-card-gap: 12px;
-  --space-col-w: 304px;
-  --space-row-h: 42px;
-  --space-nav-h: 34px;
+  /* Spacing & Density Tokens */
+  --space-card-p: 16px;
+  --space-card-gap: 14px;
+  --space-col-w: 320px;
+  --space-row-h: 44px;
+  --space-nav-h: 36px;
   --space-cover-h: 96px;
   --text-ui: 14px;
 }
 
 .dark {
-  --bg: #111113;
-  --bar: #17171A;
-  --surface: #1C1C20;
-  --hover: #25252B;
-  --border: #2B2B32;
-  --border-strong: #3D3D47;
-  --text: #F4F3F0;
-  --muted: #A3A29E;
+  --bg: #0C0D0E;
+  --bar: #141517;
+  --surface: #16171B;
+  --hover: #202227;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --text: #ECEEF0;
+  --muted: #8B919E;
+  --danger: #F87171;
 
-  --urgent: #FDA4AF; --urgent-bg: #3B1821;
-  --high: #FCD34D; --high-bg: #362812;
-  --medium: #93C5FD; --medium-bg: #182942;
-  --done: #6EE7B7; --done-bg: #133328;
+  --urgent: #FB7185; --urgent-bg: #38131E;
+  --high: #FBBF24; --high-bg: #38240D;
+  --medium: #38BDF8; --medium-bg: #112838;
+  --done: #34D399; --done-bg: #102B21;
 
-  --project-accent: #A78BFA;
-  --project-soft: #261E3B;
-  --project-ring: rgba(167, 139, 250, 0.28);
+  --project-solid: #818CF8;
+  --project-accent: #818CF8;
+  --project-soft: rgba(129, 140, 248, 0.16);
+  --project-ring: rgba(129, 140, 248, 0.35);
 }
 
-/* Dynamic Project Accent Overrides */
-[data-project-theme="cobalt"] { --project-solid: #2563EB; --project-accent: #1D4ED8; --project-soft: #EBF3FF; --project-ring: rgba(37, 99, 235, 0.22); }
-.dark [data-project-theme="cobalt"] { --project-accent: #60A5FA; --project-soft: #18263D; --project-ring: rgba(96, 165, 250, 0.28); }
+/* Dynamic Project Accent Overrides (Vibrant & Playful) */
+[data-project-theme="cobalt"] { --project-solid: #2563EB; --project-accent: #2563EB; --project-soft: rgba(37, 99, 235, 0.10); --project-ring: rgba(37, 99, 235, 0.28); }
+.dark [data-project-theme="cobalt"] { --project-solid: #60A5FA; --project-accent: #60A5FA; --project-soft: rgba(96, 165, 250, 0.16); --project-ring: rgba(96, 165, 250, 0.35); }
 
-[data-project-theme="coral"] { --project-solid: #C84228; --project-accent: #B9381F; --project-soft: #FFF0EC; --project-ring: rgba(200, 66, 40, 0.22); }
-.dark [data-project-theme="coral"] { --project-accent: #FB8B72; --project-soft: #381E19; --project-ring: rgba(251, 139, 114, 0.28); }
+[data-project-theme="coral"] { --project-solid: #EC4899; --project-accent: #EC4899; --project-soft: rgba(236, 72, 153, 0.10); --project-ring: rgba(236, 72, 153, 0.28); }
+.dark [data-project-theme="coral"] { --project-solid: #F472B6; --project-accent: #F472B6; --project-soft: rgba(244, 114, 182, 0.16); --project-ring: rgba(244, 114, 182, 0.35); }
 
-[data-project-theme="emerald"] { --project-solid: #047857; --project-accent: #047857; --project-soft: #E8FAF3; --project-ring: rgba(4, 120, 87, 0.22); }
-.dark [data-project-theme="emerald"] { --project-accent: #34D399; --project-soft: #132E25; --project-ring: rgba(52, 211, 153, 0.28); }
+[data-project-theme="emerald"] { --project-solid: #10B981; --project-accent: #10B981; --project-soft: rgba(16, 185, 129, 0.10); --project-ring: rgba(16, 185, 129, 0.28); }
+.dark [data-project-theme="emerald"] { --project-solid: #34D399; --project-accent: #34D399; --project-soft: rgba(52, 211, 153, 0.16); --project-ring: rgba(52, 211, 153, 0.35); }
 
-[data-project-theme="berry"] { --project-solid: #BE185D; --project-accent: #BE185D; --project-soft: #FDECF4; --project-ring: rgba(190, 24, 93, 0.22); }
-.dark [data-project-theme="berry"] { --project-accent: #F472B6; --project-soft: #361928; --project-ring: rgba(244, 114, 182, 0.28); }
+[data-project-theme="berry"] { --project-solid: #D946EF; --project-accent: #D946EF; --project-soft: rgba(217, 70, 239, 0.10); --project-ring: rgba(217, 70, 239, 0.28); }
+.dark [data-project-theme="berry"] { --project-solid: #E879F9; --project-accent: #E879F9; --project-soft: rgba(232, 121, 249, 0.16); --project-ring: rgba(232, 121, 249, 0.35); }
 
-[data-project-theme="amber"] { --project-solid: #B45309; --project-accent: #92400E; --project-soft: #FEF4E3; --project-ring: rgba(180, 83, 9, 0.22); }
-.dark [data-project-theme="amber"] { --project-accent: #FBBF24; --project-soft: #332512; --project-ring: rgba(251, 191, 36, 0.28); }
+[data-project-theme="amber"] { --project-solid: #F59E0B; --project-accent: #F59E0B; --project-soft: rgba(245, 158, 11, 0.10); --project-ring: rgba(245, 158, 11, 0.28); }
+.dark [data-project-theme="amber"] { --project-solid: #FBBF24; --project-accent: #FBBF24; --project-soft: rgba(251, 191, 36, 0.16); --project-ring: rgba(251, 191, 36, 0.35); }
 
 /* Density Mode: Compact */
 [data-density="compact"] {
-  --space-card-p: 10px;
-  --space-card-gap: 8px;
-  --space-col-w: 276px;
-  --space-row-h: 34px;
-  --space-nav-h: 28px;
+  --space-card-p: 12px;
+  --space-card-gap: 10px;
+  --space-col-w: 284px;
+  --space-row-h: 36px;
+  --space-nav-h: 30px;
   --space-cover-h: 72px;
   --text-ui: 13px;
 }
