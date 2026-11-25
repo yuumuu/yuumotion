@@ -119,8 +119,8 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({
         </div>
       </div>
 
-      <div className="flex overflow-hidden justify-center items-center pt-6 mt-2 select-none w-full">
-        <span className="font-display text-[clamp(4.5rem,17.5vw,16rem)] font-extrabold leading-[0.86] tracking-tighter text-white">
+      <div className="flex justify-center items-center pt-6 mt-2 pb-2 select-none w-full">
+        <span className="font-display text-[clamp(3.1rem,12.5vw,10.5rem)] font-extrabold leading-none tracking-tight text-white text-center whitespace-nowrap">
           Yuumotion.
         </span>
       </div>

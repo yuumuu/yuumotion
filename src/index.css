@@ -106,19 +106,35 @@
 
 @keyframes yuu-hero-drift {
   0%, 100% {
-    transform: translate3d(0, 0, 0) scale(1);
+    transform: translate3d(-4%, -2%, 0) scale(1);
+    opacity: 0.55;
   }
   50% {
-    transform: translate3d(3%, -3%, 0) scale(1.06);
+    transform: translate3d(6%, 4%, 0) scale(1.12);
+    opacity: 0.85;
+  }
+}
+
+@keyframes yuu-hero-beam {
+  0%, 100% {
+    transform: translateX(-8%) rotate(-12deg);
+  }
+  50% {
+    transform: translateX(8%) rotate(-8deg);
   }
 }
 
 .animate-yuu-hero-drift {
-  animation: yuu-hero-drift 14s ease-in-out infinite;
+  animation: yuu-hero-drift 10s ease-in-out infinite;
+}
+
+.animate-yuu-hero-beam {
+  animation: yuu-hero-beam 12s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-yuu-hero-drift {
+  .animate-yuu-hero-drift,
+  .animate-yuu-hero-beam {
     animation: none;
   }
 }

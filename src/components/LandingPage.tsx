@@ -253,16 +253,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       <div className="relative overflow-hidden bg-gradient-to-b from-[#6BB5FF] via-[#2563EB] to-[#1D4ED8] text-white">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -top-24 -left-24 h-[460px] w-[460px] rounded-full bg-white/20 blur-3xl animate-yuu-hero-drift"
+          className="pointer-events-none absolute -top-28 -left-20 h-[520px] w-[520px] rounded-full bg-white/30 blur-3xl animate-yuu-hero-drift"
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute top-16 -right-24 h-[520px] w-[520px] rounded-full bg-blue-300/25 blur-3xl animate-yuu-hero-drift"
-          style={{ animationDelay: '-7s' }}
+          className="pointer-events-none absolute top-10 -right-24 h-[560px] w-[560px] rounded-full bg-sky-200/35 blur-3xl animate-yuu-hero-drift"
+          style={{ animationDelay: '-5s' }}
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 opacity-35 bg-[linear-gradient(125deg,rgba(255,255,255,0.28)_0%,transparent_42%,rgba(255,255,255,0.14)_64%,transparent_88%)]"
+          className="pointer-events-none absolute -inset-x-24 top-0 h-[440px] opacity-50 bg-[linear-gradient(115deg,transparent_25%,rgba(255,255,255,0.28)_45%,transparent_65%)] animate-yuu-hero-beam"
         />
 
         <section className="relative z-20 px-4 pt-28 mx-auto max-w-5xl text-center sm:px-6 sm:pt-32">
