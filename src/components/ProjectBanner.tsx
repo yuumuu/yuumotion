@@ -7,7 +7,10 @@ import {
   Plus,
   UserPlus,
   Calendar,
-  Tag
+  Tag,
+  Globe,
+  Gear,
+  Sparkle
 } from '@phosphor-icons/react';
 import { Board, WorkspaceMember, WorkspaceView, UserRole } from '../types/board';
 import { cn } from '../lib/cn';
@@ -21,6 +24,9 @@ interface ProjectBannerProps {
   onViewChange: (view: WorkspaceView) => void;
   onQuickCreateTask?: () => void;
   onOpenMembersModal: () => void;
+  onOpenTemplates?: () => void;
+  onOpenShare?: () => void;
+  onOpenBoardSettings?: () => void;
   canEdit: boolean;
 }
 
@@ -33,6 +39,9 @@ export const ProjectBanner: React.FC<ProjectBannerProps> = ({
   onViewChange,
   onQuickCreateTask,
   onOpenMembersModal,
+  onOpenTemplates,
+  onOpenShare,
+  onOpenBoardSettings,
   canEdit
 }) => {
   const totalTasks = Object.keys(board?.cards || {}).length;
@@ -86,6 +95,38 @@ export const ProjectBanner: React.FC<ProjectBannerProps> = ({
               <UserPlus className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Anggota</span>
             </button>
+            {canEdit && onOpenTemplates && (
+              <button
+                type="button"
+                onClick={onOpenTemplates}
+                title="Buat Papan dari Template"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-white/25 bg-white/15 px-2.5 py-1.5 text-xs font-medium text-white backdrop-blur-sm transition-[background-color,transform] duration-150 hover:bg-white/25 active:scale-[0.97] cursor-pointer"
+              >
+                <Sparkle className="h-3.5 w-3.5" />
+                <span className="hidden md:inline">Template</span>
+              </button>
+            )}
+            {onOpenShare && (
+              <button
+                type="button"
+                onClick={onOpenShare}
+                title="Bagikan Link Publik"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-white/25 bg-white/15 px-2.5 py-1.5 text-xs font-medium text-white backdrop-blur-sm transition-[background-color,transform] duration-150 hover:bg-white/25 active:scale-[0.97] cursor-pointer"
+              >
+                <Globe className="h-3.5 w-3.5" />
+                <span className="hidden md:inline">Bagikan</span>
+              </button>
+            )}
+            {canEdit && onOpenBoardSettings && (
+              <button
+                type="button"
+                onClick={onOpenBoardSettings}
+                title="Pengaturan Papan & Aktivitas"
+                className="inline-flex items-center justify-center rounded-xl border border-white/25 bg-white/15 p-1.5 text-white backdrop-blur-sm transition-[background-color,transform] duration-150 hover:bg-white/25 active:scale-[0.97] cursor-pointer"
+              >
+                <Gear className="h-4 w-4" />
+              </button>
+            )}
           </div>
         </div>
       </div>

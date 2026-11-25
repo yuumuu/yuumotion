@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Card } from '../types/board';
-import { CalendarBlank, Paperclip, Check, CheckSquare } from '@phosphor-icons/react';
+import { CalendarBlank, Paperclip, Check, CheckSquare, Lock, ArrowsClockwise } from '@phosphor-icons/react';
 import { cn } from '../lib/cn';
 
 interface KanbanCardProps {
@@ -259,8 +259,8 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({
         </h3>
       )}
 
-      {/* Minimal Tag Pills (maks 2) */}
-      {card.tags.length > 0 && (
+      {/* Minimal Tag Pills + Dependencies/Recurrence */}
+      {(card.tags.length > 0 || (card.blockedBy && card.blockedBy.length > 0) || card.recurrence) && (
         <div className="mb-2 flex flex-wrap gap-1">
           {card.tags.slice(0, 2).map((tag) => (
             <span
@@ -270,6 +270,18 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({
               #{tag.name.toLowerCase()}
             </span>
           ))}
+          {card.blockedBy && card.blockedBy.length > 0 && (
+            <span className="inline-flex items-center gap-0.5 rounded-md bg-rose-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-rose-600 dark:text-rose-400">
+              <Lock className="h-2.5 w-2.5" weight="bold" />
+              <span>Blocked ({card.blockedBy.length})</span>
+            </span>
+          )}
+          {card.recurrence && (
+            <span className="inline-flex items-center gap-0.5 rounded-md bg-sky-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-sky-600 dark:text-sky-400">
+              <ArrowsClockwise className="h-2.5 w-2.5" weight="bold" />
+              <span>{card.recurrence.frequency}</span>
+            </span>
+          )}
         </div>
       )}
 

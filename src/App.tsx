@@ -47,6 +47,11 @@ import { AuthPage } from './components/AuthPage';
 import { EmptyWorkspaceOnboarding } from './components/EmptyWorkspaceOnboarding';
 import { CommandPalette } from './components/CommandPalette';
 import { SettingsHubModal, SettingsTab } from './components/SettingsHubModal';
+import { BoardTemplateModal } from './components/BoardTemplateModal';
+import { ShareModal } from './components/ShareModal';
+import { EntitySettingsModal } from './components/EntitySettingsModal';
+import { BoardTemplate } from './data/boardTemplates';
+import { ActivityService } from './services/activityService';
 import { ToastContainer, ConfirmDialog, toast } from './components/ui';
 import { Plus, Kanban, FileText, UserPlus } from '@phosphor-icons/react';
 
@@ -57,6 +62,25 @@ export const App: React.FC = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [settingsTab, setSettingsTab] = useState<SettingsTab>('profile');
   const [isQuickTaskPromptOpen, setIsQuickTaskPromptOpen] = useState(false);
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [entitySettings, setEntitySettings] = useState<{ open: boolean; type: 'workspace' | 'board' }>({
+    open: false,
+    type: 'board'
+  });
+  const [shareTokenParam, setShareTokenParam] = useState<string | null>(() => {
+    const hash = window.location.hash;
+    return hash.startsWith('#share/') ? hash.slice('#share/'.length) : null;
+  });
+
+  useEffect(() => {
+    const onHash = () => {
+      const hash = window.location.hash;
+      setShareTokenParam(hash.startsWith('#share/') ? hash.slice('#share/'.length) : null);
+    };
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
 
   const openSettingsTab = (tab: SettingsTab) => {
     setSettingsTab(tab);
@@ -617,6 +641,15 @@ export const App: React.FC = () => {
       card: newCard,
       senderId: currentUser.id
     });
+    ActivityService.record({
+      workspaceId: activeWorkspace.id,
+      boardId: activeBoard.id,
+      cardId: newCard.id,
+      userId: currentUser.id,
+      userName: currentUser.name,
+      action: 'card.created',
+      summary: `menambahkan kartu "${title}"`
+    });
     toast.success(`Kartu "${title}" berhasil ditambahkan.`);
   };
 
@@ -647,6 +680,15 @@ export const App: React.FC = () => {
       type: 'CARD_UPSERT',
       card: newCard,
       senderId: currentUser.id
+    });
+    ActivityService.record({
+      workspaceId: activeWorkspace.id,
+      boardId: activeBoard.id,
+      cardId: newCard.id,
+      userId: currentUser.id,
+      userName: currentUser.name,
+      action: 'card.created',
+      summary: `menambahkan kartu "${title}"`
     });
     toast.success(`Kartu "${title}" berhasil ditambahkan.`);
   };
@@ -705,6 +747,53 @@ export const App: React.FC = () => {
       cards: { ...prev.cards, [cardId]: updatedCard }
     }));
 
+    const targetCol = activeBoard.columns.find((c) => c.id === targetColumnId);
+    const isDoneCol = Boolean(
+      targetCol &&
+        (targetCol.title.toLowerCase().includes('done') ||
+          targetCol.title.toLowerCase().includes('selesai') ||
+          targetCol.title.toLowerCase().includes('completed'))
+    );
+
+    if (isDoneCol && card.recurrence && activeBoard.columns[0]) {
+      const firstColId = activeBoard.columns[0].id;
+      const baseDate = card.dueDate ? new Date(card.dueDate) : new Date();
+      const nextDate = new Date(baseDate);
+      if (card.recurrence.frequency === 'daily') {
+        nextDate.setDate(baseDate.getDate() + card.recurrence.interval);
+      } else if (card.recurrence.frequency === 'weekly') {
+        nextDate.setDate(baseDate.getDate() + card.recurrence.interval * 7);
+      } else {
+        nextDate.setMonth(baseDate.getMonth() + card.recurrence.interval);
+      }
+      const nextDueStr = nextDate.toISOString().slice(0, 10);
+      const recurringCard: Card = {
+        ...card,
+        id: `card-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`,
+        columnId: firstColId,
+        dueDate: nextDueStr,
+        checklist: card.checklist.map((item) => ({ ...item, completed: false })),
+        order: Object.values(activeBoard.cards).filter((c) => c.columnId === firstColId).length,
+        updatedAt: Date.now()
+      };
+      handleUpdateActiveBoard((prev) => ({
+        ...prev,
+        updatedAt: Date.now(),
+        cards: { ...prev.cards, [recurringCard.id]: recurringCard }
+      }));
+      toast.success(`Tugas berulang dibuat untuk ${nextDueStr}.`);
+    }
+
+    ActivityService.record({
+      workspaceId: activeWorkspace.id,
+      boardId: activeBoard.id,
+      cardId,
+      userId: currentUser.id,
+      userName: currentUser.name,
+      action: 'card.moved',
+      summary: `memindahkan kartu "${card.title}" ke ${targetCol?.title || 'kolom baru'}`
+    });
+
     syncManagerRef.current?.broadcast({
       type: 'CARD_MOVE',
       cardId,
@@ -714,6 +803,63 @@ export const App: React.FC = () => {
       updatedAt: updatedCard.updatedAt
     });
     toast.info('Kartu dipindahkan.');
+  };
+
+  const handleCreateBoardFromTemplate = (template: BoardTemplate) => {
+    if (!canEdit) return;
+    const boardId = `board-${Date.now()}`;
+    const columns: Column[] = template.columns.map((col, idx) => ({
+      id: `col-${Date.now()}-${idx}`,
+      title: col.title,
+      color: col.color,
+      order: idx,
+      wipLimit: col.wipLimit,
+      updatedAt: Date.now()
+    }));
+
+    const cards: Record<string, Card> = {};
+    template.sampleCards.forEach((sc, idx) => {
+      const targetCol = columns[sc.columnIndex] || columns[0];
+      if (!targetCol) return;
+      const cid = `card-${Date.now()}-${idx}`;
+      cards[cid] = {
+        id: cid,
+        columnId: targetCol.id,
+        title: sc.title,
+        description: sc.description,
+        tags: [],
+        priority: sc.priority,
+        checklist: [],
+        attachments: [],
+        order: idx,
+        updatedAt: Date.now()
+      };
+    });
+
+    const newBoard: Board = {
+      id: boardId,
+      workspaceId: activeWorkspace.id,
+      title: template.name,
+      columns,
+      cards,
+      updatedAt: Date.now()
+    };
+
+    setWorkspaces((prev) =>
+      prev.map((ws) =>
+        ws.id === activeWorkspace.id ? { ...ws, boards: [...ws.boards, newBoard] } : ws
+      )
+    );
+    setActiveTarget({ type: 'board', id: boardId });
+    ActivityService.record({
+      workspaceId: activeWorkspace.id,
+      boardId,
+      userId: currentUser.id,
+      userName: currentUser.name,
+      action: 'board.created',
+      summary: `membuat papan "${template.name}" dari template`
+    });
+    toast.success(`Papan "${template.name}" berhasil dibuat.`);
   };
 
   const handleAddColumn = (title: string, color: string) => {
@@ -852,6 +998,90 @@ export const App: React.FC = () => {
     goToRoute('landing');
   };
 
+  if (shareTokenParam) {
+    const sharedBoard = workspaces
+      .flatMap((ws) => ws.boards)
+      .find((b) => b.shareToken === shareTokenParam);
+
+    if (sharedBoard) {
+      return (
+        <div className="min-h-screen bg-bg text-text flex flex-col">
+          <header className="flex h-14 items-center justify-between border-b border-border bg-bar px-6 shrink-0">
+            <div className="flex items-center gap-2.5">
+              <img src="/icon.svg" alt="Yuumotion" className="h-7 w-7 rounded-lg" />
+              <span className="font-display text-sm font-bold">{sharedBoard.title}</span>
+              <span className="rounded-full bg-project-soft px-2 py-0.5 text-[10px] font-semibold text-project-solid">
+                Tamu (Read-Only)
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                window.location.hash = '';
+                setShareTokenParam(null);
+              }}
+              className="text-xs font-medium text-project-solid hover:underline cursor-pointer"
+            >
+              Masuk ke Yuumotion
+            </button>
+          </header>
+          <main className="flex-1 overflow-auto">
+            <KanbanBoard
+              board={sharedBoard}
+              searchQuery=""
+              onCardClick={() => toast.info('Mode tamu hanya-baca.')}
+              onAddCard={() => {}}
+              onAddColumn={() => {}}
+              onDeleteColumn={() => {}}
+              onDropCard={() => {}}
+            />
+          </main>
+          <BoardTemplateModal
+        isOpen={isTemplateModalOpen}
+        onClose={() => setIsTemplateModalOpen(false)}
+        onSelectTemplate={handleCreateBoardFromTemplate}
+      />
+
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        title={activeBoard.title}
+        shareToken={activeBoard.shareToken}
+        onToggleShare={(enable) => {
+          handleUpdateActiveBoard((prev) => ({
+            ...prev,
+            shareToken: enable ? prev.shareToken || crypto.randomUUID() : undefined,
+            updatedAt: Date.now()
+          }));
+        }}
+      />
+
+      <EntitySettingsModal
+        isOpen={entitySettings.open}
+        onClose={() => setEntitySettings((prev) => ({ ...prev, open: false }))}
+        entityType={entitySettings.type}
+        workspace={activeWorkspace}
+        board={activeBoard}
+        canDeleteBoard={(activeWorkspace?.boards?.length || 0) > 1}
+        onRenameWorkspace={(name) => {
+          handleUpdateActiveWorkspace({ ...activeWorkspace, name, updatedAt: Date.now() });
+          toast.success('Nama workspace diperbarui.');
+        }}
+        onDeleteWorkspace={handleDeleteWorkspace}
+        onRenameBoard={(title) => {
+          handleUpdateActiveBoard((prev) => ({ ...prev, title, updatedAt: Date.now() }));
+          toast.success('Nama papan diperbarui.');
+        }}
+        onUpdateColumnWip={handleUpdateWipLimit}
+        onDeleteBoard={handleDeleteBoard}
+      />
+
+      <ToastContainer />
+        </div>
+      );
+    }
+  }
+
   if (appRoute === 'landing') {
     return (
       <LandingPage
@@ -892,7 +1122,47 @@ export const App: React.FC = () => {
           onCreateWorkspace={handleCreateWorkspace}
           onNavigateLanding={() => goToRoute('landing')}
         />
-        <ToastContainer />
+        <BoardTemplateModal
+        isOpen={isTemplateModalOpen}
+        onClose={() => setIsTemplateModalOpen(false)}
+        onSelectTemplate={handleCreateBoardFromTemplate}
+      />
+
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        title={activeBoard.title}
+        shareToken={activeBoard.shareToken}
+        onToggleShare={(enable) => {
+          handleUpdateActiveBoard((prev) => ({
+            ...prev,
+            shareToken: enable ? prev.shareToken || crypto.randomUUID() : undefined,
+            updatedAt: Date.now()
+          }));
+        }}
+      />
+
+      <EntitySettingsModal
+        isOpen={entitySettings.open}
+        onClose={() => setEntitySettings((prev) => ({ ...prev, open: false }))}
+        entityType={entitySettings.type}
+        workspace={activeWorkspace}
+        board={activeBoard}
+        canDeleteBoard={(activeWorkspace?.boards?.length || 0) > 1}
+        onRenameWorkspace={(name) => {
+          handleUpdateActiveWorkspace({ ...activeWorkspace, name, updatedAt: Date.now() });
+          toast.success('Nama workspace diperbarui.');
+        }}
+        onDeleteWorkspace={handleDeleteWorkspace}
+        onRenameBoard={(title) => {
+          handleUpdateActiveBoard((prev) => ({ ...prev, title, updatedAt: Date.now() }));
+          toast.success('Nama papan diperbarui.');
+        }}
+        onUpdateColumnWip={handleUpdateWipLimit}
+        onDeleteBoard={handleDeleteBoard}
+      />
+
+      <ToastContainer />
       </>
     );
   }
@@ -989,6 +1259,9 @@ export const App: React.FC = () => {
                   activeView={activeView}
                   onViewChange={setActiveView}
                   onOpenMembersModal={() => setIsMembersModalOpen(true)}
+                  onOpenTemplates={() => setIsTemplateModalOpen(true)}
+                  onOpenShare={() => setIsShareModalOpen(true)}
+                  onOpenBoardSettings={() => setEntitySettings({ open: true, type: 'board' })}
                   canEdit={canEdit}
                   onQuickCreateTask={() => {
                     const firstCol = activeBoard.columns[0];
@@ -1048,6 +1321,7 @@ export const App: React.FC = () => {
             <CardDetailModal
               card={selectedCard}
               columns={activeBoard.columns}
+              allCards={Object.values(activeBoard.cards)}
               members={activeWorkspace?.members || []}
               onClose={() => setSelectedCardId(null)}
               onUpdate={handleUpdateCard}
@@ -1187,6 +1461,46 @@ export const App: React.FC = () => {
             handleAddCard(activeBoard.columns[0].id, title);
           }
         }}
+      />
+
+      <BoardTemplateModal
+        isOpen={isTemplateModalOpen}
+        onClose={() => setIsTemplateModalOpen(false)}
+        onSelectTemplate={handleCreateBoardFromTemplate}
+      />
+
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        title={activeBoard.title}
+        shareToken={activeBoard.shareToken}
+        onToggleShare={(enable) => {
+          handleUpdateActiveBoard((prev) => ({
+            ...prev,
+            shareToken: enable ? prev.shareToken || crypto.randomUUID() : undefined,
+            updatedAt: Date.now()
+          }));
+        }}
+      />
+
+      <EntitySettingsModal
+        isOpen={entitySettings.open}
+        onClose={() => setEntitySettings((prev) => ({ ...prev, open: false }))}
+        entityType={entitySettings.type}
+        workspace={activeWorkspace}
+        board={activeBoard}
+        canDeleteBoard={(activeWorkspace?.boards?.length || 0) > 1}
+        onRenameWorkspace={(name) => {
+          handleUpdateActiveWorkspace({ ...activeWorkspace, name, updatedAt: Date.now() });
+          toast.success('Nama workspace diperbarui.');
+        }}
+        onDeleteWorkspace={handleDeleteWorkspace}
+        onRenameBoard={(title) => {
+          handleUpdateActiveBoard((prev) => ({ ...prev, title, updatedAt: Date.now() }));
+          toast.success('Nama papan diperbarui.');
+        }}
+        onUpdateColumnWip={handleUpdateWipLimit}
+        onDeleteBoard={handleDeleteBoard}
       />
 
       <ToastContainer />
