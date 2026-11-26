@@ -142,7 +142,7 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({
         }
       }}
       className={cn(
-        'group relative cursor-grab select-none rounded-2xl border p-3.5 text-left shadow-card-sm',
+        'group relative cursor-grab select-none rounded-2xl border p-[var(--space-card-p)] text-left shadow-card-sm',
         pastel.container,
         !isFloatingClone && 'transition-[transform,box-shadow,border-color,opacity] duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)]',
         !isFloatingClone && 'hover:-translate-y-0.5 hover:shadow-card-hover hover:border-project-ring',
@@ -171,7 +171,7 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({
 
       {/* Optional Card Cover Image */}
       {card.coverImage && (
-        <div className="h-[72px] w-full overflow-hidden rounded-xl border border-border/70 -mt-0.5 mb-2.5 bg-bar">
+        <div className="h-[var(--space-cover-h)] w-full overflow-hidden rounded-xl border border-border/70 -mt-0.5 mb-2.5 bg-bar">
           <img
             src={card.coverImage}
             alt={card.title}

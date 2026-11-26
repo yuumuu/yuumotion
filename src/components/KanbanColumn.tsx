@@ -89,7 +89,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
     <section
       data-column-id={column.id}
       className={cn(
-        'flex h-full w-80 flex-shrink-0 flex-col rounded-2xl transition-[background-color,box-shadow,opacity,transform] duration-200 select-none p-2 -m-2',
+        'flex h-full w-[var(--space-col-w)] flex-shrink-0 flex-col rounded-2xl transition-[width,background-color,box-shadow,opacity,transform] duration-200 select-none p-2 -m-2',
         isDropTarget && 'bg-project-soft/20 ring-1 ring-project-ring/60',
         isColumnDragging && 'opacity-45 scale-[0.98]',
         isColumnDropTarget && 'ring-2 ring-project-solid/70 bg-project-soft/15'
@@ -184,7 +184,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
       </div>
 
       {/* Cards List Stack */}
-      <div className="flex-1 space-y-3 overflow-y-auto pr-1 pb-4">
+      <div className="flex flex-1 flex-col gap-[var(--space-card-gap)] overflow-y-auto pr-1 pb-4">
         {cards.map((card) => {
           const assigneeAvatars = (card.assignees || [])
             .map((id) => members?.find((m) => m.id === id))

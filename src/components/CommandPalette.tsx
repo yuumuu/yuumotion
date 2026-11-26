@@ -21,6 +21,7 @@ import {
   ArrowsClockwise
 } from '@phosphor-icons/react';
 import { Kbd } from './ui/Kbd';
+import { toast } from './ui/Toast';
 import { cn } from '../lib/cn';
 import { usePreferences } from '../context/PreferencesContext';
 import { AppTheme, AppDensity } from '../types/preferences';
@@ -274,9 +275,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         label: preferences.density === 'compact' ? 'Kepadatan: Ubah ke Comfortable' : 'Kepadatan: Ubah ke Compact',
         icon: <SidebarSimple className="h-4 w-4 text-muted" />,
         run: () => {
-          updatePreferences({
-            density: (preferences.density === 'compact' ? 'comfortable' : 'compact') as AppDensity
-          });
+          const nextDensity = (preferences.density === 'compact' ? 'comfortable' : 'compact') as AppDensity;
+          updatePreferences({ density: nextDensity });
+          toast.info(`Kepadatan tampilan diubah ke ${nextDensity === 'compact' ? 'Compact' : 'Comfortable'}.`);
           onClose();
         }
       },
@@ -286,7 +287,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         label: preferences.reduceMotion ? 'Aktifkan Animasi Antarmuka' : 'Kurangi Animasi (Reduce Motion)',
         icon: <Sparkle className="h-4 w-4 text-muted" />,
         run: () => {
-          updatePreferences({ reduceMotion: !preferences.reduceMotion });
+          const nextMotion = !preferences.reduceMotion;
+          updatePreferences({ reduceMotion: nextMotion });
+          toast.info(`Mode kurangi animasi: ${nextMotion ? 'Aktif' : 'Nonaktif'}.`);
           onClose();
         }
       },
