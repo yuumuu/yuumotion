@@ -103,12 +103,11 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="flex sticky top-0 z-30 gap-4 justify-between items-center px-4 h-[var(--space-header-h)] border-b backdrop-blur-md select-none border-border bg-bar/85 sm:px-6 shrink-0 transition-[height] duration-150">
-      {/* Left: Sidebar Toggle & Compact Breadcrumb */}
       <div className="flex gap-3 items-center min-w-0">
         <button
           type="button"
           onClick={onToggleSidebar}
-          className="flex justify-center items-center w-8 h-8 rounded-lg transition-colors cursor-pointer md:hidden text-muted hover:bg-hover hover:text-text shrink-0"
+          className="flex justify-center items-center w-8 h-8 rounded-lg transition-colors cursor-pointer md:hidden text-muted hover:bg-hover hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-project-accent shrink-0"
           title="Toggle Sidebar ([)"
         >
           <MenuIcon className="w-4 h-4" />
@@ -124,7 +123,7 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 type="button"
                 onClick={onSelectWorkspaceOverview}
-                className="hidden font-medium truncate text-muted hover:text-project-solid hover:underline lg:inline cursor-pointer"
+                className="hidden font-medium truncate text-muted hover:text-project-solid hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-project-accent lg:inline cursor-pointer"
                 title="Buka Detail Workspace"
               >
                 {workspaceName}
