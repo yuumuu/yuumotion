@@ -1658,26 +1658,28 @@ export const App: React.FC = () => {
         onClose={() => setSelectedProfileMember(null)}
       />
 
-      <CommandPalette
-        isOpen={isCommandPaletteOpen}
-        onClose={() => setIsCommandPaletteOpen(false)}
-        onNavigateView={(v) => setActiveView(v as WorkspaceView)}
-        onQuickCreateTask={() => setIsQuickTaskPromptOpen(true)}
-        onOpenPreferences={() => openSettingsTab('appearance')}
-        boards={activeWorkspace?.boards || []}
-        pages={activeWorkspace?.pages || []}
-        onNavigateToBoard={(boardId) => {
-          setActiveTarget({ type: 'board', id: boardId });
-        }}
-        onNavigateToPage={(pageId) => {
-          setActiveTarget({ type: 'page', id: pageId });
-        }}
-        onNavigateToCard={(boardId, cardId) => {
-          setActiveTarget({ type: 'board', id: boardId });
-          setActiveView('board');
-          setSelectedCardId(cardId);
-        }}
-      />
+      {isCommandPaletteOpen && (
+        <CommandPalette
+          isOpen={isCommandPaletteOpen}
+          onClose={() => setIsCommandPaletteOpen(false)}
+          onNavigateView={(v) => setActiveView(v as WorkspaceView)}
+          onQuickCreateTask={() => setIsQuickTaskPromptOpen(true)}
+          onOpenPreferences={() => openSettingsTab('appearance')}
+          boards={activeWorkspace?.boards || []}
+          pages={activeWorkspace?.pages || []}
+          onNavigateToBoard={(boardId) => {
+            setActiveTarget({ type: 'board', id: boardId });
+          }}
+          onNavigateToPage={(pageId) => {
+            setActiveTarget({ type: 'page', id: pageId });
+          }}
+          onNavigateToCard={(boardId, cardId) => {
+            setActiveTarget({ type: 'board', id: boardId });
+            setActiveView('board');
+            setSelectedCardId(cardId);
+          }}
+        />
+      )}
 
       <ConfirmDialog
         isOpen={isQuickTaskPromptOpen}

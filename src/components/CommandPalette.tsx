@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useDeferredValue } from 'react';
 import { MagnifyingGlass, Moon, Sun, Desktop, Stack, SidebarSimple, FileText, CheckCircle } from '@phosphor-icons/react';
 import { Kbd } from './ui/Kbd';
 import { cn } from '../lib/cn';
@@ -32,15 +32,20 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   onNavigateToPage
 }) => {
   const [query, setQuery] = useState('');
+  const deferredQuery = useDeferredValue(query);
   const { preferences, updatePreferences } = usePreferences();
 
   useEffect(() => {
+    if (!isOpen) setQuery('');
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
-        if (isOpen) onClose();
-      }
-      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      } else if (e.key === 'Escape') {
         onClose();
       }
     };
@@ -48,116 +53,121 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
-
-  const actions = [
-    {
-      id: 'create-task',
-      label: 'Buat Tugas Baru',
-      shortcut: 'C',
-      icon: <CheckCircle className="h-4 w-4 text-project-accent" />,
-      run: () => {
-        onQuickCreateTask?.();
-        onClose();
+  const actions = useMemo(
+    () => [
+      {
+        id: 'create-task',
+        label: 'Buat Tugas Baru',
+        shortcut: 'C',
+        icon: <CheckCircle className="h-4 w-4 text-project-accent" />,
+        run: () => {
+          onQuickCreateTask?.();
+          onClose();
+        }
+      },
+      {
+        id: 'view-board',
+        label: 'Buka Papan Kanban',
+        shortcut: '1',
+        icon: <Stack className="h-4 w-4 text-muted" />,
+        run: () => {
+          onNavigateView?.('board');
+          onClose();
+        }
+      },
+      {
+        id: 'view-table',
+        label: 'Buka Database Spreadsheet',
+        shortcut: '2',
+        icon: <SidebarSimple className="h-4 w-4 text-muted" />,
+        run: () => {
+          onNavigateView?.('table');
+          onClose();
+        }
+      },
+      {
+        id: 'view-calendar',
+        label: 'Buka Kalender',
+        shortcut: '3',
+        icon: <FileText className="h-4 w-4 text-muted" />,
+        run: () => {
+          onNavigateView?.('calendar');
+          onClose();
+        }
+      },
+      {
+        id: 'theme-light',
+        label: 'Ganti Tema: Terang',
+        icon: <Sun className="h-4 w-4 text-amber-500" />,
+        run: () => {
+          updatePreferences({ theme: 'light' as AppTheme });
+          onClose();
+        }
+      },
+      {
+        id: 'theme-dark',
+        label: 'Ganti Tema: Gelap',
+        icon: <Moon className="h-4 w-4 text-project-accent" />,
+        run: () => {
+          updatePreferences({ theme: 'dark' as AppTheme });
+          onClose();
+        }
+      },
+      {
+        id: 'theme-system',
+        label: 'Ganti Tema: Ikuti Sistem',
+        icon: <Desktop className="h-4 w-4 text-muted" />,
+        run: () => {
+          updatePreferences({ theme: 'system' as AppTheme });
+          onClose();
+        }
+      },
+      {
+        id: 'density-compact',
+        label: preferences.density === 'compact' ? 'Kepadatan: Kembali ke Comfortable' : 'Kepadatan: Ubah ke Compact',
+        icon: <SidebarSimple className="h-4 w-4 text-muted" />,
+        run: () => {
+          updatePreferences({
+            density: (preferences.density === 'compact' ? 'comfortable' : 'compact') as AppDensity
+          });
+          onClose();
+        }
+      },
+      {
+        id: 'open-prefs',
+        label: 'Buka Pengaturan Preferensi',
+        icon: <Desktop className="h-4 w-4 text-muted" />,
+        run: () => {
+          onOpenPreferences?.();
+          onClose();
+        }
       }
-    },
-    {
-      id: 'view-board',
-      label: 'Buka Papan Kanban',
-      shortcut: '1',
-      icon: <Stack className="h-4 w-4 text-muted" />,
-      run: () => {
-        onNavigateView?.('board');
-        onClose();
-      }
-    },
-    {
-      id: 'view-table',
-      label: 'Buka Database Spreadsheet',
-      shortcut: '2',
-      icon: <SidebarSimple className="h-4 w-4 text-muted" />,
-      run: () => {
-        onNavigateView?.('table');
-        onClose();
-      }
-    },
-    {
-      id: 'view-calendar',
-      label: 'Buka Kalender',
-      shortcut: '3',
-      icon: <FileText className="h-4 w-4 text-muted" />,
-      run: () => {
-        onNavigateView?.('calendar');
-        onClose();
-      }
-    },
-    {
-      id: 'theme-light',
-      label: 'Ganti Tema: Terang',
-      icon: <Sun className="h-4 w-4 text-amber-500" />,
-      run: () => {
-        updatePreferences({ theme: 'light' as AppTheme });
-        onClose();
-      }
-    },
-    {
-      id: 'theme-dark',
-      label: 'Ganti Tema: Gelap',
-      icon: <Moon className="h-4 w-4 text-project-accent" />,
-      run: () => {
-        updatePreferences({ theme: 'dark' as AppTheme });
-        onClose();
-      }
-    },
-    {
-      id: 'theme-system',
-      label: 'Ganti Tema: Ikuti Sistem',
-      icon: <Desktop className="h-4 w-4 text-muted" />,
-      run: () => {
-        updatePreferences({ theme: 'system' as AppTheme });
-        onClose();
-      }
-    },
-    {
-      id: 'density-compact',
-      label: preferences.density === 'compact' ? 'Kepadatan: Kembali ke Comfortable' : 'Kepadatan: Ubah ke Compact',
-      icon: <SidebarSimple className="h-4 w-4 text-muted" />,
-      run: () => {
-        updatePreferences({
-          density: (preferences.density === 'compact' ? 'comfortable' : 'compact') as AppDensity
-        });
-        onClose();
-      }
-    },
-    {
-      id: 'open-prefs',
-      label: 'Buka Pengaturan Preferensi',
-      icon: <Desktop className="h-4 w-4 text-muted" />,
-      run: () => {
-        onOpenPreferences?.();
-        onClose();
-      }
-    }
-  ];
-
-  const filtered = actions.filter((a) =>
-    a.label.toLowerCase().includes(query.toLowerCase())
+    ],
+    [onQuickCreateTask, onNavigateView, onOpenPreferences, onClose, updatePreferences, preferences.density]
   );
 
-  const searchResults: Array<{
-    id: string;
-    label: string;
-    subtitle: string;
-    type: 'card' | 'board' | 'page';
-    boardId?: string;
-    itemId: string;
-  }> = [];
+  const filtered = useMemo(() => {
+    const q = deferredQuery.toLowerCase();
+    return q ? actions.filter((a) => a.label.toLowerCase().includes(q)) : actions;
+  }, [actions, deferredQuery]);
 
-  if (query.trim().length > 0 && (boards || pages)) {
-    const q = query.toLowerCase();
-    (boards || []).forEach((b) => {
-      if (b.title.toLowerCase().includes(q)) {
-        searchResults.push({
+  const searchResults = useMemo(() => {
+    const results: Array<{
+      id: string;
+      label: string;
+      subtitle: string;
+      type: 'card' | 'board' | 'page';
+      boardId?: string;
+      itemId: string;
+    }> = [];
+
+    const trimmed = deferredQuery.trim().toLowerCase();
+    if (!trimmed || (!boards && !pages)) return results;
+
+    for (const b of boards || []) {
+      if (results.length >= 8) break;
+      if (b.title.toLowerCase().includes(trimmed)) {
+        results.push({
           id: `board-${b.id}`,
           label: b.title,
           subtitle: 'Papan Kanban',
@@ -165,9 +175,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           itemId: b.id
         });
       }
-      Object.values(b.cards || {}).forEach((card) => {
-        if (card.title.toLowerCase().includes(q)) {
-          searchResults.push({
+      for (const card of Object.values(b.cards || {})) {
+        if (results.length >= 8) break;
+        if (card.title.toLowerCase().includes(trimmed)) {
+          results.push({
             id: `card-${card.id}`,
             label: card.title,
             subtitle: `Kartu di ${b.title}`,
@@ -176,11 +187,12 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             itemId: card.id
           });
         }
-      });
-    });
-    (pages || []).forEach((p) => {
-      if ((p.title || 'Untitled').toLowerCase().includes(q)) {
-        searchResults.push({
+      }
+    }
+    for (const p of pages || []) {
+      if (results.length >= 8) break;
+      if ((p.title || 'Untitled').toLowerCase().includes(trimmed)) {
+        results.push({
           id: `page-${p.id}`,
           label: p.title || 'Untitled Document',
           subtitle: 'Dokumen',
@@ -188,18 +200,21 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           itemId: p.id
         });
       }
-    });
-  }
+    }
+    return results;
+  }, [deferredQuery, boards, pages]);
+
+  if (!isOpen) return null;
 
   return (
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black/25 dark:bg-black/60 backdrop-blur-[2px] animate-in fade-in duration-100 motion-reduce:animate-none p-4"
+      className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black/35 dark:bg-black/60 p-4"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg overflow-hidden rounded-2xl border border-border bg-surface shadow-card-drag animate-in fade-in duration-100 motion-reduce:animate-none"
+        className="w-full max-w-lg overflow-hidden rounded-2xl border border-border bg-surface shadow-card-drag animate-in fade-in duration-75 motion-reduce:animate-none"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-3 border-b border-border px-4 py-3 bg-bar">
