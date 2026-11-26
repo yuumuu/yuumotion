@@ -1,8 +1,8 @@
-import React, { Suspense } from 'react';
+﻿import React, { Suspense } from 'react';
 import { GithubLogo, ArrowUpRight } from '@phosphor-icons/react';
-import { GITHUB_REPO_URL } from '../PublicFooter';
+import { GITHUB_REPO_URL } from './PublicFooter';
 
-const Landing3DCanvas = React.lazy(() => import('../Landing3DCanvas'));
+const Landing3DCanvas = React.lazy(() => import('./Landing3DCanvas'));
 
 interface LandingOpenSourceSectionProps {
   show3D: boolean;

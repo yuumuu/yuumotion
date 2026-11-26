@@ -43,6 +43,8 @@ export const PreferencesProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
     applyTheme();
     document.documentElement.setAttribute('data-density', preferences.density);
+    document.documentElement.setAttribute('data-doc-font', preferences.docFont || 'sans');
+    document.documentElement.setAttribute('data-doc-size', preferences.docFontSize || 'md');
 
     if (preferences.reduceMotion) {
       document.documentElement.setAttribute('data-reduce-motion', 'true');

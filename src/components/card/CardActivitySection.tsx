@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Card, CardActivity, WorkspaceMember } from '../../types/board';
-import { MentionPopover } from '../MentionPopover';
+import { MentionPopover } from '../modals/MentionPopover';
 import { Button } from '../ui';
 import { cn } from '../../lib/cn';
 import { ClockCounterClockwise, CaretDown } from '@phosphor-icons/react';

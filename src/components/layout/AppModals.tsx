@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react';
+﻿import React, { Suspense } from 'react';
 import {
   AuthUser,
   Board,
@@ -12,19 +12,19 @@ import { AppRoute } from '../../lib/auth';
 import { saveStoredDbConfig } from '../../lib/dbBridge';
 import { createSyncManager } from '../../lib/sync';
 import { BoardTemplate } from '../../data/boardTemplates';
-import type { SettingsTab } from '../SettingsHubModal';
-import type { ProfileDetailTarget } from '../MemberProfileModal';
+import type { SettingsTab } from '../settings/SettingsHubModal';
+import type { ProfileDetailTarget } from '../modals/MemberProfileModal';
 import { ConfirmDialog, toast } from '../ui';
 
-const DatabaseBridgeModal = React.lazy(() => import('../DatabaseBridgeModal').then((m) => ({ default: m.DatabaseBridgeModal })));
-const WorkspaceMembersModal = React.lazy(() => import('../WorkspaceMembersModal').then((m) => ({ default: m.WorkspaceMembersModal })));
-const CommandPalette = React.lazy(() => import('../CommandPalette').then((m) => ({ default: m.CommandPalette })));
-const SettingsHubModal = React.lazy(() => import('../SettingsHubModal').then((m) => ({ default: m.SettingsHubModal })));
-const BoardTemplateModal = React.lazy(() => import('../BoardTemplateModal').then((m) => ({ default: m.BoardTemplateModal })));
-const ShareModal = React.lazy(() => import('../ShareModal').then((m) => ({ default: m.ShareModal })));
-const EntitySettingsModal = React.lazy(() => import('../EntitySettingsModal').then((m) => ({ default: m.EntitySettingsModal })));
-const MemberProfileModal = React.lazy(() => import('../MemberProfileModal').then((m) => ({ default: m.MemberProfileModal })));
-const GuestMigrationModal = React.lazy(() => import('../GuestMigrationModal').then((m) => ({ default: m.GuestMigrationModal })));
+const DatabaseBridgeModal = React.lazy(() => import('../modals/DatabaseBridgeModal').then((m) => ({ default: m.DatabaseBridgeModal })));
+const WorkspaceMembersModal = React.lazy(() => import('../modals/WorkspaceMembersModal').then((m) => ({ default: m.WorkspaceMembersModal })));
+const CommandPalette = React.lazy(() => import('./CommandPalette').then((m) => ({ default: m.CommandPalette })));
+const SettingsHubModal = React.lazy(() => import('../settings/SettingsHubModal').then((m) => ({ default: m.SettingsHubModal })));
+const BoardTemplateModal = React.lazy(() => import('../modals/BoardTemplateModal').then((m) => ({ default: m.BoardTemplateModal })));
+const ShareModal = React.lazy(() => import('../modals/ShareModal').then((m) => ({ default: m.ShareModal })));
+const EntitySettingsModal = React.lazy(() => import('../modals/EntitySettingsModal').then((m) => ({ default: m.EntitySettingsModal })));
+const MemberProfileModal = React.lazy(() => import('../modals/MemberProfileModal').then((m) => ({ default: m.MemberProfileModal })));
+const GuestMigrationModal = React.lazy(() => import('../modals/GuestMigrationModal').then((m) => ({ default: m.GuestMigrationModal })));
 
 interface AppModalsProps {
   activeWorkspace: Workspace;

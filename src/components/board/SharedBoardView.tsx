@@ -1,6 +1,6 @@
-import React from 'react';
+﻿import React from 'react';
 import { Board } from '../../types/board';
-import { KanbanBoard } from '../KanbanBoard';
+import { KanbanBoard } from './KanbanBoard';
 import { ToastContainer, toast } from '../ui';
 
 interface SharedBoardViewProps {

@@ -41,10 +41,135 @@
 
 .ProseMirror {
   outline: none;
-  min-height: 180px;
-  font-family: var(--font-sans, "Onest", -apple-system, sans-serif);
-  font-size: 15px;
-  line-height: 1.65;
+  min-height: 220px;
+  font-family: var(--doc-font-family, var(--font-sans, "Onest", -apple-system, sans-serif));
+  font-size: var(--doc-base-size, 15px);
+  line-height: 1.7;
+  color: var(--text);
+}
+
+[data-doc-font='sans'] .ProseMirror {
+  --doc-font-family: var(--font-sans, "Onest", -apple-system, sans-serif);
+}
+
+[data-doc-font='serif'] .ProseMirror {
+  --doc-font-family: Georgia, Cambria, "Times New Roman", Times, serif;
+}
+
+[data-doc-font='mono'] .ProseMirror {
+  --doc-font-family: var(--font-mono, "Google Sans Code", monospace);
+}
+
+[data-doc-size='sm'] .ProseMirror {
+  --doc-base-size: 14px;
+  --doc-scale: 0.92;
+}
+
+[data-doc-size='md'] .ProseMirror {
+  --doc-base-size: 15.5px;
+  --doc-scale: 1;
+}
+
+[data-doc-size='lg'] .ProseMirror {
+  --doc-base-size: 17px;
+  --doc-scale: 1.12;
+}
+
+.ProseMirror p {
+  margin: 0.45rem 0;
+}
+
+.ProseMirror h1 {
+  font-family: var(--doc-font-family, var(--font-display, "Onest", sans-serif));
+  font-size: calc(1.9rem * var(--doc-scale, 1));
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  margin: 1.6rem 0 0.65rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
+  color: var(--text);
+  scroll-margin-top: 84px;
+}
+
+.ProseMirror h2 {
+  font-family: var(--doc-font-family, var(--font-display, "Onest", sans-serif));
+  font-size: calc(1.42rem * var(--doc-scale, 1));
+  font-weight: 700;
+  line-height: 1.28;
+  letter-spacing: -0.018em;
+  margin: 1.35rem 0 0.45rem;
+  color: var(--text);
+  scroll-margin-top: 84px;
+}
+
+.ProseMirror h3 {
+  font-family: var(--doc-font-family, var(--font-display, "Onest", sans-serif));
+  font-size: calc(1.16rem * var(--doc-scale, 1));
+  font-weight: 650;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  margin: 1.05rem 0 0.3rem;
+  color: var(--text);
+  scroll-margin-top: 84px;
+}
+
+.ProseMirror h1:first-child,
+.ProseMirror h2:first-child,
+.ProseMirror h3:first-child {
+  margin-top: 0.25rem;
+}
+
+.ProseMirror ul {
+  list-style-type: disc;
+  padding-left: 1.35rem;
+  margin: 0.45rem 0;
+}
+
+.ProseMirror ol {
+  list-style-type: decimal;
+  padding-left: 1.35rem;
+  margin: 0.45rem 0;
+}
+
+.ProseMirror li {
+  margin: 0.15rem 0;
+}
+
+.ProseMirror code {
+  background: var(--bar);
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  padding: 0.1rem 0.35rem;
+  font-family: var(--font-mono, "Google Sans Code", monospace);
+  font-size: 0.87em;
+}
+
+.ProseMirror pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: 0.88em;
+}
+
+.ProseMirror hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1.25rem 0;
+}
+
+@keyframes yuu-heading-flash {
+  0% {
+    background-color: color-mix(in srgb, var(--project-accent) 20%, transparent);
+    border-radius: 0.5rem;
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.yuu-heading-flash {
+  animation: yuu-heading-flash 1.5s ease-out;
 }
 
 .ProseMirror p.is-editor-empty:first-child::before {

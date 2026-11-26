@@ -2,6 +2,9 @@ export type AppTheme = 'light' | 'dark' | 'system';
 export type AppDensity = 'comfortable' | 'compact';
 export type CardOpenMode = 'drawer' | 'modal' | 'fullpage';
 export type ProjectAccentTheme = 'violet' | 'cobalt' | 'coral' | 'emerald' | 'berry' | 'amber';
+export type DocFontFamily = 'sans' | 'serif' | 'mono';
+export type DocFontSize = 'sm' | 'md' | 'lg';
+export type DocPageWidth = 'standard' | 'wide';
 
 export interface UserPreferences {
   theme: AppTheme;
@@ -9,6 +12,9 @@ export interface UserPreferences {
   cardOpenMode: CardOpenMode;
   reduceMotion: boolean;
   offlineSync: boolean;
+  docFont: DocFontFamily;
+  docFontSize: DocFontSize;
+  docPageWidth: DocPageWidth;
 }
 
 export const DEFAULT_PREFERENCES: UserPreferences = {
@@ -17,4 +23,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   cardOpenMode: 'drawer',
   reduceMotion: false,
   offlineSync: true,
+  docFont: 'sans',
+  docFontSize: 'md',
+  docPageWidth: 'standard',
 };

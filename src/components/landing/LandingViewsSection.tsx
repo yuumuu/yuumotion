@@ -1,13 +1,13 @@
-import React, { Suspense } from 'react';
+﻿import React, { Suspense } from 'react';
 import { Kanban, Table as TableIcon, CalendarBlank, Clock } from '@phosphor-icons/react';
 import { INITIAL_BOARD } from '../../lib/constants';
 import { cn } from '../../lib/cn';
 import { WorkspaceSkeleton } from '../ui';
 
-const KanbanBoard = React.lazy(() => import('../KanbanBoard').then((m) => ({ default: m.KanbanBoard })));
-const TableDatabaseView = React.lazy(() => import('../TableDatabaseView').then((m) => ({ default: m.TableDatabaseView })));
-const CalendarView = React.lazy(() => import('../CalendarView').then((m) => ({ default: m.CalendarView })));
-const TimelineGanttView = React.lazy(() => import('../TimelineGanttView').then((m) => ({ default: m.TimelineGanttView })));
+const KanbanBoard = React.lazy(() => import('../board/KanbanBoard').then((m) => ({ default: m.KanbanBoard })));
+const TableDatabaseView = React.lazy(() => import('../board/TableDatabaseView').then((m) => ({ default: m.TableDatabaseView })));
+const CalendarView = React.lazy(() => import('../board/CalendarView').then((m) => ({ default: m.CalendarView })));
+const TimelineGanttView = React.lazy(() => import('../board/TimelineGanttView').then((m) => ({ default: m.TimelineGanttView })));
 
 export type PreviewViewMode = 'board' | 'table' | 'calendar' | 'timeline';
 
@@ -77,7 +77,7 @@ export const LandingViewsSection: React.FC<LandingViewsSectionProps> = ({
             <div className="space-y-5 lg:col-span-4">
               <div className="flex items-center justify-between gap-2">
                 <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-project-solid">
-                  Progres Tampilan · 0{VIEW_STEPS.findIndex((s) => s.id === previewView) + 1} / 0{VIEW_STEPS.length}
+                  Progres Tampilan Â· 0{VIEW_STEPS.findIndex((s) => s.id === previewView) + 1} / 0{VIEW_STEPS.length}
                 </span>
                 <span className="hidden lg:inline-block font-mono text-[11px] text-muted">
                   {Math.round(viewScrollProgress * 100)}%

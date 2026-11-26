@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, Suspense } from 'react';
+﻿import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import {
   Board,
   Card,
@@ -23,35 +23,36 @@ import { useAuthSession } from './hooks/useAuthSession';
 import { useNotifications } from './hooks/useNotifications';
 import { useWorkspaceCrud } from './hooks/useWorkspaceCrud';
 import { useWorkspaceSync } from './hooks/useWorkspaceSync';
+import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
 import { getStoredDbConfig } from './lib/dbBridge';
-import { Header } from './components/Header';
-import { Sidebar } from './components/Sidebar';
-import { NavigationRail } from './components/NavigationRail';
-import { ProjectExplorer } from './components/ProjectExplorer';
-import { ProjectBanner } from './components/ProjectBanner';
-import { FilterSortBar } from './components/FilterSortBar';
+import { Header } from './components/layout/Header';
+import { Sidebar } from './components/layout/Sidebar';
+import { NavigationRail } from './components/layout/NavigationRail';
+import { ProjectExplorer } from './components/layout/ProjectExplorer';
+import { ProjectBanner } from './components/layout/ProjectBanner';
+import { FilterSortBar } from './components/board/FilterSortBar';
 import { BoardFilterState, DEFAULT_BOARD_FILTER } from './types/filter';
 import { filterAndSortCards } from './lib/cardFilter';
-import { KanbanBoard } from './components/KanbanBoard';
-import { EmptyWorkspaceOnboarding } from './components/EmptyWorkspaceOnboarding';
-import { EmptyWorkspaceContent } from './components/EmptyWorkspaceContent';
-import type { SettingsTab } from './components/SettingsHubModal';
-import type { ProfileDetailTarget } from './components/MemberProfileModal';
+import { KanbanBoard } from './components/board/KanbanBoard';
+import { EmptyWorkspaceOnboarding } from './components/workspace/EmptyWorkspaceOnboarding';
+import { EmptyWorkspaceContent } from './components/workspace/EmptyWorkspaceContent';
+import type { SettingsTab } from './components/settings/SettingsHubModal';
+import type { ProfileDetailTarget } from './components/modals/MemberProfileModal';
 import { SharedBoardView } from './components/board/SharedBoardView';
 import { AppModals } from './components/layout/AppModals';
 import { ToastContainer, LoadingScreen, WorkspaceSkeleton } from './components/ui';
 import { usePreferences } from './context/PreferencesContext';
 import { Plus, Kanban, FileText, UserPlus } from '@phosphor-icons/react';
 
-const LandingPage = React.lazy(() => import('./components/LandingPage').then((m) => ({ default: m.LandingPage })));
-const AuthPage = React.lazy(() => import('./components/AuthPage').then((m) => ({ default: m.AuthPage })));
-const CalendarView = React.lazy(() => import('./components/CalendarView').then((m) => ({ default: m.CalendarView })));
-const TimelineGanttView = React.lazy(() => import('./components/TimelineGanttView').then((m) => ({ default: m.TimelineGanttView })));
-const TableDatabaseView = React.lazy(() => import('./components/TableDatabaseView').then((m) => ({ default: m.TableDatabaseView })));
-const StandalonePageDoc = React.lazy(() => import('./components/StandalonePageDoc').then((m) => ({ default: m.StandalonePageDoc })));
-const WorkspaceOverview = React.lazy(() => import('./components/WorkspaceOverview').then((m) => ({ default: m.WorkspaceOverview })));
-const CardDetailModal = React.lazy(() => import('./components/CardDetailModal').then((m) => ({ default: m.CardDetailModal })));
-const GuestMigrationModal = React.lazy(() => import('./components/GuestMigrationModal').then((m) => ({ default: m.GuestMigrationModal })));
+const LandingPage = React.lazy(() => import('./components/landing/LandingPage').then((m) => ({ default: m.LandingPage })));
+const AuthPage = React.lazy(() => import('./components/auth/AuthPage').then((m) => ({ default: m.AuthPage })));
+const CalendarView = React.lazy(() => import('./components/board/CalendarView').then((m) => ({ default: m.CalendarView })));
+const TimelineGanttView = React.lazy(() => import('./components/board/TimelineGanttView').then((m) => ({ default: m.TimelineGanttView })));
+const TableDatabaseView = React.lazy(() => import('./components/board/TableDatabaseView').then((m) => ({ default: m.TableDatabaseView })));
+const StandalonePageDoc = React.lazy(() => import('./components/docs/StandalonePageDoc').then((m) => ({ default: m.StandalonePageDoc })));
+const WorkspaceOverview = React.lazy(() => import('./components/workspace/WorkspaceOverview').then((m) => ({ default: m.WorkspaceOverview })));
+const CardDetailModal = React.lazy(() => import('./components/card/CardDetailModal').then((m) => ({ default: m.CardDetailModal })));
+const GuestMigrationModal = React.lazy(() => import('./components/modals/GuestMigrationModal').then((m) => ({ default: m.GuestMigrationModal })));
 
 export const App: React.FC = () => {
   const [appRoute, setAppRoute] = useState<AppRoute>(() => resolveRouteWithAuthGuard());
@@ -112,7 +113,7 @@ export const App: React.FC = () => {
     return workspaces?.find((w) => w.id === activeWorkspaceId) || workspaces?.[0] || {
       id: 'ws-default',
       name: 'Main Workspace',
-      icon: 'ðŸš€',
+      icon: 'Ã°Å¸Å¡â‚¬',
       ownerId: currentUser.id,
       currentRole: 'owner' as UserRole,
       members: [],
@@ -196,88 +197,23 @@ export const App: React.FC = () => {
     saveStoredWorkspaces(workspaces, currentUser);
   }, [workspaces, currentUser]);
 
-  useEffect(() => {
-    const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      const activeEl = document.activeElement;
-      const isInputActive =
-        activeEl instanceof HTMLInputElement ||
-        activeEl instanceof HTMLTextAreaElement ||
-        activeEl?.getAttribute('contenteditable') === 'true';
-
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        setIsCommandPaletteOpen((prev) => !prev);
-        return;
-      }
-
-      if (e.key === 'Escape') {
-        if (isCommandPaletteOpen) {
-          setIsCommandPaletteOpen(false);
-          return;
-        }
-        if (isSettingsOpen) {
-          setIsSettingsOpen(false);
-          return;
-        }
-        if (selectedCardId) {
-          setSelectedCardId(null);
-          return;
-        }
-        if (isDbModalOpen) {
-          setIsDbModalOpen(false);
-          return;
-        }
-        if (isMembersModalOpen) {
-          setIsMembersModalOpen(false);
-          return;
-        }
-        if (isFabOpen) {
-          setIsFabOpen(false);
-          return;
-        }
-      }
-
-      if (isInputActive) return;
-
-      if (e.key === '/') {
-        e.preventDefault();
-        setIsCommandPaletteOpen(true);
-        return;
-      }
-
-      if (e.key === '[') {
-        e.preventDefault();
-        setIsSidebarOpen((prev) => !prev);
-        return;
-      }
-
-      if (e.key === '?') {
-        e.preventDefault();
-        openSettingsTab('shortcuts');
-        return;
-      }
-
-      if (e.key === 'b' || e.key === 'B') {
-        setActiveView('board');
-      } else if (e.key === 'c' || e.key === 'C') {
-        setActiveView('calendar');
-      } else if (e.key === 't' || e.key === 'T') {
-        setActiveView('timeline');
-      } else if (e.key === 's' || e.key === 'S') {
-        setActiveView('table');
-      }
-    };
-
-    window.addEventListener('keydown', handleGlobalKeyDown);
-    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, [
+  useGlobalShortcuts({
     isCommandPaletteOpen,
+    setIsCommandPaletteOpen,
     isSettingsOpen,
+    setIsSettingsOpen,
     selectedCardId,
+    setSelectedCardId,
     isDbModalOpen,
+    setIsDbModalOpen,
     isMembersModalOpen,
-    isFabOpen
-  ]);
+    setIsMembersModalOpen,
+    isFabOpen,
+    setIsFabOpen,
+    setIsSidebarOpen,
+    setActiveView,
+    openSettingsTab
+  });
 
   const {
     syncStatus,
@@ -574,6 +510,19 @@ export const App: React.FC = () => {
                   onAddBoard={() => handleAddBoard('Papan Baru')}
                   onAddPage={() => handleAddPage()}
                   onAddPageFromTemplate={(tpl) => handleAddPage(undefined, tpl)}
+                  onRenameBoard={handleRenameBoard}
+                  onDeleteBoard={handleDeleteBoard}
+                  onOpenBoardSettings={(boardId) => {
+                    setActiveTarget({ type: 'board', id: boardId });
+                    setEntitySettings({ open: true, type: 'board' });
+                  }}
+                  onShareBoard={(boardId) => {
+                    setActiveTarget({ type: 'board', id: boardId });
+                    setIsShareModalOpen(true);
+                  }}
+                  onRenamePage={handleRenamePage}
+                  onDeletePage={handleDeletePage}
+                  onAddSubPage={(parentId) => handleAddPage(parentId)}
                   onOpenMembers={() => setIsMembersModalOpen(true)}
                   onOpenSettings={() => setEntitySettings({ open: true, type: 'workspace' })}
                 />
