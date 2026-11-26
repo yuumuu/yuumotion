@@ -48,6 +48,7 @@ import { BoardTemplate } from './data/boardTemplates';
 import { ActivityService } from './services/activityService';
 import { apiClient } from './services/apiClient';
 import { ToastContainer, ConfirmDialog, LoadingScreen, WorkspaceSkeleton, toast } from './components/ui';
+import { usePreferences } from './context/PreferencesContext';
 import { Plus, Kanban, FileText, UserPlus } from '@phosphor-icons/react';
 
 const LandingPage = React.lazy(() => import('./components/LandingPage').then((m) => ({ default: m.LandingPage })));
@@ -156,7 +157,12 @@ export const App: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [roomId] = useState('general');
   const [activeView, setActiveView] = useState<WorkspaceView>('board');
-  const [isDark, setIsDark] = useState(false);
+  const { preferences, updatePreferences } = usePreferences();
+  const isDark =
+    preferences.theme === 'dark' ||
+    (preferences.theme === 'system' &&
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches);
   const [searchQuery] = useState('');
   const [boardFilter, setBoardFilter] = useState<BoardFilterState>(DEFAULT_BOARD_FILTER);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
@@ -481,15 +487,7 @@ export const App: React.FC = () => {
   }, []);
 
   const toggleTheme = () => {
-    setIsDark((prev) => {
-      const next = !prev;
-      if (next) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-      return next;
-    });
+    updatePreferences({ theme: isDark ? 'light' : 'dark' });
   };
 
   const handleSelectWorkspace = (newWsId: string) => {
@@ -1662,9 +1660,20 @@ export const App: React.FC = () => {
         <CommandPalette
           isOpen={isCommandPaletteOpen}
           onClose={() => setIsCommandPaletteOpen(false)}
-          onNavigateView={(v) => setActiveView(v as WorkspaceView)}
+          onNavigateView={(v) => {
+            setActiveTarget({ type: 'board', id: activeBoard.id });
+            setActiveView(v as WorkspaceView);
+          }}
           onQuickCreateTask={() => setIsQuickTaskPromptOpen(true)}
+          onQuickCreatePage={() => handleAddPage()}
+          onOpenTemplates={() => setIsTemplateModalOpen(true)}
+          onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
+          onOpenShare={() => setIsShareModalOpen(true)}
+          onOpenMembers={() => setIsMembersModalOpen(true)}
+          onExportBackup={handleExport}
           onOpenPreferences={() => openSettingsTab('appearance')}
+          onOpenSettings={openSettingsTab}
+          onNavigateHome={() => goToRoute('landing')}
           boards={activeWorkspace?.boards || []}
           pages={activeWorkspace?.pages || []}
           onNavigateToBoard={(boardId) => {
