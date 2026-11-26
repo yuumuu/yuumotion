@@ -35,6 +35,13 @@ app.route('/api/uploads', uploadRoutes);
 app.route('/api/events', eventRoutes);
 app.route('/api/notifications', notificationRoutes);
 
+app.use('/assets/*', async (c, next) => {
+  await next();
+  if (c.res.status === 200) {
+    c.res.headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+  }
+});
+
 app.use('/*', serveStatic({ root: './dist' }));
 
 app.get('*', async (c) => {

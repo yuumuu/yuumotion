@@ -21,3 +21,4 @@ export * from './AttachmentCard';
 export * from './ConfirmDialog';
 export * from './ColorPicker';
 export * from './EmojiPickerPopover';
+export * from './LoadingScreen';

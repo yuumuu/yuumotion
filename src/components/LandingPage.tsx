@@ -22,11 +22,12 @@ import { AuthUser } from '../types/board';
 import { INITIAL_BOARD } from '../lib/constants';
 import { cn } from '../lib/cn';
 import { PublicFooter, GITHUB_REPO_URL } from './PublicFooter';
-import { KanbanBoard } from './KanbanBoard';
-import { TableDatabaseView } from './TableDatabaseView';
-import { CalendarView } from './CalendarView';
-import { TimelineGanttView } from './TimelineGanttView';
+import { WorkspaceSkeleton } from './ui';
 
+const KanbanBoard = React.lazy(() => import('./KanbanBoard').then((m) => ({ default: m.KanbanBoard })));
+const TableDatabaseView = React.lazy(() => import('./TableDatabaseView').then((m) => ({ default: m.TableDatabaseView })));
+const CalendarView = React.lazy(() => import('./CalendarView').then((m) => ({ default: m.CalendarView })));
+const TimelineGanttView = React.lazy(() => import('./TimelineGanttView').then((m) => ({ default: m.TimelineGanttView })));
 const Landing3DCanvas = React.lazy(() => import('./Landing3DCanvas'));
 
 interface LandingPageProps {
@@ -155,8 +156,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const [viewScrollProgress, setViewScrollProgress] = useState(0);
   const [isNavbarHidden, setIsNavbarHidden] = useState(false);
   const [isHeroPaused, setIsHeroPaused] = useState(false);
+  const [show3D, setShow3D] = useState(false);
   const viewsSectionRef = useRef<HTMLElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const win = window as Window & {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+    if (win.requestIdleCallback) {
+      const id = win.requestIdleCallback(() => setShow3D(true), { timeout: 600 });
+      return () => win.cancelIdleCallback?.(id);
+    }
+    const timer = window.setTimeout(() => setShow3D(true), 300);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const heroEl = heroRef.current;
@@ -853,41 +868,43 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                         key={previewView}
                         className="h-[460px] sm:h-[560px] lg:h-[72vh] overflow-hidden pointer-events-none select-none animate-yuu-crossfade"
                       >
-                        {previewView === 'board' && (
-                          <KanbanBoard
-                            board={INITIAL_BOARD}
-                            searchQuery=""
-                            onCardClick={noop}
-                            onAddCard={noop}
-                            onAddColumn={noop}
-                            onDeleteColumn={noop}
-                            onDropCard={noop}
-                          />
-                        )}
-                        {previewView === 'table' && (
-                          <TableDatabaseView
-                            board={INITIAL_BOARD}
-                            searchQuery=""
-                            onCardClick={noop}
-                            onUpdateCard={noop}
-                            onAddCard={noop}
-                          />
-                        )}
-                        {previewView === 'calendar' && (
-                          <CalendarView
-                            board={INITIAL_BOARD}
-                            searchQuery=""
-                            onCardClick={noop}
-                            onAddCardOnDate={noop}
-                          />
-                        )}
-                        {previewView === 'timeline' && (
-                          <TimelineGanttView
-                            board={INITIAL_BOARD}
-                            searchQuery=""
-                            onCardClick={noop}
-                          />
-                        )}
+                        <Suspense fallback={<WorkspaceSkeleton />}>
+                          {previewView === 'board' && (
+                            <KanbanBoard
+                              board={INITIAL_BOARD}
+                              searchQuery=""
+                              onCardClick={noop}
+                              onAddCard={noop}
+                              onAddColumn={noop}
+                              onDeleteColumn={noop}
+                              onDropCard={noop}
+                            />
+                          )}
+                          {previewView === 'table' && (
+                            <TableDatabaseView
+                              board={INITIAL_BOARD}
+                              searchQuery=""
+                              onCardClick={noop}
+                              onUpdateCard={noop}
+                              onAddCard={noop}
+                            />
+                          )}
+                          {previewView === 'calendar' && (
+                            <CalendarView
+                              board={INITIAL_BOARD}
+                              searchQuery=""
+                              onCardClick={noop}
+                              onAddCardOnDate={noop}
+                            />
+                          )}
+                          {previewView === 'timeline' && (
+                            <TimelineGanttView
+                              board={INITIAL_BOARD}
+                              searchQuery=""
+                              onCardClick={noop}
+                            />
+                          )}
+                        </Suspense>
                       </div>
                     </div>
                   </div>
@@ -900,9 +917,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         {/* 5. Full-Bleed 3D Open-Source Section (Dedicated to Architecture & Repo) */}
         <section id="open-source" className="relative overflow-hidden bg-[#0B0D12] text-white py-28 sm:py-36 border-b border-white/10">
           <div className="absolute inset-0 pointer-events-none">
-            <Suspense fallback={null}>
-              <Landing3DCanvas isDark={true} />
-            </Suspense>
+            {show3D && (
+              <Suspense fallback={null}>
+                <Landing3DCanvas isDark={true} />
+              </Suspense>
+            )}
           </div>
           <div
             aria-hidden="true"

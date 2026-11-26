@@ -239,36 +239,78 @@ export function setActiveSession(active: boolean) {
   safeSetStorageItem(SESSION_ACTIVE_KEY, active ? 'true' : 'false');
 }
 
-const LANDING_SECTION_ANCHORS = new Set(['landing', 'top', 'personas', 'docs', 'views', 'open-source']);
+const LANDING_SECTION_PATHS = new Set(['', 'landing', 'top', 'personas', 'docs', 'views', 'open-source']);
+
+function routeToCleanPath(route: AppRoute): string {
+  return route === 'landing' ? '/' : `/${route}`;
+}
+
+export function extractShareTokenFromLocation(): string | null {
+  const path = window.location.pathname;
+  if (path.startsWith('/share/')) {
+    const token = path.slice('/share/'.length).replace(/\/+$/, '');
+    if (token) return token;
+  }
+  const hash = window.location.hash;
+  if (hash.startsWith('#share/')) {
+    const token = hash.slice('#share/'.length);
+    if (token) {
+      window.history.replaceState(null, '', `/share/${token}`);
+      return token;
+    }
+  }
+  return null;
+}
 
 export function resolveRouteWithAuthGuard(): AppRoute {
   const rawHash = window.location.hash.replace(/^#\/?/, '').toLowerCase();
+  const rawPath = window.location.pathname.replace(/^\/+|\/+$/g, '').toLowerCase();
   const isAuthed = hasActiveSession();
 
-  if (LANDING_SECTION_ANCHORS.has(rawHash)) {
-    return 'landing';
+  // Migrasi URL hash lama (#/landing, #/app, #/auth) ke clean URL tanpa #
+  const candidate = rawHash || rawPath;
+
+  if (candidate.startsWith('share/')) {
+    return isAuthed ? 'app' : 'landing';
   }
-  if (rawHash === 'auth') {
+  if (candidate === 'auth') {
+    if (window.location.pathname !== '/auth' || window.location.hash) {
+      window.history.replaceState(null, '', '/auth');
+    }
     return 'auth';
   }
-  if (rawHash === 'app') {
+  if (candidate === 'app') {
     if (!isAuthed) {
-      window.location.hash = '#/auth';
+      window.history.replaceState(null, '', '/auth');
       return 'auth';
+    }
+    if (window.location.pathname !== '/app' || window.location.hash) {
+      window.history.replaceState(null, '', '/app');
     }
     return 'app';
   }
+  if (rawHash && LANDING_SECTION_PATHS.has(rawHash)) {
+    window.history.replaceState(null, '', '/');
+    return 'landing';
+  }
+  if (rawPath === 'landing') {
+    window.history.replaceState(null, '', '/');
+    return 'landing';
+  }
 
   const defaultRoute: AppRoute = isAuthed ? 'app' : 'landing';
-  window.location.hash = `#/${defaultRoute}`;
+  const targetPath = routeToCleanPath(defaultRoute);
+  if (window.location.pathname !== targetPath || window.location.hash) {
+    window.history.replaceState(null, '', targetPath);
+  }
   return defaultRoute;
 }
 
 export function navigateWithGuard(target: AppRoute): AppRoute {
-  if (target === 'app' && !hasActiveSession()) {
-    window.location.hash = '#/auth';
-    return 'auth';
+  const resolved: AppRoute = target === 'app' && !hasActiveSession() ? 'auth' : target;
+  const targetPath = routeToCleanPath(resolved);
+  if (window.location.pathname !== targetPath || window.location.hash) {
+    window.history.pushState(null, '', targetPath);
   }
-  window.location.hash = `#/${target}`;
-  return target;
+  return resolved;
 }

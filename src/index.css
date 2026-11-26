@@ -152,6 +152,41 @@
   }
 }
 
+@keyframes yuu-logo-float {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-4px) scale(1.03); }
+}
+
+@keyframes yuu-logo-stroke {
+  0% { stroke-dasharray: 80; stroke-dashoffset: 80; }
+  55%, 100% { stroke-dasharray: 80; stroke-dashoffset: 0; }
+}
+
+@keyframes yuu-logo-dot {
+  0%, 35% { opacity: 0.35; transform: scale(0.8); transform-origin: 50px 75px; }
+  70%, 100% { opacity: 1; transform: scale(1); transform-origin: 50px 75px; }
+}
+
+.yuu-logo-float {
+  animation: yuu-logo-float 1.8s ease-in-out infinite;
+}
+
+.yuu-logo-stroke {
+  animation: yuu-logo-stroke 1.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+.yuu-logo-dot {
+  animation: yuu-logo-dot 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .yuu-logo-float,
+  .yuu-logo-stroke,
+  .yuu-logo-dot {
+    animation: none;
+  }
+}
+
 @keyframes yuu-hero-beam {
   0%, 100% {
     transform: translateX(-8%) rotate(-12deg);

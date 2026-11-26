@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, Suspense } from 'react';
 import {
   Board,
   Card,
@@ -24,11 +24,11 @@ import {
   resolveRouteWithAuthGuard,
   navigateWithGuard,
   setActiveSession,
+  extractShareTokenFromLocation,
   AppRoute
 } from './lib/auth';
 import { useAuthSession } from './hooks/useAuthSession';
 import { getNotificationsStorageKey, isGuestUser } from './lib/storageNamespace';
-import { GuestMigrationModal } from './components/GuestMigrationModal';
 import { createSyncManager, getStoredCloudConfig } from './lib/sync';
 import { getStoredDbConfig, saveStoredDbConfig } from './lib/dbBridge';
 import { Header } from './components/Header';
@@ -40,28 +40,32 @@ import { FilterSortBar } from './components/FilterSortBar';
 import { BoardFilterState, DEFAULT_BOARD_FILTER } from './types/filter';
 import { filterAndSortCards } from './lib/cardFilter';
 import { KanbanBoard } from './components/KanbanBoard';
-import { CalendarView } from './components/CalendarView';
-import { TimelineGanttView } from './components/TimelineGanttView';
-import { TableDatabaseView } from './components/TableDatabaseView';
-import { StandalonePageDoc } from './components/StandalonePageDoc';
-import { CardDetailModal } from './components/CardDetailModal';
-import { DatabaseBridgeModal } from './components/DatabaseBridgeModal';
-import { WorkspaceMembersModal } from './components/WorkspaceMembersModal';
-import { LandingPage } from './components/LandingPage';
-import { AuthPage } from './components/AuthPage';
 import { EmptyWorkspaceOnboarding } from './components/EmptyWorkspaceOnboarding';
 import { EmptyWorkspaceContent } from './components/EmptyWorkspaceContent';
-import { CommandPalette } from './components/CommandPalette';
-import { SettingsHubModal, SettingsTab } from './components/SettingsHubModal';
-import { BoardTemplateModal } from './components/BoardTemplateModal';
-import { ShareModal } from './components/ShareModal';
-import { EntitySettingsModal } from './components/EntitySettingsModal';
-import { MemberProfileModal, ProfileDetailTarget } from './components/MemberProfileModal';
+import type { SettingsTab } from './components/SettingsHubModal';
+import type { ProfileDetailTarget } from './components/MemberProfileModal';
 import { BoardTemplate } from './data/boardTemplates';
 import { ActivityService } from './services/activityService';
 import { apiClient } from './services/apiClient';
-import { ToastContainer, ConfirmDialog, toast } from './components/ui';
+import { ToastContainer, ConfirmDialog, LoadingScreen, WorkspaceSkeleton, toast } from './components/ui';
 import { Plus, Kanban, FileText, UserPlus } from '@phosphor-icons/react';
+
+const LandingPage = React.lazy(() => import('./components/LandingPage').then((m) => ({ default: m.LandingPage })));
+const AuthPage = React.lazy(() => import('./components/AuthPage').then((m) => ({ default: m.AuthPage })));
+const CalendarView = React.lazy(() => import('./components/CalendarView').then((m) => ({ default: m.CalendarView })));
+const TimelineGanttView = React.lazy(() => import('./components/TimelineGanttView').then((m) => ({ default: m.TimelineGanttView })));
+const TableDatabaseView = React.lazy(() => import('./components/TableDatabaseView').then((m) => ({ default: m.TableDatabaseView })));
+const StandalonePageDoc = React.lazy(() => import('./components/StandalonePageDoc').then((m) => ({ default: m.StandalonePageDoc })));
+const CardDetailModal = React.lazy(() => import('./components/CardDetailModal').then((m) => ({ default: m.CardDetailModal })));
+const DatabaseBridgeModal = React.lazy(() => import('./components/DatabaseBridgeModal').then((m) => ({ default: m.DatabaseBridgeModal })));
+const WorkspaceMembersModal = React.lazy(() => import('./components/WorkspaceMembersModal').then((m) => ({ default: m.WorkspaceMembersModal })));
+const CommandPalette = React.lazy(() => import('./components/CommandPalette').then((m) => ({ default: m.CommandPalette })));
+const SettingsHubModal = React.lazy(() => import('./components/SettingsHubModal').then((m) => ({ default: m.SettingsHubModal })));
+const BoardTemplateModal = React.lazy(() => import('./components/BoardTemplateModal').then((m) => ({ default: m.BoardTemplateModal })));
+const ShareModal = React.lazy(() => import('./components/ShareModal').then((m) => ({ default: m.ShareModal })));
+const EntitySettingsModal = React.lazy(() => import('./components/EntitySettingsModal').then((m) => ({ default: m.EntitySettingsModal })));
+const MemberProfileModal = React.lazy(() => import('./components/MemberProfileModal').then((m) => ({ default: m.MemberProfileModal })));
+const GuestMigrationModal = React.lazy(() => import('./components/GuestMigrationModal').then((m) => ({ default: m.GuestMigrationModal })));
 
 export const App: React.FC = () => {
   const [appRoute, setAppRoute] = useState<AppRoute>(() => resolveRouteWithAuthGuard());
@@ -77,19 +81,9 @@ export const App: React.FC = () => {
     open: false,
     type: 'board'
   });
-  const [shareTokenParam, setShareTokenParam] = useState<string | null>(() => {
-    const hash = window.location.hash;
-    return hash.startsWith('#share/') ? hash.slice('#share/'.length) : null;
-  });
-
-  useEffect(() => {
-    const onHash = () => {
-      const hash = window.location.hash;
-      setShareTokenParam(hash.startsWith('#share/') ? hash.slice('#share/'.length) : null);
-    };
-    window.addEventListener('hashchange', onHash);
-    return () => window.removeEventListener('hashchange', onHash);
-  }, []);
+  const [shareTokenParam, setShareTokenParam] = useState<string | null>(() =>
+    extractShareTokenFromLocation()
+  );
 
   const openSettingsTab = (tab: SettingsTab) => {
     setSettingsTab(tab);
@@ -102,11 +96,16 @@ export const App: React.FC = () => {
   };
 
   useEffect(() => {
-    const handleHashChange = () => {
+    const handleLocationChange = () => {
+      setShareTokenParam(extractShareTokenFromLocation());
       setAppRoute(resolveRouteWithAuthGuard());
     };
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    window.addEventListener('popstate', handleLocationChange);
+    window.addEventListener('hashchange', handleLocationChange);
+    return () => {
+      window.removeEventListener('popstate', handleLocationChange);
+      window.removeEventListener('hashchange', handleLocationChange);
+    };
   }, []);
   const {
     currentUser,
@@ -1227,8 +1226,8 @@ export const App: React.FC = () => {
             <button
               type="button"
               onClick={() => {
-                window.location.hash = '';
                 setShareTokenParam(null);
+                goToRoute(hasActiveSession() ? 'app' : 'landing');
               }}
               className="text-xs font-medium text-project-solid hover:underline cursor-pointer"
             >
@@ -1255,35 +1254,39 @@ export const App: React.FC = () => {
   if (appRoute === 'landing') {
     const authed = hasActiveSession();
     return (
-      <LandingPage
-        currentUser={authed ? currentUser : null}
-        onEnterApp={() => {
-          if (hasActiveSession()) {
-            goToRoute('app');
-          } else {
-            goToRoute('auth');
-          }
-        }}
-        onOpenAuth={() => goToRoute('auth')}
-        isDark={isDark}
-        onToggleTheme={toggleTheme}
-      />
+      <Suspense fallback={<LoadingScreen label="Memuat halaman utama..." />}>
+        <LandingPage
+          currentUser={authed ? currentUser : null}
+          onEnterApp={() => {
+            if (hasActiveSession()) {
+              goToRoute('app');
+            } else {
+              goToRoute('auth');
+            }
+          }}
+          onOpenAuth={() => goToRoute('auth')}
+          isDark={isDark}
+          onToggleTheme={toggleTheme}
+        />
+      </Suspense>
     );
   }
 
   if (appRoute === 'auth') {
     return (
-      <AuthPage
-        currentUser={currentUser}
-        onUserChange={(user) => {
-          void handleUserChange(user);
-        }}
-        onNavigateHome={() => goToRoute('landing')}
-        onEnterApp={() => {
-          setActiveSession(true);
-          goToRoute('app');
-        }}
-      />
+      <Suspense fallback={<LoadingScreen label="Menyiapkan halaman masuk..." />}>
+        <AuthPage
+          currentUser={currentUser}
+          onUserChange={(user) => {
+            void handleUserChange(user);
+          }}
+          onNavigateHome={() => goToRoute('landing')}
+          onEnterApp={() => {
+            setActiveSession(true);
+            goToRoute('app');
+          }}
+        />
+      </Suspense>
     );
   }
 
@@ -1295,13 +1298,15 @@ export const App: React.FC = () => {
           onCreateWorkspace={handleCreateWorkspace}
           onNavigateLanding={() => goToRoute('landing')}
         />
-        <GuestMigrationModal
-          isOpen={guestMigrationOpen}
-          guestWorkspaceCount={guestWorkspacesCount}
-          userName={currentUser.name}
-          onImportGuestWorkspaces={handleImportGuestWorkspaces}
-          onStartFresh={handleSkipGuestMigration}
-        />
+        <Suspense fallback={null}>
+          <GuestMigrationModal
+            isOpen={guestMigrationOpen}
+            guestWorkspaceCount={guestWorkspacesCount}
+            userName={currentUser.name}
+            onImportGuestWorkspaces={handleImportGuestWorkspaces}
+            onStartFresh={handleSkipGuestMigration}
+          />
+        </Suspense>
         <ToastContainer />
       </>
     );
@@ -1414,14 +1419,16 @@ export const App: React.FC = () => {
                 onCreatePage={() => handleAddPage()}
               />
             ) : activeTarget.type === 'page' && activePage ? (
-              <StandalonePageDoc
-                key={activePage.id}
-                page={activePage}
-                allPages={activeWorkspace?.pages || []}
-                currentUserRole={currentUserRole}
-                onUpdatePage={handleUpdatePage}
-                onSelectPage={(pageId) => setActiveTarget({ type: 'page', id: pageId })}
-              />
+              <Suspense fallback={<WorkspaceSkeleton />}>
+                <StandalonePageDoc
+                  key={activePage.id}
+                  page={activePage}
+                  allPages={activeWorkspace?.pages || []}
+                  currentUserRole={currentUserRole}
+                  onUpdatePage={handleUpdatePage}
+                  onSelectPage={(pageId) => setActiveTarget({ type: 'page', id: pageId })}
+                />
+              </Suspense>
             ) : (
               <>
                 <ProjectBanner
@@ -1467,32 +1474,38 @@ export const App: React.FC = () => {
                 )}
 
                 {activeView === 'calendar' && (
-                  <CalendarView
-                    board={filteredBoard}
-                    searchQuery={searchQuery}
-                    onCardClick={(card) => setSelectedCardId(card.id)}
-                    onAddCardOnDate={handleAddCardOnDate}
-                    onUpdateCard={handleUpdateCard}
-                  />
+                  <Suspense fallback={<WorkspaceSkeleton />}>
+                    <CalendarView
+                      board={filteredBoard}
+                      searchQuery={searchQuery}
+                      onCardClick={(card) => setSelectedCardId(card.id)}
+                      onAddCardOnDate={handleAddCardOnDate}
+                      onUpdateCard={handleUpdateCard}
+                    />
+                  </Suspense>
                 )}
 
                 {activeView === 'timeline' && (
-                  <TimelineGanttView
-                    board={filteredBoard}
-                    searchQuery={searchQuery}
-                    onCardClick={(card) => setSelectedCardId(card.id)}
-                    onUpdateCard={handleUpdateCard}
-                  />
+                  <Suspense fallback={<WorkspaceSkeleton />}>
+                    <TimelineGanttView
+                      board={filteredBoard}
+                      searchQuery={searchQuery}
+                      onCardClick={(card) => setSelectedCardId(card.id)}
+                      onUpdateCard={handleUpdateCard}
+                    />
+                  </Suspense>
                 )}
 
                 {activeView === 'table' && (
-                  <TableDatabaseView
-                    board={filteredBoard}
-                    searchQuery={searchQuery}
-                    onCardClick={(card) => setSelectedCardId(card.id)}
-                    onUpdateCard={handleUpdateCard}
-                    onAddCard={handleAddCard}
-                  />
+                  <Suspense fallback={<WorkspaceSkeleton />}>
+                    <TableDatabaseView
+                      board={filteredBoard}
+                      searchQuery={searchQuery}
+                      onCardClick={(card) => setSelectedCardId(card.id)}
+                      onUpdateCard={handleUpdateCard}
+                      onAddCard={handleAddCard}
+                    />
+                  </Suspense>
                 )}
               </>
             )}
@@ -1500,17 +1513,19 @@ export const App: React.FC = () => {
 
           {/* Panel 4: Side Peek Split Inspector */}
           {selectedCard && (
-            <CardDetailModal
-              card={selectedCard}
-              columns={activeBoard.columns}
-              allCards={Object.values(activeBoard.cards)}
-              members={activeWorkspace?.members || []}
-              onClose={() => setSelectedCardId(null)}
-              onUpdate={handleUpdateCard}
-              onDelete={handleDeleteCard}
-              onConvertChecklistToCard={handleConvertChecklistToCard}
-              onMentionUser={handleMentionUser}
-            />
+            <Suspense fallback={null}>
+              <CardDetailModal
+                card={selectedCard}
+                columns={activeBoard.columns}
+                allCards={Object.values(activeBoard.cards)}
+                members={activeWorkspace?.members || []}
+                onClose={() => setSelectedCardId(null)}
+                onUpdate={handleUpdateCard}
+                onDelete={handleDeleteCard}
+                onConvertChecklistToCard={handleConvertChecklistToCard}
+                onMentionUser={handleMentionUser}
+              />
+            </Suspense>
           )}
         </div>
 
@@ -1573,8 +1588,9 @@ export const App: React.FC = () => {
         </div>
       </div>
 
-      {isDbModalOpen && (
-        <DatabaseBridgeModal
+      <Suspense fallback={null}>
+        {isDbModalOpen && (
+          <DatabaseBridgeModal
           board={activeBoard}
           config={dbConfig}
           onSaveConfig={(next) => {
@@ -1736,6 +1752,7 @@ export const App: React.FC = () => {
         onImportGuestWorkspaces={handleImportGuestWorkspaces}
         onStartFresh={handleSkipGuestMigration}
       />
+      </Suspense>
 
       <ToastContainer />
     </div>
