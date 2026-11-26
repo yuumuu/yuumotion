@@ -5,29 +5,27 @@ import { TipTapEditor } from './TipTapEditor';
 import { CardChecklistSection } from './card/CardChecklistSection';
 import { CardAutomationSection } from './card/CardAutomationSection';
 import { CardActivitySection } from './card/CardActivitySection';
+import { CardAssigneesSection } from './card/CardAssigneesSection';
+import { CardAttachmentsSection } from './card/CardAttachmentsSection';
 import {
   CustomSelect,
   CustomDatePicker,
   Button,
   TagPicker,
-  AttachmentCard,
   Separator,
   Drawer,
   Dialog,
   ConfirmDialog
 } from './ui';
 import {
-  X,
   Trash,
   Tag,
   FileText,
-  Paperclip,
   Image,
   ArrowsOut,
   Square,
   SidebarSimple,
-  ArrowLeftIcon,
-  Users
+  ArrowLeftIcon
 } from '@phosphor-icons/react';
 import { usePreferences } from '../context/PreferencesContext';
 import { CardOpenMode } from '../types/preferences';
@@ -71,8 +69,6 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
   const [attachments, setAttachments] = useState<CardAttachment[]>(card.attachments || []);
   const [autoMoveDone, setAutoMoveDone] = useState<boolean>(card.autoMoveDone ?? true);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
-  const [assigneeQuery, setAssigneeQuery] = useState('');
-  const [showAssigneeMenu, setShowAssigneeMenu] = useState(false);
   const [activities, setActivities] = useState<CardActivity[]>(() => {
     if (card.activities && card.activities.length > 0) return card.activities;
     return [
@@ -85,7 +81,6 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
     ];
   });
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
   const formattedCode = `YUU-${card.id.replace(/\D/g, '').slice(-3) || '101'}`;
@@ -141,31 +136,6 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
     setPriority(p);
     syncChanges({ priority: p });
     addActivity(`Mengubah prioritas menjadi "${p}"`);
-  };
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-
-    Array.from(files).forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const newAttachment: CardAttachment = {
-          id: `att-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
-          name: file.name,
-          size: file.size,
-          mimeType: file.type,
-          url: reader.result as string,
-          createdAt: Date.now()
-        };
-        const nextAttachments = [...attachments, newAttachment];
-        setAttachments(nextAttachments);
-        addActivity(`Mengunggah lampiran "${file.name}"`, { attachments: nextAttachments });
-      };
-      reader.readAsDataURL(file);
-    });
-
-    e.target.value = '';
   };
 
   const handleCoverUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -334,108 +304,15 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
         />
       </div>
 
-      {/* Assignees Section (@mention / combobox) */}
       {members && members.length > 0 && (
-        <div className="relative">
-          <label className="text-xs font-semibold uppercase tracking-wider text-muted flex items-center gap-1.5 mb-2">
-            <Users className="h-3.5 w-3.5" />
-            Ditugaskan Ke
-          </label>
-
-          {(card.assignees || []).length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mb-2">
-              {(card.assignees || []).map((memberId) => {
-                const m = members.find((x) => x.id === memberId);
-                if (!m) return null;
-                return (
-                  <span
-                    key={m.id}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-project-ring bg-project-soft px-2.5 py-1 text-xs font-semibold text-project-solid"
-                  >
-                    <span
-                      className="flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold text-white shrink-0"
-                      style={{ backgroundColor: m.color || '#6366F1' }}
-                    >
-                      {m.avatar || m.name.slice(0, 2).toUpperCase()}
-                    </span>
-                    <span>{m.name}</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const next = (card.assignees || []).filter((id) => id !== m.id);
-                        syncChanges({ assignees: next });
-                        addActivity(`Melepas tugas dari ${m.name}`);
-                      }}
-                      className="ml-0.5 rounded-full hover:text-danger cursor-pointer"
-                      title={`Hapus ${m.name}`}
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </span>
-                );
-              })}
-            </div>
-          )}
-
-          <input
-            type="text"
-            value={assigneeQuery}
-            onFocus={() => setShowAssigneeMenu(true)}
-            onBlur={() => setTimeout(() => setShowAssigneeMenu(false), 150)}
-            onChange={(e) => {
-              setAssigneeQuery(e.target.value);
-              setShowAssigneeMenu(true);
-            }}
-            placeholder="Ketik @ atau cari nama anggota..."
-            className="w-full rounded-xl border border-border bg-surface px-3 py-1.5 text-xs text-text placeholder:text-muted focus:border-project-accent focus:outline-none"
-          />
-
-          {showAssigneeMenu && (
-            <div className="mt-1.5 max-h-40 overflow-y-auto rounded-xl border border-border bg-surface p-1 shadow-popover">
-              {members
-                .filter((m) => {
-                  const q = assigneeQuery.replace(/^@/, '').trim().toLowerCase();
-                  const already = (card.assignees || []).includes(m.id);
-                  return !already && (!q || m.name.toLowerCase().includes(q));
-                })
-                .map((m) => (
-                  <button
-                    key={m.id}
-                    type="button"
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      const next = [...(card.assignees || []), m.id];
-                      syncChanges({ assignees: next });
-                      addActivity(`Menugaskan ke ${m.name}`);
-                      setAssigneeQuery('');
-                      setShowAssigneeMenu(false);
-                    }}
-                    className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-text hover:bg-hover transition-colors cursor-pointer text-left"
-                  >
-                    <span
-                      className="flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold text-white shrink-0"
-                      style={{ backgroundColor: m.color || '#6366F1' }}
-                    >
-                      {m.avatar || m.name.slice(0, 2).toUpperCase()}
-                    </span>
-                    <span className="font-medium truncate">{m.name}</span>
-                    <span className="ml-auto text-[10px] text-muted uppercase">{m.role}</span>
-                  </button>
-                ))}
-              {members.filter((m) => {
-                const q = assigneeQuery.replace(/^@/, '').trim().toLowerCase();
-                return !(card.assignees || []).includes(m.id) && (!q || m.name.toLowerCase().includes(q));
-              }).length === 0 && (
-                <div className="px-2.5 py-2 text-[11px] text-muted text-center">
-                  Tidak ada anggota yang cocok.
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+        <CardAssigneesSection
+          card={card}
+          members={members}
+          syncChanges={syncChanges}
+          addActivity={addActivity}
+        />
       )}
 
-      {/* TipTap Rich Editor Description */}
       <div>
         <label className="text-xs font-semibold uppercase tracking-wider text-muted flex items-center gap-1.5 mb-2">
           <FileText className="h-3.5 w-3.5" />
@@ -464,56 +341,20 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
         onConvertChecklistToCard={onConvertChecklistToCard}
       />
 
-      {/* Lampiran Dokumen */}
-      <div>
-        <div className="flex justify-between items-center mb-2">
-          <label className="text-xs font-semibold uppercase tracking-wider text-muted flex items-center gap-1.5">
-            <Paperclip className="h-3.5 w-3.5" />
-            Lampiran Dokumen & Gambar
-          </label>
-          <div className="flex gap-2 items-center">
-            <Button
-              size="xs"
-              variant="secondary"
-              leftIcon={<Paperclip className="w-3 h-3" />}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              Unggah File / Gambar
-            </Button>
-            <input
-              ref={coverInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleCoverUpload}
-              className="hidden"
-            />
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              onChange={handleFileUpload}
-              className="hidden"
-            />
-          </div>
-        </div>
+      <input
+        ref={coverInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleCoverUpload}
+        className="hidden"
+      />
 
-        {attachments.length > 0 && (
-          <div className="grid grid-cols-1 gap-2 mt-2 sm:grid-cols-2">
-            {attachments.map((att) => (
-              <AttachmentCard
-                key={att.id}
-                attachment={att}
-                onRemove={() => {
-                  const next = attachments.filter((a) => a.id !== att.id);
-                  setAttachments(next);
-                  syncChanges({ attachments: next });
-                  addActivity(`Menghapus lampiran "${att.name}"`);
-                }}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+      <CardAttachmentsSection
+        attachments={attachments}
+        setAttachments={setAttachments}
+        syncChanges={syncChanges}
+        addActivity={addActivity}
+      />
 
       <div className="pt-2 space-y-4">
         <CardAutomationSection
