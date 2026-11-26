@@ -1340,6 +1340,22 @@ export const App: React.FC = () => {
         boards={activeWorkspace?.boards || []}
         pages={activeWorkspace?.pages || []}
         onAddBoard={handleAddBoard}
+        onRenameBoard={(boardId, newTitle) => {
+          if (!canEdit) return;
+          setWorkspaces((prev) =>
+            prev.map((ws) =>
+              ws.id === activeWorkspaceId
+                ? {
+                    ...ws,
+                    boards: ws.boards.map((b) =>
+                      b.id === boardId ? { ...b, title: newTitle, updatedAt: Date.now() } : b
+                    )
+                  }
+                : ws
+            )
+          );
+          toast.success('Nama papan diperbarui.');
+        }}
         onDeleteBoard={handleDeleteBoard}
         onOpenTemplates={() => setIsTemplateModalOpen(true)}
         onOpenWorkspaceSettings={() => setEntitySettings({ open: true, type: 'workspace' })}
@@ -1354,6 +1370,22 @@ export const App: React.FC = () => {
         }}
         onAddPage={() => handleAddPage()}
         onAddSubPage={(parentId) => handleAddPage(parentId)}
+        onRenamePage={(pageId, newTitle) => {
+          if (!canEdit) return;
+          setWorkspaces((prev) =>
+            prev.map((ws) =>
+              ws.id === activeWorkspaceId
+                ? {
+                    ...ws,
+                    pages: ws.pages.map((p) =>
+                      p.id === pageId ? { ...p, title: newTitle, updatedAt: Date.now() } : p
+                    )
+                  }
+                : ws
+            )
+          );
+          toast.success('Nama dokumen diperbarui.');
+        }}
         onDeletePage={handleDeletePage}
         currentUserRole={currentUserRole}
       />

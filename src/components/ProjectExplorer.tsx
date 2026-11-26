@@ -13,7 +13,8 @@ import {
   Globe,
   CaretRight,
   CaretDown,
-  MagnifyingGlass
+  MagnifyingGlass,
+  PencilSimple
 } from '@phosphor-icons/react';
 import { cn } from '../lib/cn';
 import { ConfirmDialog } from './ui';
@@ -28,6 +29,7 @@ interface ProjectExplorerProps {
   boards: Board[];
   pages: NotionPage[];
   onAddBoard: (title: string) => void;
+  onRenameBoard?: (boardId: string, newTitle: string) => void;
   onDeleteBoard?: (boardId: string) => void;
   onOpenTemplates?: () => void;
   onOpenWorkspaceSettings?: () => void;
@@ -36,6 +38,7 @@ interface ProjectExplorerProps {
   onShareBoard?: (boardId: string) => void;
   onAddPage: () => void;
   onAddSubPage?: (parentId: string) => void;
+  onRenamePage?: (pageId: string, newTitle: string) => void;
   onDeletePage: (pageId: string) => void;
   currentUserRole: UserRole;
 }
@@ -49,6 +52,7 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
   boards,
   pages,
   onAddBoard,
+  onRenameBoard,
   onDeleteBoard,
   onOpenTemplates,
   onOpenWorkspaceSettings,
@@ -57,6 +61,7 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
   onShareBoard,
   onAddPage,
   onAddSubPage,
+  onRenamePage,
   onDeletePage,
   currentUserRole
 }) => {
@@ -64,6 +69,7 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
   const [isAddBoardOpen, setIsAddBoardOpen] = useState(false);
   const [boardToDelete, setBoardToDelete] = useState<Board | null>(null);
   const [pageToDelete, setPageToDelete] = useState<NotionPage | null>(null);
+  const [renameTarget, setRenameTarget] = useState<{ type: 'board' | 'page'; id: string; currentTitle: string } | null>(null);
   const [collapsedPageIds, setCollapsedPageIds] = useState<Record<string, boolean>>({});
   const [explorerQuery, setExplorerQuery] = useState('');
   const [ctxMenu, setCtxMenu] = useState<{ open: boolean; x: number; y: number; items: ContextMenuItem[] }>({
@@ -213,6 +219,16 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
                     onClick={() => onSelectTarget({ type: 'board', id: b.id })}
                     onContextMenu={(e) =>
                       openContextMenu(e, [
+                        ...(canEdit && onRenameBoard
+                          ? [
+                            {
+                              id: 'board-rename',
+                              label: 'Ganti Nama Papan',
+                              icon: <PencilSimple className="h-3.5 w-3.5" />,
+                              onClick: () => setRenameTarget({ type: 'board', id: b.id, currentTitle: b.title })
+                            }
+                          ]
+                          : []),
                         ...(onShareBoard
                           ? [
                             {
@@ -328,6 +344,21 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
                           onClick={() => onSelectTarget({ type: 'page', id: p.id })}
                           onContextMenu={(e) =>
                             openContextMenu(e, [
+                              ...(canEdit && onRenamePage
+                                ? [
+                                  {
+                                    id: 'page-rename',
+                                    label: 'Ganti Nama Dokumen',
+                                    icon: <PencilSimple className="h-3.5 w-3.5" />,
+                                    onClick: () =>
+                                      setRenameTarget({
+                                        type: 'page',
+                                        id: p.id,
+                                        currentTitle: p.title || 'Untitled Document'
+                                      })
+                                  }
+                                ]
+                                : []),
                               ...(canEdit && onAddSubPage
                                 ? [
                                   {
@@ -456,6 +487,25 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
         confirmLabel="Hapus"
         onConfirm={() => {
           if (pageToDelete) onDeletePage(pageToDelete.id);
+        }}
+      />
+
+      <ConfirmDialog
+        isOpen={Boolean(renameTarget)}
+        onClose={() => setRenameTarget(null)}
+        title={renameTarget?.type === 'board' ? 'Ganti Nama Papan' : 'Ganti Nama Dokumen'}
+        mode="prompt"
+        initialValue={renameTarget?.currentTitle || ''}
+        placeholder="Masukkan nama baru..."
+        confirmLabel="Simpan"
+        onConfirm={(val) => {
+          const trimmed = val?.trim();
+          if (!trimmed || !renameTarget) return;
+          if (renameTarget.type === 'board') {
+            onRenameBoard?.(renameTarget.id, trimmed);
+          } else {
+            onRenamePage?.(renameTarget.id, trimmed);
+          }
         }}
       />
 
