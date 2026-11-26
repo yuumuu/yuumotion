@@ -12,6 +12,7 @@ import {
 import { AuthUser } from '../../types/board';
 import { cn } from '../../lib/cn';
 import { PublicFooter } from './PublicFooter';
+import { SeoHead } from '../layout/SeoHead';
 import { LandingPersonasSection } from './LandingPersonasSection';
 import { LandingDocsSection } from './LandingDocsSection';
 import { LandingViewsSection, PreviewViewMode, VIEW_STEPS } from './LandingViewsSection';
@@ -135,6 +136,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
   return (
     <div id="top" className="min-h-screen bg-[#FAF9F6] dark:bg-[#0B0D12] text-text flex flex-col font-sans selection:bg-blue-500/20 selection:text-blue-600">
+      <SeoHead />
       <header
         className={cn(
           'fixed top-0 inset-x-0 z-50 px-4 pt-4 sm:px-6 pointer-events-none transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',

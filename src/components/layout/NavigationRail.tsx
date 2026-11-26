@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Workspace, AuthUser, WorkspaceTemplateType } from '../../types/board';
 import { Moon, Sun, Gear, Plus, SidebarSimple, Trash } from '@phosphor-icons/react';
 import { usePreferences } from '../../context/PreferencesContext';

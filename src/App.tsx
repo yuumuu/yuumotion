@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo, Suspense } from 'react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import {
   Board,
   Card,
@@ -40,6 +40,7 @@ import type { SettingsTab } from './components/settings/SettingsHubModal';
 import type { ProfileDetailTarget } from './components/modals/MemberProfileModal';
 import { SharedBoardView } from './components/board/SharedBoardView';
 import { AppModals } from './components/layout/AppModals';
+import { SeoHead } from './components/layout/SeoHead';
 import { ToastContainer, LoadingScreen, WorkspaceSkeleton } from './components/ui';
 import { usePreferences } from './context/PreferencesContext';
 import { Plus, Kanban, FileText, UserPlus } from '@phosphor-icons/react';
@@ -353,6 +354,7 @@ export const App: React.FC = () => {
   if (appRoute === 'auth') {
     return (
       <Suspense fallback={<LoadingScreen label="Menyiapkan halaman masuk..." />}>
+        <SeoHead title="Masuk — Yuumotion" canonicalPath="/auth" noIndex />
         <AuthPage
           currentUser={currentUser}
           onUserChange={(user) => {
@@ -392,6 +394,11 @@ export const App: React.FC = () => {
 
   return (
     <div className="flex h-screen overflow-hidden bg-bg font-sans text-text">
+      <SeoHead
+        title={`${activeWorkspace?.name || 'Workspace'} — Yuumotion`}
+        canonicalPath="/app"
+        noIndex
+      />
       {/* Panel 1: Primary Navigation Rail */}
       <NavigationRail
         workspaces={workspaces}

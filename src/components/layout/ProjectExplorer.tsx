@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { NotionPage, Board, UserRole } from '../../types/board';
 import { canEditContent } from '../../lib/auth';
 import {

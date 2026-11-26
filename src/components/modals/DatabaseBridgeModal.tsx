@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Board, DatabaseBridgeConfig } from '../../types/board';
 import { generateBoardSqlDump, syncBoardToDatabase } from '../../lib/dbBridge';
 import { CustomSelect } from '../ui/CustomSelect';
