@@ -12,7 +12,8 @@ import {
   Sparkle,
   Globe,
   CaretRight,
-  CaretDown
+  CaretDown,
+  MagnifyingGlass
 } from '@phosphor-icons/react';
 import { cn } from '../lib/cn';
 import { ConfirmDialog } from './ui';
@@ -64,6 +65,7 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
   const [boardToDelete, setBoardToDelete] = useState<Board | null>(null);
   const [pageToDelete, setPageToDelete] = useState<NotionPage | null>(null);
   const [collapsedPageIds, setCollapsedPageIds] = useState<Record<string, boolean>>({});
+  const [explorerQuery, setExplorerQuery] = useState('');
   const [ctxMenu, setCtxMenu] = useState<{ open: boolean; x: number; y: number; items: ContextMenuItem[] }>({
     open: false,
     x: 0,
@@ -143,6 +145,16 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
 
       {/* Navigation Tree */}
       <div className="overflow-y-auto flex-1 px-2 py-3 space-y-4">
+        <div className="relative px-0.5">
+          <MagnifyingGlass className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-muted" />
+          <input
+            type="text"
+            value={explorerQuery}
+            onChange={(e) => setExplorerQuery(e.target.value)}
+            placeholder="Cari papan / dokumen..."
+            className="h-7 w-full rounded-lg border border-border bg-surface pl-7 pr-2 text-[11px] text-text placeholder:text-muted focus:border-project-accent focus:outline-none"
+          />
+        </div>
 
         {/* Section 1: Papan Kanban */}
         <div className="space-y-1">
@@ -181,7 +193,11 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
                 Belum ada papan.
               </div>
             ) : (
-              (boards || []).map((b) => {
+              (boards || [])
+                .filter((b) =>
+                  !explorerQuery.trim() || b.title.toLowerCase().includes(explorerQuery.trim().toLowerCase())
+                )
+                .map((b) => {
                 const isActive = activeTarget.type === 'board' && activeTarget.id === b.id;
                 const cardCount = Object.keys(b.cards || {}).length;
 
@@ -281,16 +297,21 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
               </div>
             ) : (
               (() => {
-                const pageIds = new Set(pages.map((p) => p.id));
+                const eq = explorerQuery.trim().toLowerCase();
+                const visiblePages = eq
+                  ? pages.filter((p) => (p.title || 'Untitled Document').toLowerCase().includes(eq))
+                  : pages;
+                const pageIds = new Set(visiblePages.map((p) => p.id));
                 const renderPageTree = (parentId: string | undefined, depth: number): React.ReactNode => {
-                  const children = pages.filter((p) =>
+                  const children = visiblePages.filter((p) =>
                     parentId === undefined ? !p.parentId || !pageIds.has(p.parentId) : p.parentId === parentId
                   );
                   if (children.length === 0) return null;
 
                   return children.map((p) => {
                     const isActive = activeTarget.type === 'page' && activeTarget.id === p.id;
-                    const hasChildren = pages.some((c) => c.parentId === p.id);
+                    const childCount = pages.filter((c) => c.parentId === p.id).length;
+                    const hasChildren = childCount > 0 && !eq;
                     const isCollapsed = Boolean(collapsedPageIds[p.id]);
                     const indentPx = Math.min(depth, 4) * 12 + 10;
 
@@ -351,9 +372,15 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
                             <span className="truncate">{p.title || 'Untitled Document'}</span>
                           </div>
 
-                          {canEdit && (
-                            <div className="flex items-center gap-0.5 shrink-0">
-                              {onAddSubPage && (
+                          <div className="flex items-center gap-0.5 shrink-0">
+                            {childCount > 0 && (
+                              <span className="rounded-full bg-hover px-1.5 py-0.2 font-mono text-[9px] font-semibold text-muted group-hover:hidden">
+                                {childCount}
+                              </span>
+                            )}
+                            {canEdit && (
+                              <>
+                                {onAddSubPage && (
                                 <button
                                   type="button"
                                   onClick={(e) => {
@@ -378,8 +405,9 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
                               >
                                 <Trash className="w-3 h-3" />
                               </button>
-                            </div>
+                            </>
                           )}
+                          </div>
                         </div>
                         {hasChildren && !isCollapsed && renderPageTree(p.id, depth + 1)}
                       </React.Fragment>

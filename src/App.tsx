@@ -590,16 +590,19 @@ export const App: React.FC = () => {
     toast.info('Workspace telah dihapus.');
   };
 
-  const handleAddPage = (parentId?: string) => {
+  const handleAddPage = (
+    parentId?: string,
+    initial?: { title: string; contentHtml: string; icon?: string }
+  ) => {
     if (!canEdit) return;
 
     const newPage: NotionPage = {
       id: `page-${Date.now()}`,
       workspaceId: activeWorkspaceId,
       parentId,
-      title: parentId ? 'Sub-halaman Baru' : 'Untitled Document',
-      icon: '📄',
-      contentHtml: '<p></p>',
+      title: initial?.title || (parentId ? 'Sub-halaman Baru' : 'Untitled Document'),
+      icon: initial?.icon || '📄',
+      contentHtml: initial?.contentHtml || '<p></p>',
       createdAt: Date.now(),
       updatedAt: Date.now()
     };
@@ -1428,6 +1431,7 @@ export const App: React.FC = () => {
                   onSelectPage={(pageId) => setActiveTarget({ type: 'page', id: pageId })}
                   onAddBoard={() => handleAddBoard('Papan Baru')}
                   onAddPage={() => handleAddPage()}
+                  onAddPageFromTemplate={(tpl) => handleAddPage(undefined, tpl)}
                   onOpenMembers={() => setIsMembersModalOpen(true)}
                   onOpenSettings={() => setEntitySettings({ open: true, type: 'workspace' })}
                 />
