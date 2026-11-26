@@ -1,13 +1,14 @@
 import React, { useState, useRef } from 'react';
-import { Card, Column, PriorityLevel, CardTag, CardAttachment, CardActivity, WorkspaceMember, ChecklistGroup, ChecklistItem } from '../types/board';
+import { Card, Column, PriorityLevel, CardTag, CardAttachment, CardActivity, WorkspaceMember, ChecklistItem } from '../types/board';
 import { INITIAL_TAGS } from '../lib/constants';
 import { TipTapEditor } from './TipTapEditor';
-import { MentionPopover } from './MentionPopover';
+import { CardChecklistSection } from './card/CardChecklistSection';
+import { CardAutomationSection } from './card/CardAutomationSection';
+import { CardActivitySection } from './card/CardActivitySection';
 import {
   CustomSelect,
   CustomDatePicker,
   Button,
-  Switch,
   TagPicker,
   AttachmentCard,
   Separator,
@@ -19,24 +20,14 @@ import {
   X,
   Trash,
   Tag,
-  CheckSquare,
   FileText,
-  Plus,
   Paperclip,
   Image,
-  ClockCounterClockwise,
   ArrowsOut,
   Square,
   SidebarSimple,
   ArrowLeftIcon,
-  Users,
-  Lock,
-  ArrowsClockwise,
-  CaretDown,
-  ArrowSquareOut,
-  PencilSimple,
-  CalendarBlank,
-  User
+  Users
 } from '@phosphor-icons/react';
 import { usePreferences } from '../context/PreferencesContext';
 import { CardOpenMode } from '../types/preferences';
@@ -77,18 +68,11 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
   const [coverImage, setCoverImage] = useState(card.coverImage || '');
   const [tags, setTags] = useState<CardTag[]>(card.tags);
   const [allAvailableTags, setAllAvailableTags] = useState<CardTag[]>(INITIAL_TAGS);
-  const [newChecklistTexts, setNewChecklistTexts] = useState<Record<string, string>>({});
-  const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
-  const [editingGroupTitle, setEditingGroupTitle] = useState('');
   const [attachments, setAttachments] = useState<CardAttachment[]>(card.attachments || []);
   const [autoMoveDone, setAutoMoveDone] = useState<boolean>(card.autoMoveDone ?? true);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
-  const [isActivityOpen, setIsActivityOpen] = useState(false);
   const [assigneeQuery, setAssigneeQuery] = useState('');
   const [showAssigneeMenu, setShowAssigneeMenu] = useState(false);
-  const [commentText, setCommentText] = useState('');
-  const [mentionQuery, setMentionQuery] = useState('');
-  const [showMentionPopover, setShowMentionPopover] = useState(false);
   const [activities, setActivities] = useState<CardActivity[]>(() => {
     if (card.activities && card.activities.length > 0) return card.activities;
     return [
@@ -157,110 +141,6 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
     setPriority(p);
     syncChanges({ priority: p });
     addActivity(`Mengubah prioritas menjadi "${p}"`);
-  };
-
-  const effectiveGroups: ChecklistGroup[] =
-    card.checklistGroups && card.checklistGroups.length > 0
-      ? [...card.checklistGroups].sort((a, b) => a.order - b.order)
-      : [{ id: 'default', title: 'Checklist Tugas', order: 0 }];
-
-  const handleAddChecklistGroup = () => {
-    const baseGroups =
-      card.checklistGroups && card.checklistGroups.length > 0
-        ? card.checklistGroups
-        : [{ id: 'default', title: 'Checklist Tugas', order: 0 }];
-    const newGroup: ChecklistGroup = {
-      id: `grp-${Date.now()}`,
-      title: `Checklist ${baseGroups.length + 1}`,
-      order: baseGroups.length
-    };
-    const normalizedChecklist =
-      card.checklistGroups && card.checklistGroups.length > 0
-        ? card.checklist
-        : card.checklist.map((item) => ({ ...item, groupId: item.groupId || 'default' }));
-    syncChanges({
-      checklistGroups: [...baseGroups, newGroup],
-      checklist: normalizedChecklist
-    });
-    addActivity(`Menambahkan grup checklist "${newGroup.title}"`);
-  };
-
-  const handleRenameChecklistGroup = (groupId: string) => {
-    const trimmed = editingGroupTitle.trim();
-    setEditingGroupId(null);
-    if (!trimmed) return;
-    const baseGroups =
-      card.checklistGroups && card.checklistGroups.length > 0
-        ? card.checklistGroups
-        : [{ id: 'default', title: 'Checklist Tugas', order: 0 }];
-    const nextGroups = baseGroups.map((g) => (g.id === groupId ? { ...g, title: trimmed } : g));
-    syncChanges({ checklistGroups: nextGroups });
-  };
-
-  const handleDeleteChecklistGroup = (groupId: string) => {
-    const baseGroups = card.checklistGroups || [];
-    if (baseGroups.length <= 1) return;
-    const nextGroups = baseGroups.filter((g) => g.id !== groupId);
-    const nextChecklist = card.checklist.filter((item) => item.groupId !== groupId);
-    syncChanges({ checklistGroups: nextGroups, checklist: nextChecklist });
-  };
-
-  const handleAddChecklistItem = (e: React.FormEvent, groupId: string) => {
-    e.preventDefault();
-    const text = (newChecklistTexts[groupId] || '').trim();
-    if (!text) return;
-
-    const newItem: ChecklistItem = {
-      id: `chk-${Date.now()}`,
-      text,
-      completed: false,
-      groupId: card.checklistGroups && card.checklistGroups.length > 0 ? groupId : undefined
-    };
-
-    const nextChecklist = [...card.checklist, newItem];
-    syncChanges({ checklist: nextChecklist });
-    setNewChecklistTexts((prev) => ({ ...prev, [groupId]: '' }));
-    addActivity(`Menambahkan checklist "${newItem.text}"`);
-  };
-
-  const handleUpdateChecklistItemMeta = (
-    id: string,
-    patch: Partial<Pick<ChecklistItem, 'assigneeId' | 'dueDate'>>
-  ) => {
-    const nextChecklist = card.checklist.map((item) =>
-      item.id === id ? { ...item, ...patch } : item
-    );
-    syncChanges({ checklist: nextChecklist });
-  };
-
-  const handleToggleChecklist = (id: string) => {
-    const nextChecklist = card.checklist.map((item) =>
-      item.id === id ? { ...item, completed: !item.completed } : item
-    );
-
-    const isAllCompleted =
-      nextChecklist.length > 0 && nextChecklist.every((item) => item.completed);
-
-    let nextColumnId = columnId;
-    if (isAllCompleted && autoMoveDone) {
-      const doneCol = columns.find(
-        (c) =>
-          c.title.toLowerCase().includes('done') ||
-          c.title.toLowerCase().includes('selesai')
-      );
-      if (doneCol && doneCol.id !== columnId) {
-        nextColumnId = doneCol.id;
-        setColumnId(doneCol.id);
-        addActivity('Semua checklist selesai: kartu otomatis dipindahkan ke Done');
-      }
-    }
-
-    syncChanges({ checklist: nextChecklist, columnId: nextColumnId });
-  };
-
-  const handleDeleteChecklistItem = (id: string) => {
-    const nextChecklist = card.checklist.filter((item) => item.id !== id);
-    syncChanges({ checklist: nextChecklist });
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -572,205 +452,17 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
         </div>
       </div>
 
-      {/* Multi-Checklist Task Section */}
-      <div>
-        <div className="flex justify-between items-center mb-2.5">
-          <label className="text-xs font-semibold uppercase tracking-wider text-muted flex items-center gap-1.5">
-            <CheckSquare className="h-3.5 w-3.5" />
-            Checklist Tugas
-          </label>
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-xs text-muted">
-              {card.checklist.filter((i) => i.completed).length}/{card.checklist.length} Selesai
-            </span>
-            <Button
-              size="xs"
-              variant="secondary"
-              type="button"
-              leftIcon={<Plus className="h-3 w-3" />}
-              onClick={handleAddChecklistGroup}
-            >
-              Tambah Grup
-            </Button>
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          {effectiveGroups.map((group, groupIdx) => {
-            const groupItems = card.checklist.filter((item) => {
-              if (!item.groupId) return groupIdx === 0;
-              const matchesAny = effectiveGroups.some((g) => g.id === item.groupId);
-              return matchesAny ? item.groupId === group.id : groupIdx === 0;
-            });
-            const doneCount = groupItems.filter((i) => i.completed).length;
-            const pct = groupItems.length > 0 ? Math.round((doneCount / groupItems.length) * 100) : 0;
-
-            return (
-              <div key={group.id} className="rounded-xl border border-border bg-surface-alt/40 p-2.5">
-                <div className="flex items-center justify-between gap-2 mb-1.5">
-                  {editingGroupId === group.id ? (
-                    <input
-                      type="text"
-                      autoFocus
-                      value={editingGroupTitle}
-                      onChange={(e) => setEditingGroupTitle(e.target.value)}
-                      onBlur={() => handleRenameChecklistGroup(group.id)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') handleRenameChecklistGroup(group.id);
-                        if (e.key === 'Escape') setEditingGroupId(null);
-                      }}
-                      className="flex-1 rounded border border-project-accent bg-surface px-2 py-0.5 text-xs font-semibold text-text focus:outline-none"
-                    />
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEditingGroupId(group.id);
-                        setEditingGroupTitle(group.title);
-                      }}
-                      className="flex items-center gap-1.5 text-xs font-semibold text-text hover:text-project-solid cursor-pointer"
-                    >
-                      <span>{group.title}</span>
-                      <PencilSimple className="h-3 w-3 text-muted" />
-                    </button>
-                  )}
-
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-[10px] text-muted">
-                      {doneCount}/{groupItems.length}
-                    </span>
-                    {effectiveGroups.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteChecklistGroup(group.id)}
-                        title="Hapus grup"
-                        className="p-0.5 rounded text-muted hover:text-danger cursor-pointer"
-                      >
-                        <Trash className="h-3 w-3" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {groupItems.length > 0 && (
-                  <div className="mb-2 h-1 w-full overflow-hidden rounded-full bg-border/60">
-                    <div
-                      className={cn(
-                        'h-full rounded-full transition-[width] duration-200',
-                        pct === 100 ? 'bg-status-done' : 'bg-project-solid'
-                      )}
-                      style={{ width: `${pct}%` }}
-                    />
-                  </div>
-                )}
-
-                <div className="space-y-1.5 mb-2">
-                  {groupItems.map((item) => {
-                    const assignedMember = members?.find((m) => m.id === item.assigneeId);
-                    return (
-                      <div
-                        key={item.id}
-                        className="flex flex-wrap gap-1.5 justify-between items-center p-2 text-xs rounded-lg border border-border bg-surface"
-                      >
-                        <label className="flex flex-1 gap-2 items-center min-w-[140px] cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={item.completed}
-                            onChange={() => handleToggleChecklist(item.id)}
-                            className="rounded border-border text-project-solid focus:ring-project-accent cursor-pointer"
-                          />
-                          <span className={cn('truncate', item.completed && 'line-through text-muted')}>
-                            {item.text}
-                          </span>
-                        </label>
-
-                        <div className="flex items-center gap-1">
-                          {members && members.length > 0 && (
-                            <label
-                              title={assignedMember ? `Ditugaskan: ${assignedMember.name}` : 'Pilih penanggung jawab'}
-                              className="inline-flex items-center gap-1 rounded border border-border/70 bg-surface-alt px-1.5 py-0.5 text-[10px] text-muted hover:text-text cursor-pointer"
-                            >
-                              <User className="h-2.5 w-2.5 shrink-0" />
-                              <select
-                                value={item.assigneeId || ''}
-                                onChange={(e) =>
-                                  handleUpdateChecklistItemMeta(item.id, {
-                                    assigneeId: e.target.value || undefined
-                                  })
-                                }
-                                className="max-w-[72px] bg-transparent text-[10px] text-text focus:outline-none cursor-pointer"
-                              >
-                                <option value="">-</option>
-                                {members.map((m) => (
-                                  <option key={m.id} value={m.id}>
-                                    {m.name}
-                                  </option>
-                                ))}
-                              </select>
-                            </label>
-                          )}
-
-                          <label
-                            title="Tenggat sub-tugas"
-                            className="inline-flex items-center gap-1 rounded border border-border/70 bg-surface-alt px-1.5 py-0.5 text-[10px] text-muted hover:text-text cursor-pointer"
-                          >
-                            <CalendarBlank className="h-2.5 w-2.5 shrink-0" />
-                            <input
-                              type="date"
-                              value={item.dueDate || ''}
-                              onChange={(e) =>
-                                handleUpdateChecklistItemMeta(item.id, {
-                                  dueDate: e.target.value || undefined
-                                })
-                              }
-                              className="w-[92px] bg-transparent text-[10px] text-text focus:outline-none cursor-pointer"
-                            />
-                          </label>
-
-                          {onConvertChecklistToCard && (
-                            <button
-                              type="button"
-                              onClick={() => onConvertChecklistToCard(card.id, item)}
-                              title="Jadikan Kartu"
-                              className="inline-flex items-center gap-0.5 rounded border border-border/70 bg-surface-alt px-1.5 py-0.5 text-[10px] font-medium text-muted hover:text-project-solid hover:border-project-accent/40 cursor-pointer"
-                            >
-                              <ArrowSquareOut className="h-2.5 w-2.5" />
-                              <span className="hidden sm:inline">Kartu</span>
-                            </button>
-                          )}
-
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteChecklistItem(item.id)}
-                            className="p-1 rounded text-muted hover:text-danger cursor-pointer"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <form onSubmit={(e) => handleAddChecklistItem(e, group.id)} className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="Tambah item checklist..."
-                    value={newChecklistTexts[group.id] || ''}
-                    onChange={(e) =>
-                      setNewChecklistTexts((prev) => ({ ...prev, [group.id]: e.target.value }))
-                    }
-                    className="flex-1 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs text-text placeholder:text-muted focus:border-project-accent focus:outline-none"
-                  />
-                  <Button size="sm" variant="secondary" type="submit" leftIcon={<Plus className="h-3.5 w-3.5" />}>
-                    Tambah
-                  </Button>
-                </form>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      <CardChecklistSection
+        card={card}
+        columns={columns}
+        columnId={columnId}
+        setColumnId={setColumnId}
+        autoMoveDone={autoMoveDone}
+        members={members}
+        syncChanges={syncChanges}
+        addActivity={addActivity}
+        onConvertChecklistToCard={onConvertChecklistToCard}
+      />
 
       {/* Lampiran Dokumen */}
       <div>
@@ -823,240 +515,23 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
         )}
       </div>
 
-      {/* Automasi, Dependensi & Pengulangan */}
       <div className="pt-2 space-y-4">
-        {/* Card Dependencies (Blocking) */}
-        <div className="p-3.5 rounded-xl border border-border bg-bar space-y-2.5">
-          <div className="flex items-center justify-between">
-            <span className="flex items-center gap-1.5 text-xs font-semibold text-text">
-              <Lock className="h-3.5 w-3.5 text-rose-500" />
-              Dependensi (Diblokir Oleh)
-            </span>
-            <span className="text-[11px] font-mono text-muted">
-              {(card.blockedBy || []).length} pemblokir
-            </span>
-          </div>
+        <CardAutomationSection
+          card={card}
+          allCards={allCards}
+          autoMoveDone={autoMoveDone}
+          setAutoMoveDone={setAutoMoveDone}
+          syncChanges={syncChanges}
+          addActivity={addActivity}
+        />
 
-          {(card.blockedBy || []).length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {(card.blockedBy || []).map((blockerId) => {
-                const blocker = allCards.find((c) => c.id === blockerId);
-                if (!blocker) return null;
-                return (
-                  <span
-                    key={blockerId}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-rose-500/30 bg-rose-500/10 px-2 py-1 text-[11px] font-medium text-rose-600 dark:text-rose-400"
-                  >
-                    <span className="truncate max-w-[180px]">{blocker.title}</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const next = (card.blockedBy || []).filter((id) => id !== blockerId);
-                        syncChanges({ blockedBy: next });
-                        addActivity(`Menghapus pemblokir "${blocker.title}"`);
-                      }}
-                      className="hover:text-text cursor-pointer"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </span>
-                );
-              })}
-            </div>
-          )}
-
-          {allCards.filter((c) => c.id !== card.id && !(card.blockedBy || []).includes(c.id)).length > 0 && (
-            <CustomSelect
-              value=""
-              placeholder="Tambah kartu pemblokir..."
-              onChange={(blockerId) => {
-                if (!blockerId) return;
-                const next = [...(card.blockedBy || []), blockerId];
-                syncChanges({ blockedBy: next });
-                const blocker = allCards.find((c) => c.id === blockerId);
-                if (blocker) addActivity(`Menandai diblokir oleh "${blocker.title}"`);
-              }}
-              options={allCards
-                .filter((c) => c.id !== card.id && !(card.blockedBy || []).includes(c.id))
-                .map((c) => ({ value: c.id, label: c.title }))}
-            />
-          )}
-        </div>
-
-        {/* Recurring Tasks */}
-        <div className="p-3.5 rounded-xl border border-border bg-bar space-y-2.5">
-          <div className="flex items-center justify-between">
-            <div>
-              <span className="flex items-center gap-1.5 text-xs font-semibold text-text">
-                <ArrowsClockwise className="h-3.5 w-3.5 text-sky-500" />
-                Tugas Berulang (Recurring)
-              </span>
-              <span className="text-[11px] text-muted block">
-                Otomatis buat kartu baru di kolom pertama saat dipindah ke Done
-              </span>
-            </div>
-            <Switch
-              checked={Boolean(card.recurrence)}
-              onChange={(e) => {
-                if (e.target.checked) {
-                  syncChanges({ recurrence: { frequency: 'weekly', interval: 1 } });
-                  addActivity('Mengaktifkan pengulangan mingguan');
-                } else {
-                  syncChanges({ recurrence: undefined });
-                  addActivity('Menonaktifkan pengulangan kartu');
-                }
-              }}
-            />
-          </div>
-
-          {card.recurrence && (
-            <div className="grid grid-cols-2 gap-2.5 pt-1">
-              <CustomSelect
-                value={card.recurrence.frequency}
-                onChange={(freq) => {
-                  syncChanges({
-                    recurrence: {
-                      ...card.recurrence!,
-                      frequency: freq as 'daily' | 'weekly' | 'monthly'
-                    }
-                  });
-                }}
-                options={[
-                  { value: 'daily', label: 'Harian' },
-                  { value: 'weekly', label: 'Mingguan' },
-                  { value: 'monthly', label: 'Bulanan' }
-                ]}
-              />
-              <div className="flex items-center gap-2 rounded-lg border border-border bg-surface px-2.5 py-1">
-                <span className="text-[11px] text-muted shrink-0">Tiap</span>
-                <input
-                  type="number"
-                  min={1}
-                  max={30}
-                  value={card.recurrence.interval}
-                  onChange={(e) => {
-                    const val = Math.max(1, Number(e.target.value) || 1);
-                    syncChanges({
-                      recurrence: { ...card.recurrence!, interval: val }
-                    });
-                  }}
-                  className="w-full bg-transparent text-xs font-mono text-text focus:outline-none"
-                />
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="flex justify-between items-center p-3 rounded-xl border border-border bg-bar">
-          <div>
-            <span className="block text-xs font-semibold text-text">Automasi Selesai (Auto-Move)</span>
-            <span className="text-[11px] text-muted block">
-              Pindahkan otomatis ke kolom Done saat seluruh checklist tercentang
-            </span>
-          </div>
-          <Switch
-            checked={autoMoveDone}
-            onChange={(e) => {
-              setAutoMoveDone(e.target.checked);
-              syncChanges({ autoMoveDone: e.target.checked });
-            }}
-          />
-        </div>
-
-        {/* Collapsible Activity Log */}
-        <div className="rounded-xl border border-border bg-bar/60 overflow-hidden">
-          <button
-            type="button"
-            onClick={() => setIsActivityOpen((prev) => !prev)}
-            className="flex w-full items-center justify-between px-3.5 py-2.5 text-xs font-semibold text-muted hover:text-text transition-colors cursor-pointer"
-          >
-            <span className="flex items-center gap-1.5">
-              <ClockCounterClockwise className="h-3.5 w-3.5" />
-              <span>Riwayat Aktivitas Kartu</span>
-              <span className="font-mono text-[10px] rounded-md bg-hover px-1.5 py-0.5">
-                {activities.length}
-              </span>
-            </span>
-            <CaretDown
-              className={cn(
-                'h-3.5 w-3.5 transition-transform duration-150',
-                isActivityOpen && 'rotate-180'
-              )}
-            />
-          </button>
-
-          {isActivityOpen && (
-            <div className="space-y-2 px-3 pb-3 pt-2 border-t border-border/60">
-              <div className="relative">
-                <MentionPopover
-                  isOpen={showMentionPopover}
-                  query={mentionQuery}
-                  members={members || []}
-                  onSelect={(member) => {
-                    const replaced = commentText.replace(/@([^\s@]*)$/, `@${member.name} `);
-                    setCommentText(replaced);
-                    setShowMentionPopover(false);
-                  }}
-                />
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    const trimmed = commentText.trim();
-                    if (!trimmed) return;
-                    addActivity(trimmed);
-                    if (onMentionUser && members) {
-                      members.forEach((m) => {
-                        if (trimmed.toLowerCase().includes(`@${m.name.toLowerCase()}`)) {
-                          onMentionUser(m, card, trimmed);
-                        }
-                      });
-                    }
-                    setCommentText('');
-                    setShowMentionPopover(false);
-                  }}
-                  className="flex gap-1.5"
-                >
-                  <input
-                    type="text"
-                    value={commentText}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setCommentText(val);
-                      const match = val.match(/@([^\s@]*)$/);
-                      if (match) {
-                        setMentionQuery(match[1]);
-                        setShowMentionPopover(true);
-                      } else {
-                        setShowMentionPopover(false);
-                      }
-                    }}
-                    placeholder="Tulis komentar atau ketik @nama untuk menyebut..."
-                    className="flex-1 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs text-text placeholder:text-muted focus:border-project-accent focus:outline-none"
-                  />
-                  <Button size="xs" variant="secondary" type="submit">
-                    Kirim
-                  </Button>
-                </form>
-              </div>
-              <div className="space-y-1.5 max-h-40 overflow-y-auto">
-                {activities.map((act) => (
-                  <div
-                    key={act.id}
-                    className="flex items-start justify-between gap-2 rounded-lg border border-border/70 bg-surface p-2 text-[11px]"
-                  >
-                    <div className="flex items-start gap-1.5">
-                      <span className="font-semibold text-project-accent">{act.userName}:</span>
-                      <span className="text-text">{act.action}</span>
-                    </div>
-                    <span className="text-[10px] text-muted whitespace-nowrap font-mono">
-                      {new Date(act.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+        <CardActivitySection
+          card={card}
+          activities={activities}
+          members={members}
+          addActivity={addActivity}
+          onMentionUser={onMentionUser}
+        />
       </div>
 
       <ConfirmDialog
