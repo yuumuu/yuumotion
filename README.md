@@ -10,7 +10,7 @@ Workspace kolaboratif hibrida (**Kanban + Dokumen TipTap + Multi-View Sync**) ya
 ## Preview Aplikasi
 
 ### Halaman Utama & Workspace Kanban
-| Landing Page 3D | Workspace Kanban & Filter |
+| Landing Page | Workspace Kanban & Filter |
 | :---: | :---: |
 | ![Preview Landing Page Yuumotion](docs/assets/preview-landing.png) | ![Preview Workspace Kanban Yuumotion](docs/assets/preview-workspace.png) |
 
