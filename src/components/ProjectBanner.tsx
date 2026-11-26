@@ -21,6 +21,7 @@ interface ProjectBannerProps {
   onQuickCreateTask?: () => void;
   onOpenMembersModal: () => void;
   onOpenBoardSettings?: () => void;
+  onSelectWorkspaceOverview?: () => void;
   canEdit: boolean;
 }
 
@@ -34,6 +35,7 @@ export const ProjectBanner: React.FC<ProjectBannerProps> = ({
   onQuickCreateTask,
   onOpenMembersModal,
   onOpenBoardSettings,
+  onSelectWorkspaceOverview,
   canEdit
 }) => {
   const totalTasks = Object.keys(board?.cards || {}).length;
@@ -47,9 +49,9 @@ export const ProjectBanner: React.FC<ProjectBannerProps> = ({
   ];
 
   return (
-    <div className="px-4 pt-4 pb-2 select-none sm:px-6 bg-bg shrink-0">
+    <div className="px-4 pt-[var(--space-card-gap)] pb-1.5 select-none sm:px-6 bg-bg shrink-0">
       {/* Banner Utama (Gaya Quickit) */}
-      <div className="overflow-hidden relative px-5 py-4 text-white bg-gradient-to-l via-blue-600 rounded-2xl from-project-solid to-project-accent sm:px-6 sm:py-5 shadow-card-sm">
+      <div className="overflow-hidden relative px-5 py-[var(--space-banner-py)] text-white bg-gradient-to-l via-blue-600 rounded-2xl from-project-solid to-project-accent sm:px-6 shadow-card-sm">
         <div
           aria-hidden="true"
           className="absolute -top-12 -right-12 w-44 h-44 rounded-full blur-2xl pointer-events-none bg-white/15"
@@ -57,7 +59,14 @@ export const ProjectBanner: React.FC<ProjectBannerProps> = ({
         <div className="flex relative flex-col gap-3 justify-between sm:flex-row sm:items-center">
           <div className="space-y-1 min-w-0">
             <div className="flex items-center gap-1.5 font-mono text-[11px] text-white/80">
-              <span>{workspaceName}</span>
+              <button
+                type="button"
+                onClick={onSelectWorkspaceOverview}
+                className="hover:text-white hover:underline cursor-pointer"
+                title="Buka Detail Workspace"
+              >
+                {workspaceName}
+              </button>
               <span>/</span>
               <span className="uppercase">{currentUserRole}</span>
             </div>

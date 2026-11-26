@@ -132,7 +132,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
         <div className="grid flex-1 grid-cols-7 gap-px overflow-y-auto">
         {Array.from({ length: firstDayOfMonth }).map((_, i) => (
-          <div key={`pad-${i}`} className="min-h-24 bg-surface/30 p-2 opacity-40" />
+          <div key={`pad-${i}`} className="min-h-[var(--space-cell-h)] bg-surface/30 p-[calc(var(--space-card-p)*0.55)] opacity-40" />
         ))}
 
         {Array.from({ length: daysInMonth }).map((_, i) => {
@@ -163,7 +163,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 handleDropOnDate(dateStr);
               }}
               className={cn(
-                'min-h-24 p-2 transition-colors cursor-pointer',
+                'min-h-[var(--space-cell-h)] p-[calc(var(--space-card-p)*0.55)] transition-colors cursor-pointer',
                 isToday
                   ? 'bg-blue-50/90 dark:bg-blue-950/45 ring-2 ring-inset ring-project-solid/70'
                   : 'bg-surface hover:bg-hover',

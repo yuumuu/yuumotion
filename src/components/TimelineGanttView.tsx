@@ -281,7 +281,7 @@ export const TimelineGanttView: React.FC<TimelineGanttViewProps> = ({
                     return (
                       <div
                         key={card.id}
-                        className="flex h-10 items-center transition-colors hover:bg-hover/60"
+                        className="flex h-[var(--space-row-h)] items-center transition-colors hover:bg-hover/60"
                       >
                         <div className="w-72 flex-shrink-0 truncate border-r border-border/50 px-4 text-xs font-medium text-text">
                           <button

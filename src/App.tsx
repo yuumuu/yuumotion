@@ -57,6 +57,7 @@ const CalendarView = React.lazy(() => import('./components/CalendarView').then((
 const TimelineGanttView = React.lazy(() => import('./components/TimelineGanttView').then((m) => ({ default: m.TimelineGanttView })));
 const TableDatabaseView = React.lazy(() => import('./components/TableDatabaseView').then((m) => ({ default: m.TableDatabaseView })));
 const StandalonePageDoc = React.lazy(() => import('./components/StandalonePageDoc').then((m) => ({ default: m.StandalonePageDoc })));
+const WorkspaceOverview = React.lazy(() => import('./components/WorkspaceOverview').then((m) => ({ default: m.WorkspaceOverview })));
 const CardDetailModal = React.lazy(() => import('./components/CardDetailModal').then((m) => ({ default: m.CardDetailModal })));
 const DatabaseBridgeModal = React.lazy(() => import('./components/DatabaseBridgeModal').then((m) => ({ default: m.DatabaseBridgeModal })));
 const WorkspaceMembersModal = React.lazy(() => import('./components/WorkspaceMembersModal').then((m) => ({ default: m.WorkspaceMembersModal })));
@@ -146,7 +147,7 @@ export const App: React.FC = () => {
 
   const canEdit = canEditContent(currentUserRole);
 
-  const [activeTarget, setActiveTarget] = useState<{ type: 'board' | 'page'; id: string }>(() => {
+  const [activeTarget, setActiveTarget] = useState<{ type: 'workspace' | 'board' | 'page'; id: string }>(() => {
     const boards = activeWorkspace?.boards || [];
     if (boards.length > 0) {
       return { type: 'board', id: boards[0].id };
@@ -1396,6 +1397,7 @@ export const App: React.FC = () => {
           syncStatus={syncStatus}
           onLogout={handleLogout}
           onNavigateToLanding={() => goToRoute('landing')}
+          onSelectWorkspaceOverview={() => setActiveTarget({ type: 'workspace', id: activeWorkspace.id })}
           onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
           onOpenSettings={openSettingsTab}
           onSelectOnlineUser={(u) => setSelectedProfileMember(u)}
@@ -1416,6 +1418,20 @@ export const App: React.FC = () => {
                 onOpenTemplates={() => setIsTemplateModalOpen(true)}
                 onCreatePage={() => handleAddPage()}
               />
+            ) : activeTarget.type === 'workspace' ? (
+              <Suspense fallback={<WorkspaceSkeleton />}>
+                <WorkspaceOverview
+                  workspace={activeWorkspace}
+                  currentUserRole={currentUserRole}
+                  canEdit={canEdit}
+                  onSelectBoard={(boardId) => setActiveTarget({ type: 'board', id: boardId })}
+                  onSelectPage={(pageId) => setActiveTarget({ type: 'page', id: pageId })}
+                  onAddBoard={() => handleAddBoard('Papan Baru')}
+                  onAddPage={() => handleAddPage()}
+                  onOpenMembers={() => setIsMembersModalOpen(true)}
+                  onOpenSettings={() => setEntitySettings({ open: true, type: 'workspace' })}
+                />
+              </Suspense>
             ) : activeTarget.type === 'page' && activePage ? (
               <Suspense fallback={<WorkspaceSkeleton />}>
                 <StandalonePageDoc
@@ -1438,6 +1454,7 @@ export const App: React.FC = () => {
                   onViewChange={setActiveView}
                   onOpenMembersModal={() => setIsMembersModalOpen(true)}
                   onOpenBoardSettings={() => setEntitySettings({ open: true, type: 'board' })}
+                  onSelectWorkspaceOverview={() => setActiveTarget({ type: 'workspace', id: activeWorkspace.id })}
                   canEdit={canEdit}
                   onQuickCreateTask={() => {
                     const firstCol = activeBoard.columns[0];

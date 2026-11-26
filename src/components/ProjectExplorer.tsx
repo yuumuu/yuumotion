@@ -22,8 +22,8 @@ interface ProjectExplorerProps {
   isOpen: boolean;
   onToggle: () => void;
   projectName: string;
-  activeTarget: { type: 'board' | 'page'; id: string };
-  onSelectTarget: (target: { type: 'board' | 'page'; id: string }) => void;
+  activeTarget: { type: 'workspace' | 'board' | 'page'; id: string };
+  onSelectTarget: (target: { type: 'workspace' | 'board' | 'page'; id: string }) => void;
   boards: Board[];
   pages: NotionPage[];
   onAddBoard: (title: string) => void;
@@ -113,14 +113,22 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
               : [])
           ])
         }
-        className="group flex h-14 items-center justify-between border-b border-border px-3.5 shrink-0"
+        className="group flex h-[var(--space-header-h)] items-center justify-between border-b border-border px-3.5 shrink-0"
       >
-        <div className="flex gap-2 items-center min-w-0 truncate">
+        <button
+          type="button"
+          onClick={() => onSelectTarget({ type: 'workspace', id: 'current' })}
+          className={cn(
+            'flex gap-2 items-center min-w-0 truncate text-left cursor-pointer hover:text-project-solid transition-colors',
+            activeTarget.type === 'workspace' && 'text-project-solid'
+          )}
+          title="Buka Detail Workspace"
+        >
           <Stack className="h-3.5 w-3.5 text-project-solid shrink-0" />
-          <h2 className="text-xs font-bold truncate font-display text-text">
+          <h2 className="text-xs font-bold truncate font-display">
             {projectName}
           </h2>
-        </div>
+        </button>
         {onOpenWorkspaceSettings && (
           <button
             type="button"
@@ -181,7 +189,7 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
                   <div
                     key={b.id}
                     className={cn(
-                      'group flex items-center justify-between rounded-xl px-2.5 py-1.5 text-xs transition-all cursor-pointer',
+                      'group flex min-h-[var(--space-nav-h)] items-center justify-between rounded-xl px-2.5 py-1 text-xs transition-all cursor-pointer',
                       isActive
                         ? 'bg-project-soft text-project-solid font-semibold border border-project-ring shadow-2xs'
                         : 'text-text hover:bg-hover'

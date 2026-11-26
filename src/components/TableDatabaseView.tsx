@@ -37,7 +37,7 @@ export const TableDatabaseView: React.FC<TableDatabaseViewProps> = ({
   };
 
   return (
-    <div className="flex h-full flex-1 flex-col overflow-hidden bg-bg p-4 sm:p-5 select-none">
+    <div className="flex h-full flex-1 flex-col overflow-hidden bg-bg p-[var(--space-card-p)] sm:p-5 select-none">
       <div className="mb-3.5 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
           <TableIcon className="h-4 w-4 text-project-accent" />

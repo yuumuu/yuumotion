@@ -20,7 +20,7 @@ import { SettingsTab } from './SettingsHubModal';
 interface HeaderProps {
   board?: Board;
   activePage?: NotionPage;
-  currentMode: 'board' | 'page';
+  currentMode: 'workspace' | 'board' | 'page';
   workspaceName: string;
   currentUserRole: UserRole;
   isSidebarOpen: boolean;
@@ -30,6 +30,7 @@ interface HeaderProps {
   syncStatus: SyncConnectionStatus;
   onLogout: () => void;
   onNavigateToLanding: () => void;
+  onSelectWorkspaceOverview?: () => void;
   onOpenCommandPalette?: () => void;
   onOpenSettings?: (tab: SettingsTab) => void;
   onSelectOnlineUser?: (user: UserPresence) => void;
@@ -51,6 +52,7 @@ export const Header: React.FC<HeaderProps> = ({
   syncStatus,
   onLogout,
   onNavigateToLanding,
+  onSelectWorkspaceOverview,
   onOpenCommandPalette,
   onOpenSettings,
   onSelectOnlineUser,
@@ -100,7 +102,7 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="flex sticky top-0 z-30 gap-4 justify-between items-center px-4 h-14 border-b backdrop-blur-md select-none border-border bg-bar/85 sm:px-6 shrink-0">
+    <header className="flex sticky top-0 z-30 gap-4 justify-between items-center px-4 h-[var(--space-header-h)] border-b backdrop-blur-md select-none border-border bg-bar/85 sm:px-6 shrink-0 transition-[height] duration-150">
       {/* Left: Sidebar Toggle & Compact Breadcrumb */}
       <div className="flex gap-3 items-center min-w-0">
         <button
@@ -113,13 +115,26 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
 
         <div className="flex gap-2 items-center min-w-0 text-xs">
-          <span className="hidden font-medium truncate text-muted lg:inline">
-            {workspaceName}
-          </span>
-          <span className="hidden text-muted/60 lg:inline">/</span>
-          <span className="text-sm font-semibold truncate font-display text-text">
-            {currentMode === 'board' ? board?.title || 'Board' : activePage?.title || 'Dokumen'}
-          </span>
+          {currentMode === 'workspace' ? (
+            <span className="text-sm font-semibold truncate font-display text-text">
+              {workspaceName}
+            </span>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={onSelectWorkspaceOverview}
+                className="hidden font-medium truncate text-muted hover:text-project-solid hover:underline lg:inline cursor-pointer"
+                title="Buka Detail Workspace"
+              >
+                {workspaceName}
+              </button>
+              <span className="hidden text-muted/60 lg:inline">/</span>
+              <span className="text-sm font-semibold truncate font-display text-text">
+                {currentMode === 'board' ? board?.title || 'Board' : activePage?.title || 'Dokumen'}
+              </span>
+            </>
+          )}
         </div>
       </div>
 

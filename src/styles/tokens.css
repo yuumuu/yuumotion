@@ -28,6 +28,11 @@
   --space-row-h: 44px;
   --space-nav-h: 36px;
   --space-cover-h: 96px;
+  --space-banner-py: 18px;
+  --space-section-gap: 16px;
+  --space-cell-h: 96px;
+  --space-header-h: 56px;
+  --space-bar-py: 8px;
   --text-ui: 14px;
 }
 
@@ -74,8 +79,13 @@
   --space-card-p: 12px;
   --space-card-gap: 10px;
   --space-col-w: 284px;
-  --space-row-h: 36px;
+  --space-row-h: 34px;
   --space-nav-h: 30px;
   --space-cover-h: 72px;
+  --space-banner-py: 10px;
+  --space-section-gap: 10px;
+  --space-cell-h: 72px;
+  --space-header-h: 46px;
+  --space-bar-py: 5px;
   --text-ui: 13px;
 }

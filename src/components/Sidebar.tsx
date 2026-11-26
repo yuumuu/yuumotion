@@ -26,8 +26,8 @@ interface SidebarProps {
   activeWorkspaceId: string;
   onSelectWorkspace: (workspaceId: string) => void;
   onCreateWorkspace: (name: string, icon: string) => void;
-  activeTarget: { type: 'board' | 'page'; id: string };
-  onSelectTarget: (target: { type: 'board' | 'page'; id: string }) => void;
+  activeTarget: { type: 'workspace' | 'board' | 'page'; id: string };
+  onSelectTarget: (target: { type: 'workspace' | 'board' | 'page'; id: string }) => void;
   pages: NotionPage[];
   boards: Board[];
   onAddPage: () => void;
