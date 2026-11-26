@@ -10,9 +10,19 @@ Workspace kolaboratif hibrida (**Kanban + Dokumen TipTap + Multi-View Sync**) ya
 ## Preview Aplikasi
 
 ### Halaman Utama & Workspace Kanban
-| Landing Page | Workspace Multi-View & Filter |
+| Landing Page 3D | Workspace Kanban & Filter |
 | :---: | :---: |
 | ![Preview Landing Page Yuumotion](docs/assets/preview-landing.png) | ![Preview Workspace Kanban Yuumotion](docs/assets/preview-workspace.png) |
+
+### Dokumen TipTap (Notion-Docs) & Tampilan Tabel
+| Editor Dokumen TipTap + Daftar Isi Sticky | Database Spreadsheet (Tabel) |
+| :---: | :---: |
+| ![Preview Notion-Docs TipTap Yuumotion](docs/assets/preview-docs.png) | ![Preview Tabel Spreadsheet Yuumotion](docs/assets/preview-table.png) |
+
+### Kalender Bulanan & Timeline Gantt
+| Kalender Bulanan Interaktif | Timeline & Gantt Roadmap |
+| :---: | :---: |
+| ![Preview Kalender Yuumotion](docs/assets/preview-calendar.png) | ![Preview Timeline Gantt Yuumotion](docs/assets/preview-timeline.png) |
 
 ### Arsitektur Sistem (Archify)
 Diagram berikut dihasilkan langsung dari kode sumber menggunakan **Archify** (`showcase` profile):
