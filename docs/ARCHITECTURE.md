@@ -1,45 +1,34 @@
-# Yuumotion Architecture
+# Arsitektur Yuumotion (Full-Stack Wasmer Edge)
 
-Yuumotion is an AppFlowy-inspired collaborative Kanban workspace designed for zero-maintenance, zero-cost edge deployment on Wasmer Edge Free Tier, paired with seamless multi-user real-time synchronization.
+Yuumotion adalah workspace kolaboratif hibrida (**Kanban + Dokumen TipTap + Multi-View**) yang memadukan pengalaman **offline-first** di browser dengan backend **Hono (Node.js 24) + Drizzle ORM + Wasmer Managed MySQL + Wasmer Persistent Volume** dalam satu deployment Wasmer Edge (`https://yuumotion.wasmer.app`).
 
-## 1. High-Level Architecture
+> Lihat visualisasi diagram interaktif yang dihasilkan dari kode sumber: [yuumotion-architecture.html](../.archify/architecture-yuumotion-20261126-095800/yuumotion-architecture.html)
 
-```
-+-----------------------------------------------------------+
-|                      Wasmer Edge                          |
-|             (wasmer/static-web-server)                    |
-|    +-------------------------------------------------+    |
-|    |           Yuumotion Static Web SPA              |    |
-|    |      (React 18 + Vite + Tailwind CSS + Lucide)  |    |
-|    +-------------------------------------------------+    |
-+-----------------------------+-----------------------------+
-                              |
-       +----------------------+----------------------+
-       |                                             |
-       v                                             v
-+-------------------------------+       +-------------------------------+
-|      Local State & Cache      |       |      Multi-User Realtime      |
-|  - IndexedDB / localStorage   |       |  - Supabase Realtime / Rooms  |
-|  - Instant 0ms read/write     |       |  - Broadcast Channel / PubSub |
-|  - Offline-first resilience   |       |  - Live Board & Card Sync     |
-+-------------------------------+       +-------------------------------+
-```
+![Diagram Arsitektur Yuumotion](assets/architecture-diagram.png)
 
-## 2. Core Principles
+---
 
-1. **Edge-Hosted Static Client**:
+## 1. Gambaran Aliran Sistem
 
-   - The application compiles into pure static HTML, JavaScript, CSS, and asset files.
-   - Hosted via `wasmer/static-web-server` on Wasmer Edge at zero cost.
-2. **Offline-First & Local-First**:
+1. **Browser Client (`src/`)**:
+   - Aplikasi React 18 + Vite berjalan sebagai SPA dengan persistensi lokal instan di `localStorage`.
+   - **Isolasi Storage (`src/lib/storageNamespace.ts` & `src/hooks/useAuthSession.ts`)**: Key `localStorage` dipisahkan antara sesi tamu (`yuumotion_workspaces_guest`) dan akun terdaftar (`yuumotion_workspaces_user_<id>`). Saat pengguna baru login dari mode tamu, `GuestMigrationModal` menawarkan opsi impor workspace tamu atau memulai bersih.
+   - **EmojiHub API (`src/lib/emojiApi.ts`)**: Mengambil daftar emoji dengan cache `localStorage` 7 hari dan *fallback* 48 emoji bawaan jika jaringan offline.
+2. **Wasmer Edge Server (`server/src/index.ts`)**:
+   - Didefinisikan melalui `Anybuild` (provider Node.js 24, `server: Hono`) dan `app.yaml`.
+   - Satu proses Node.js (`0.0.0.0:$PORT`) melayani aset statis frontend (`./dist` via `serveStatic` + fallback SPA) sekaligus seluruh endpoint `/api/*` dalam satu origin.
+   - **Realtime Sync (`server/src/routes/events.ts`)**: Menyediakan Server-Sent Events (`/api/events/stream`) per workspace untuk menyinkronkan pembaruan papan, kartu, dokumen, dan notifikasi.
+3. **Keamanan & Kontrol Akses (`server/src/middleware/`)**:
+   - `requireAuth` memverifikasi token JWT HTTP-only cookie (`yuumotion_session`) serta menerapkan *rate limiter* berbasis IP dengan pembersihan TTL otomatis.
+   - `authorizeWorkspaceResource` (`workspaceGuard.ts`) menyelesaikan `workspaceId` dari `boardId`, `cardId`, atau `pageId` dan memverifikasi peran minimum anggota (`viewer`, `member`, `admin`, `owner`) sebelum mutasi dijalankan.
+4. **Persistensi Data & File (`server/src/db/` & `server/src/routes/uploads.ts`)**:
+   - **Wasmer Managed MySQL (`db_792d3f57`)**: Terhubung via `mysql2` pool dengan SSL otomatis saat `DB_HOST` atau `DB_SSL=true` terdeteksi. Saat startup, `ensureSchema()` memastikan 10 tabel inti (`users`, `workspaces`, `workspace_members`, `boards`, `columns`, `cards`, `pages`, `notifications`, `activities`, `uploads`) tersedia.
+   - **Wasmer Persistent Volume (`/app/storage/uploads`)**: File lampiran yang lolos allowlist MIME (`image/*`, `application/pdf`, `text/*`) dan batas ukuran 5 MB disimpan ke volume persisten dan disajikan melalui `GET /api/uploads/:id/:fileName` (dengan dukungan opsional `WASMER_STORAGE_ENDPOINT` S3-compatible).
 
-   - Every board change updates the local memory and persists immediately into browser storage.
-   - Users can create boards, rearrange cards, and edit documents even without internet connectivity.
-3. **Multi-User Realtime Synchronization**:
+---
 
-   - Board updates propagate across concurrent sessions using a room-based pub/sub broker (Supabase Realtime Broadcast or WebRTC / PartyKit).
-   - Card movements and edits include client timestamps to resolve concurrent edits cleanly with optimistic UI updates.
-4. **AppFlowy Aesthetic**:
+## 2. Dokumen Terkait
 
-   - Clean, distraction-free typography and modern spacing.
-   - Every Kanban card expands into a full document canvas with rich metadata (status, tags, priority, dates, and markdown-like block notes).
+- [Panduan Deployment Wasmer Edge](DEPLOYMENT_WASMER.md)
+- [Sistem Desain & Token Warna](DESIGN_SYSTEM.md)
+- [Protokol Sinkronisasi Multi-User](MULTIUSER_SYNC.md)

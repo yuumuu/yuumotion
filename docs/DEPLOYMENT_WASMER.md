@@ -1,55 +1,95 @@
-# Deploying Yuumotion to Wasmer Edge (Free Tier)
+# Panduan Deployment Yuumotion ke Wasmer Edge
 
-This guide details how to build and deploy Yuumotion to Wasmer Edge using the official `wasmer/static-web-server`.
+Yuumotion berjalan sebagai aplikasi **full-stack Node.js 24 + Hono + React SPA** di **Wasmer Edge**, terhubung ke **Wasmer Managed MySQL** dan **Wasmer Persistent Volume** untuk penyimpanan file unggahan.
 
-## Prerequisites
+## 1. Prasyarat
 
-1. Install Wasmer CLI (if not already installed):
+1. **Wasmer CLI** (`wasmer >= 7.x`):
    ```powershell
-   # Windows PowerShell
    irm https://cli.wasmer.io/install.ps1 | iex
    ```
-2. Log in or configure your Wasmer account:
+2. Login ke akun Wasmer:
    ```bash
    wasmer login
+   wasmer whoami
    ```
 
-## Configuration: `wasmer.toml`
+---
 
-The project root contains `wasmer.toml`:
-```toml
-[package]
-name = "your-username/yuumotion"
-version = "0.1.0"
-description = "AppFlowy-inspired collaborative Kanban workspace"
-license = "MIT"
+## 2. Konfigurasi Deployment
 
-[dependencies]
-"wasmer/static-web-server" = "^1"
+### `app.yaml`
+File `app.yaml` di root proyek mendeklarasikan runtime, environment, database MySQL, dan volume persisten:
 
-[fs]
-public = "dist"
+```yaml
+kind: wasmer.io/App.v0
+name: yuumotion
+owner: yuumuu
+package: .
+debug: true
+
+env:
+  NODE_ENV: production
+  PORT: "8080"
+  UPLOAD_DIR: /app/storage/uploads
+  APP_URL: https://yuumotion.wasmer.app
+
+capabilities:
+  database:
+    engine: mysql
+
+volumes:
+  - name: uploads
+    mount: /app/storage/uploads
 ```
 
-## Deployment Steps
+### `Anybuild`
+File `Anybuild` memastikan remote builder Wasmer menjalankan build frontend + bundle ESM server (`esbuild`) dan memulai proses Hono:
 
-1. Install project dependencies:
-   ```bash
-   npm install
-   ```
+```python
+load("//anybuild/tools:node.bzl", "node_build", "node_config", "node_serve")
 
-2. Build static production assets:
-   ```bash
-   npm run build
-   ```
-   This creates the optimized static bundle in `dist/`.
+config = node_config(
+    schema = 1,
+    node_server = "hono",
+    node_version = "24",
+    commands = {
+        "build": "npm run build && npm run build:server",
+        "start": "node server/dist/index.js",
+    },
+)
 
-3. Deploy to Wasmer Edge:
-   ```bash
-   wasmer deploy
-   ```
+build = node_build(config)
+node_serve(config, build, name = "yuumotion")
+```
 
-4. Wasmer will output your live URL:
+---
+
+## 3. Pengaturan Secret & Database
+
+1. **JWT Secret** (wajib di mode `production`, jangan pernah disimpan di git):
+   ```powershell
+   wasmer app secret create --app yuumuu/yuumotion --non-interactive JWT_SECRET "<random-hex-48-char>"
    ```
-   https://yuumotion-<id>.wasmer.app
-   ```
+2. **MySQL Wasmer**:
+   Wasmer otomatis mem-provision database MySQL dan menyuntikkan variabel lingkungan `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME`, dan `DB_PASSWORD`. Modul `server/src/db/index.ts` membaca variabel tersebut secara otomatis (dengan SSL aktif) dan menjalankan `ensureSchema()` saat server menyala.
+3. **Volume Storage**:
+   Direktori `/app/storage/uploads` bersifat persisten lintas *deployment* untuk menyimpan file lampiran kartu dari `/api/uploads`.
+
+---
+
+## 4. Menjalankan Deploy
+
+```bash
+wasmer deploy --non-interactive --build-remote
+```
+
+Setelah rollout selesai, verifikasi endpoint kesehatan dan aplikasi:
+- **Live App**: `https://yuumotion.wasmer.app`
+- **Healthcheck**: `https://yuumotion.wasmer.app/api/health`
+- **Cek Log & Database**:
+  ```bash
+  wasmer app logs yuumuu/yuumotion
+  wasmer app database list yuumuu/yuumotion
+  wasmer app volume list yuumuu/yuumotion
+  ```
